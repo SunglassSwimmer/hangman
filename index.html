@@ -1,0 +1,1035 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hangman</title>
+<meta name="theme-color" content="#fffdf6">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Colors (light = notebook paper, dark = chalkboard) ---------- */
+  :root {
+    --paper: #fffdf6; --card: #fffefa; --ink: #1f2a6b; --muted: #6b6f8f; --line: rgba(70, 120, 200, .13);
+    --yellow: #ffd166; --good: #95d5b2; --bad: #ffadad;
+    --wood: #e0aa72; --grass: #c7eab4; --skin: #ffe3b3; --shirt: #ffb5a7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #23282f; --card: #2b313a; --ink: #f1efe6; --muted: #a8adb8; --line: rgba(255, 255, 255, .05);
+      --yellow: #f2c14e; --good: #4f9d76; --bad: #b5575a;
+      --wood: #b07d4f; --grass: #4f7a45;
+    }
+  }
+
+  /* ---------- Page ---------- */
+  * { box-sizing: border-box; }
+  html { overflow-x: clip; }
+  body {
+    margin: 0; color: var(--ink); min-height: 100vh; display: flex; justify-content: center;
+    font-family: "Patrick Hand", "Comic Sans MS", "Chalkboard SE", cursive; font-size: 18px;
+    background-color: var(--paper);
+    background-image: repeating-linear-gradient(transparent 0 31px, var(--line) 31px 32px);
+  }
+  main { width: 100%; max-width: 520px; padding: 16px 16px 40px; }
+  h1 {
+    font-family: "Gochi Hand", cursive; font-weight: 400; font-size: 3.2rem; line-height: 1;
+    margin: 6px 0 2px; text-align: center; transform: rotate(-2deg);
+  }
+  .sub { color: var(--muted); text-align: center; margin: 0 0 8px; font-size: 1.15rem; }
+  .hidden { display: none !important; }
+  .title-cow { width: 120px; margin: 0 auto 6px; }
+  .title-cow svg { display: block; width: 100%; animation: waddle .9s ease-in-out infinite alternate; }
+
+  /* Everything gets wonky "drawn by hand" corners */
+  .card, .btn, .mode, .key, input, .badge {
+    border: 2.5px solid var(--ink);
+    border-radius: 18px 24px 16px 26px / 24px 16px 26px 18px;
+  }
+  .card { background: var(--card); padding: 18px; margin-bottom: 18px; box-shadow: 4px 4px 0 var(--ink); }
+  .card:nth-of-type(2n) { border-radius: 24px 16px 26px 18px / 16px 26px 18px 24px; }
+  .card h2 { font-family: "Gochi Hand", cursive; font-weight: 400; font-size: 1.7rem; margin: 0 0 6px; }
+  .card p { margin: 0 0 12px; color: var(--muted); }
+
+  label { display: block; margin: 10px 0 4px; }
+  input { width: 100%; font: inherit; font-size: 1.2rem; padding: 10px 12px; background: var(--paper); color: var(--ink); }
+  input:focus { outline: none; box-shadow: 0 0 0 3px var(--yellow); }
+  button { font: inherit; cursor: pointer; color: var(--ink); }
+  .btn {
+    width: 100%; padding: 12px; font-size: 1.35rem; margin-top: 12px; background: var(--yellow); color: #1f2a6b;
+    box-shadow: 3px 3px 0 var(--ink); transition: transform .1s, box-shadow .1s;
+  }
+  .btn.secondary { background: var(--card); color: var(--ink); }
+  .btn:active, .mode:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+  .err { color: #e05561; min-height: 1.2em; margin-top: 6px; }
+  .note { color: var(--muted); margin-top: 10px; }
+  .linkbox {
+    word-break: break-all; font-size: .9rem; background: var(--paper); border: 2px dashed var(--ink);
+    padding: 10px; border-radius: 12px; margin-top: 12px;
+  }
+  .toplink { background: none; border: 0; padding: 4px 0; font-size: 1.1rem; text-decoration: underline wavy; }
+
+  /* ---------- Difficulty picker ---------- */
+  .modes { display: grid; gap: 10px; }
+  .mode {
+    display: grid; grid-template-columns: 48px 1fr; align-items: center; text-align: left;
+    padding: 10px 12px; background: var(--card); box-shadow: 3px 3px 0 var(--ink);
+  }
+  .mode .emoji { grid-row: span 2; font-size: 1.8rem; text-align: center; }
+  .mode b { font-family: "Gochi Hand", cursive; font-weight: 400; font-size: 1.4rem; line-height: 1.1; }
+  .mode small { color: var(--muted); font-size: 1rem; }
+  .mode.selected { background: var(--yellow); color: #1f2a6b; }
+  .mode.selected small { color: #4a4f73; }
+  .badge { display: block; width: fit-content; margin: 0 auto 2px; padding: 2px 14px; background: var(--card); font-size: 1.1rem; }
+
+  /* ---------- The scene (gallows, blob, crowd, bird, sun, snail) ---------- */
+  .from { text-align: center; color: var(--muted); margin: 0 0 4px; font-size: 1.15rem; }
+  .scene { position: relative; max-width: 380px; margin: 4px auto 0; }
+  .scene > svg { display: block; width: 100%; height: auto; overflow: visible; stroke: var(--ink); fill: none; }
+  .scene .skin { fill: var(--skin); }
+  .scene .shirt { fill: var(--shirt); }
+  .scene .wood { fill: var(--wood); }
+  .scene .grass { fill: var(--grass); }
+  .scene .paper-fill { fill: var(--card); }
+  .scene .dot { fill: var(--ink); stroke: none; }
+  .scene .sweat { fill: #9bd0f5; stroke: none; }
+  .scene[data-mode="prison"] .shirt { fill: url(#stripes); }
+
+  /* Body parts of the blob appear one per wrong guess */
+  .scene .part { opacity: 0; transition: opacity .3s; }
+  .scene .part.on { opacity: 1; }
+
+  /* Faces change with the mood; mouths in the crowd change with the crowd's mood; costumes change with the mode */
+  .mood, .crowd, .costume { display: none; }
+  .scene[data-mood="calm"] .when-calm, .scene[data-mood="worried"] .when-worried,
+  .scene[data-mood="scared"] .when-scared, .scene[data-mood="happy"] .when-happy,
+  .scene[data-mood="dizzy"] .when-dizzy,
+  .scene[data-crowd="neutral"] .c-neutral, .scene[data-crowd="happy"] .c-happy,
+  .scene[data-crowd="grumpy"] .c-grumpy,
+  .scene[data-mode="easy"] .for-easy, .scene[data-mode="regular"] .for-regular,
+  .scene[data-mode="prison"] .for-prison { display: inline; }
+
+  .scene .wing { transform-box: fill-box; transform-origin: 50% 100%; animation: flap .22s ease-in-out infinite alternate; }
+  @keyframes flap { to { transform: scaleY(.35); } }
+
+  .bob.hop { animation: hop .45s ease-out; }
+  @keyframes hop { 40% { transform: translateY(-10px); } }
+
+  /* Speech bubbles */
+  .bubble {
+    position: absolute; width: max-content; max-width: 165px; padding: 5px 12px; z-index: 2; pointer-events: none;
+    background: var(--card); border: 2.5px solid var(--ink);
+    border-radius: 20px 24px 18px 26px / 26px 18px 24px 20px;
+    font-size: 1.1rem; line-height: 1.15; text-align: center;
+    transform: translateX(var(--shift)); transform-origin: var(--tail) 100%;
+    opacity: 0; scale: .5; transition: opacity .15s, scale .25s cubic-bezier(.3, 1.6, .5, 1);
+  }
+  .bubble.show { opacity: 1; scale: 1; }
+  .bubble small { display: block; font-size: .85rem; color: var(--muted); }
+  .bubble::after {
+    content: ""; position: absolute; top: 100%; left: var(--tail); margin-left: -8px;
+    border: 8px solid transparent; border-top-color: var(--ink);
+  }
+  .bubble[data-who="gerard"] { left: 56.9%; bottom: 46%; --shift: -30%; --tail: 30%; }
+  .bubble[data-who="margot"] { left: 72.8%; bottom: 41%; --shift: -55%; --tail: 55%; }
+  .bubble[data-who="pip"]    { left: 88.3%; bottom: 44%; --shift: -95%; --tail: 92%; }
+  .bubble[data-who="bird"]   { left: 30%; top: -2%; bottom: auto; --shift: 0%; transform-origin: 0 50%; }
+  .bubble[data-who="bird"]::after {
+    top: 10px; left: -16px; margin-left: 0; border-top-color: transparent; border-right-color: var(--ink);
+  }
+
+  /* ---------- Word, keyboard, result ---------- */
+  .hint { text-align: center; margin: 4px 0; font-size: 1.2rem; }
+  .lives { text-align: center; color: var(--muted); margin: 2px 0; }
+  .word { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 12px 0 18px; }
+  .slot {
+    width: 28px; height: 42px; line-height: 44px; border-bottom: 3px solid var(--ink); border-radius: 0 0 3px 6px;
+    text-align: center; font-family: "Gochi Hand", cursive; font-size: 2.1rem; text-transform: uppercase;
+  }
+  .slot:nth-child(even) { transform: rotate(2deg); }
+  .slot:nth-child(odd) { transform: rotate(-2deg); }
+  .slot.gap { border-bottom-color: transparent; width: 14px; }
+  .slot.extra { border-bottom-color: transparent; }
+  .slot.missed { color: #e05561; }
+
+  .keys { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; }
+  .key {
+    padding: 7px 0; font-size: 1.4rem; background: var(--card); box-shadow: 2px 2px 0 var(--ink);
+    transition: transform .08s, box-shadow .08s;
+  }
+  .key:nth-child(3n) { border-radius: 24px 16px 26px 18px / 16px 26px 18px 24px; }
+  .key:nth-child(3n+1) { border-radius: 16px 26px 18px 24px / 26px 18px 24px 16px; }
+  .key:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: none; }
+  .key:disabled { cursor: default; box-shadow: none; transform: translate(2px, 2px); }
+  .key.hit { background: var(--good); }
+  .key.miss { background: var(--bad); opacity: .65; }
+
+  .result { text-align: center; font-family: "Gochi Hand", cursive; font-size: 2rem; margin: 12px 0 0; transform: rotate(-1.5deg); }
+  .result.win { color: #2f9e63; }
+  .result.lose { color: #e05561; }
+
+  /* ---------- Cows that come out of nowhere ---------- */
+  .cow { position: fixed; left: 0; top: 0; z-index: 50; width: 120px; pointer-events: none; }
+  .cow svg { display: block; width: 120px; }
+  .cow .moo {
+    position: absolute; top: -30px; left: 64px; padding: 1px 10px; white-space: nowrap;
+    background: #fff; color: #1f2a6b; border: 2.5px solid #1f2a6b; border-radius: 14px 18px 12px 20px;
+    font-size: 1.15rem;
+  }
+  .cow.fly { animation: cowFly 2.8s ease-in-out forwards; }
+  @keyframes cowFly {
+    0%   { transform: translate(-150px, 60px) rotate(-15deg); }
+    50%  { transform: translate(calc(50vw - 60px), -30px) rotate(5deg); }
+    100% { transform: translate(calc(100vw + 40px), 70px) rotate(-10deg); }
+  }
+  .cow.walk { top: auto; animation: cowWalk 5.5s linear forwards; }
+  .cow.walk svg { animation: waddle .3s ease-in-out infinite alternate; }
+  @keyframes cowWalk { from { transform: translateX(-140px); } to { transform: translateX(calc(100vw + 20px)); } }
+  @keyframes waddle { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+  .cow.drop { animation: cowDrop 2.2s cubic-bezier(.5, 0, 1, 1) forwards; }
+  @keyframes cowDrop { from { transform: translateY(-150px) rotate(0); } to { transform: translateY(110vh) rotate(160deg); } }
+</style>
+</head>
+<body>
+
+<!-- Shared drawing tools: the wobbly "hand-drawn" filter and prison stripes -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="wobble" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence id="wobbleNoise" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5"/>
+    </filter>
+    <pattern id="stripes" width="10" height="10" patternUnits="userSpaceOnUse">
+      <rect width="10" height="10" fill="#fff"/>
+      <rect width="10" height="5" fill="#2b2d42"/>
+    </pattern>
+  </defs>
+</svg>
+
+<main>
+
+  <!-- ===== HOME SCREEN ===== -->
+  <section id="home">
+    <h1>Hangman</h1>
+    <p class="sub">A game of words, peasants &amp; suspicious cows</p>
+    <div class="title-cow" id="titleCow"></div>
+
+    <div class="card">
+      <h2>Pick your difficulty</h2>
+      <div class="modes" id="modes">
+        <button class="mode" data-mode="easy">
+          <span class="emoji">🍼</span><b>Still in Diapers</b><small>10 wrong guesses + a free letter</small>
+        </button>
+        <button class="mode" data-mode="regular">
+          <span class="emoji">🧢</span><b>Regular Joe</b><small>6 wrong guesses</small>
+        </button>
+        <button class="mode" data-mode="prison">
+          <span class="emoji">⛓️</span><b>Prison Mode</b><small>Only 4 wrong guesses, no hints</small>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Challenge a friend</h2>
+      <p>Your word is turned into a link. Text it to a friend so they can try to guess it.</p>
+      <label for="nameInput">Your name</label>
+      <input id="nameInput" maxlength="20" placeholder="e.g. Boris" autocomplete="off">
+      <label for="wordInput">Secret word or phrase</label>
+      <input id="wordInput" maxlength="30" placeholder="e.g. pineapple" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div id="hintField">
+        <label for="hintInput">Hint (optional)</label>
+        <input id="hintInput" maxlength="40" placeholder="e.g. A spiky fruit" autocomplete="off">
+      </div>
+      <div class="err" id="err"></div>
+      <button class="btn" id="makeBtn">Make my link</button>
+    </div>
+
+    <div class="card">
+      <h2>Play by yourself</h2>
+      <p>Guess a random word that the game picks.</p>
+      <button class="btn secondary" id="soloBtn">Play a random word</button>
+    </div>
+  </section>
+
+  <!-- ===== LINK CREATED SCREEN ===== -->
+  <section id="created" class="hidden">
+    <h1>Link ready!</h1>
+    <p class="sub">Send this to your friend. Don't peek at their screen.</p>
+    <div class="card">
+      <button class="btn" id="shareBtn">Share link</button>
+      <button class="btn secondary" id="copyBtn">Copy link</button>
+      <div class="linkbox" id="linkBox"></div>
+      <p class="note hidden" id="localNote">
+        Note: this game is only on your computer right now, so this link won't open on a friend's phone yet.
+        Once the game is online, links will work anywhere.
+      </p>
+    </div>
+    <button class="btn secondary" id="backBtn">Back to start</button>
+  </section>
+
+  <!-- ===== GAME SCREEN ===== -->
+  <section id="game" class="hidden">
+    <button class="toplink" id="homeBtn">&larr; Start over</button>
+    <p class="from" id="fromText"></p>
+    <span class="badge" id="modeText"></span>
+
+    <div class="scene" id="scene" data-mood="calm" data-crowd="neutral" data-mode="regular">
+    <svg viewBox="0 -20 360 260" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <g filter="url(#wobble)">
+
+      <!-- the sun (it gets nervous too) -->
+      <g>
+        <g stroke="#f4a261" stroke-width="3">
+          <path d="M330 -22 v-6 M330 26 v6 M306 2 h-6 M354 2 h6 M313 -15 l-4 -4 M347 19 l4 4 M347 -15 l4 -4 M313 19 l-4 4"/>
+          <animateTransform attributeName="transform" type="rotate" values="0 330 2; 360 330 2" dur="40s" repeatCount="indefinite"/>
+        </g>
+        <circle cx="330" cy="2" r="16" fill="#ffd166"/>
+        <circle class="dot" cx="325" cy="-1" r="1.8"/><circle class="dot" cx="335" cy="-1" r="1.8"/>
+        <path class="mood when-calm when-happy" d="M324 6 Q330 12 336 6"/>
+        <path class="mood when-worried" d="M323 8 q3.5 -3 7 0 q3.5 3 7 0"/>
+        <ellipse class="mood when-scared dot" cx="330" cy="8" rx="2.5" ry="3.5"/>
+        <path class="mood when-dizzy" d="M324 10 Q330 4 336 10"/>
+        <path class="mood when-scared when-worried sweat" d="M345 -8 q-4 6 0 8 q4 -2 0 -8 Z"/>
+      </g>
+
+      <!-- a drifting cloud -->
+      <g>
+        <path class="paper-fill" d="M172 6 q-14 0 -12 -11 q2 -12 16 -9 q6 -12 20 -6 q14 -6 18 8 q12 2 8 12 q-2 6 -10 6 Z"/>
+        <animateTransform attributeName="transform" type="translate" values="0 0; 45 0; 0 0" dur="26s" repeatCount="indefinite"/>
+      </g>
+
+      <!-- the ground, grass and flowers -->
+      <path class="grass" d="M-10 210 Q40 202 90 208 T190 207 T290 209 T370 205 L370 245 L-10 245 Z"/>
+      <path d="M20 206 l3 -7 l2 6 l3 -8 l2 9 M168 205 l3 -6 l2 5 l3 -7 l2 8 M240 208 l3 -7 l2 6 M296 207 l2 -6 l2 5 l3 -7 l2 8"/>
+      <g id="flower">
+        <path d="M160 206 V191" stroke="#5a9e4b"/>
+        <circle cx="160" cy="184" r="4" fill="#ffafcc"/><circle cx="165" cy="188" r="4" fill="#ffafcc"/>
+        <circle cx="163" cy="194" r="4" fill="#ffafcc"/><circle cx="157" cy="194" r="4" fill="#ffafcc"/>
+        <circle cx="155" cy="188" r="4" fill="#ffafcc"/><circle cx="160" cy="189" r="3" fill="#ffd166"/>
+      </g>
+      <use href="#flower" transform="translate(196 4) scale(.8) translate(40 50)"/>
+
+      <!-- the gallows -->
+      <rect class="wood" x="12" y="198" width="112" height="13" rx="6"/>
+      <rect class="wood" x="38" y="16" width="15" height="186" rx="6"/>
+      <path class="wood" d="M50 64 L88 26 L98 28 L52 76 Z"/>
+      <rect class="wood" x="34" y="12" width="112" height="13" rx="6"/>
+      <path d="M43 60 v14 M47 110 v18 M43 150 v12 M70 17 h14 M110 19 h12" stroke-width="1.5"/>
+
+      <!-- the blob in trouble (swings on the rope) -->
+      <g>
+        <animateTransform id="swing" attributeName="transform" type="rotate" values="-4 128 25; 4 128 25; -4 128 25" dur="3s" repeatCount="indefinite"/>
+        <path d="M128 25 Q131 38 128 52" stroke="#b08850" stroke-width="4"/>
+
+        <!-- arms and legs sit behind the body -->
+        <g class="part" data-part="3" stroke-width="3.5">
+          <path d="M114 102 Q100 106 98 117"/><circle class="skin" cx="98" cy="120" r="4.5" stroke-width="2.5"/>
+        </g>
+        <g class="part" data-part="4" stroke-width="3.5">
+          <path d="M142 102 Q156 106 158 117"/><circle class="skin" cx="158" cy="120" r="4.5" stroke-width="2.5"/>
+        </g>
+        <g class="part" data-part="5" stroke-width="3.5">
+          <path d="M121 130 L118 147"/><ellipse class="dot" cx="115" cy="150" rx="7" ry="4"/>
+        </g>
+        <g class="part" data-part="6" stroke-width="3.5">
+          <path d="M135 130 L138 147"/><ellipse class="dot" cx="141" cy="150" rx="7" ry="4"/>
+        </g>
+
+        <!-- body -->
+        <g class="part" data-part="2">
+          <path class="shirt" d="M128 90 C146 90 147 112 145 124 C143 135 113 135 111 124 C109 112 110 90 128 90 Z"/>
+          <g class="costume for-easy">
+            <path d="M111 118 Q113 135 128 135 Q143 135 145 118 Q128 126 111 118 Z" fill="#fff"/>
+            <circle cx="139" cy="123" r="2" fill="#ffd166"/>
+          </g>
+          <g class="costume for-regular"><path d="M121 104 q3 -3 6 0 q3 -3 6 0 q0 5 -6 9 q-6 -4 -6 -9 Z" fill="#ff6b6b"/></g>
+        </g>
+
+        <!-- head and face -->
+        <g class="part" data-part="1">
+          <circle class="skin" cx="128" cy="71" r="21"/>
+          <ellipse cx="115" cy="78" rx="4" ry="2.5" fill="#ffafcc" stroke="none"/>
+          <ellipse cx="141" cy="78" rx="4" ry="2.5" fill="#ffafcc" stroke="none"/>
+
+          <g class="mood when-calm">
+            <circle class="dot" cx="120" cy="69" r="2.5"/><circle class="dot" cx="136" cy="69" r="2.5"/>
+            <path d="M122 79 Q128 84 134 79"/>
+          </g>
+          <g class="mood when-worried">
+            <circle class="dot" cx="120" cy="70" r="2.5"/><circle class="dot" cx="136" cy="70" r="2.5"/>
+            <path d="M114 64 L122 66 M142 64 L134 66"/>
+            <path d="M121 82 q3.5 -3 7 0 q3.5 3 7 0"/>
+            <path class="sweat" d="M151 60 q-4 6 0 8 q4 -2 0 -8 Z"/>
+          </g>
+          <g class="mood when-scared">
+            <circle class="paper-fill" cx="120" cy="69" r="5"/><circle class="dot" cx="120" cy="70" r="2"/>
+            <circle class="paper-fill" cx="136" cy="69" r="5"/><circle class="dot" cx="136" cy="70" r="2"/>
+            <ellipse class="dot" cx="128" cy="83" rx="4" ry="5"/>
+            <path class="sweat" d="M151 58 q-4 6 0 8 q4 -2 0 -8 Z"/>
+            <path class="sweat" d="M105 62 q-4 6 0 8 q4 -2 0 -8 Z"/>
+          </g>
+          <g class="mood when-happy">
+            <path d="M115 71 Q120 64 125 71 M131 71 Q136 64 141 71"/>
+            <path class="dot" d="M119 78 Q128 92 137 78 Z"/>
+          </g>
+          <g class="mood when-dizzy">
+            <path d="M120 69 m-1 0 a1.5 1.5 0 1 1 2 1 a3.5 3.5 0 1 1 3 -4 M136 69 m-1 0 a1.5 1.5 0 1 1 2 1 a3.5 3.5 0 1 1 3 -4"/>
+            <path d="M121 82 q3.5 -3 7 0 q3.5 3 7 0"/>
+            <ellipse cx="128" cy="36" rx="15" ry="4.5" stroke="#f4c430" stroke-width="3.5"/>
+          </g>
+
+          <!-- hats per mode -->
+          <g class="costume for-regular">
+            <path d="M107 64 Q108 44 128 44 Q148 44 149 64 Z" fill="#4d7cff"/>
+            <path d="M146 62 Q162 61 164 66 Q156 68 146 66 Z" fill="#4d7cff"/>
+          </g>
+          <g class="costume for-easy"><path d="M126 50 q-7 -10 2 -13 q8 0 4 7"/></g>
+        </g>
+      </g>
+
+      <!-- prison bars (Prison Mode only) -->
+      <g class="costume for-prison" stroke="#8d99ae" stroke-width="4">
+        <rect x="92" y="34" width="72" height="128" rx="8"/>
+        <path d="M106 34 V162 M120 34 V162 M136 34 V162 M150 34 V162"/>
+      </g>
+
+      <!-- the bird in its nest -->
+      <g class="bob" id="bird">
+        <path d="M68 3 L59 -2 L61 7 Z" fill="#9bd0f5"/>
+        <ellipse cx="80" cy="0" rx="12" ry="10" fill="#9bd0f5"/>
+        <path d="M73 1 Q79 8 85 1"/>
+        <circle class="dot" cx="85" cy="-4" r="1.8"/>
+        <path d="M91 -4 L98 -1 L91 1 Z" fill="#ffb347"/>
+        <path d="M77 -10 q1 -5 4 -3 M81 -10 q3 -4 5 -1"/>
+        <path d="M63 11 Q80 22 97 11 Q90 6 80 7 Q70 6 63 11 Z" fill="#a47148"/>
+        <path d="M67 12 l6 -3 M75 14 l6 -4 M84 13 l6 -3" stroke="#6b4423" stroke-width="1.5"/>
+      </g>
+
+      <!-- Gerard: beret, mustache, baguette -->
+      <g transform="translate(205 0)"><g class="bob" id="gerard">
+        <ellipse class="dot" cx="-9" cy="206" rx="8" ry="4"/><ellipse class="dot" cx="9" cy="206" rx="8" ry="4"/>
+        <path d="M-20 203 C-25 168 -16 134 0 134 C16 134 25 168 20 203 Q0 208 -20 203 Z" fill="#f6bd60"/>
+        <ellipse cx="1" cy="135" rx="15" ry="5.5" fill="#e63946"/>
+        <path d="M1 130 v-5"/>
+        <circle class="dot" cx="-6" cy="152" r="2.2"/><circle class="dot" cx="6" cy="152" r="2.2"/>
+        <ellipse cx="-12" cy="159" rx="3.5" ry="2" fill="#ffafcc" stroke="none"/>
+        <ellipse cx="12" cy="159" rx="3.5" ry="2" fill="#ffafcc" stroke="none"/>
+        <path d="M0 161 q-5 -4 -10 0 q-3 2 -5 -1 M0 161 q5 -4 10 0 q3 2 5 -1" stroke-width="3"/>
+        <path class="crowd c-happy dot" d="M-6 166 Q0 176 6 166 Z"/>
+        <path class="crowd c-grumpy" d="M-5 170 Q0 165 5 170"/>
+        <path class="crowd c-neutral" d="M-4 168 Q0 170 4 168"/>
+        <g transform="rotate(-25 18 172)">
+          <rect x="13" y="146" width="10" height="52" rx="5" fill="#e9c46a"/>
+          <path d="M15 156 l6 -3 M15 168 l6 -3 M15 180 l6 -3" stroke-width="1.5"/>
+        </g>
+      </g></g>
+
+      <!-- Margot: headscarf, glasses, pitchfork -->
+      <g transform="translate(262 0)"><g class="bob" id="margot">
+        <path d="M30 205 V128" stroke="#8b5a2b" stroke-width="4"/>
+        <path d="M22 130 V116 M30 130 V113 M38 130 V116 M21 130 H39" stroke="#8d99ae" stroke-width="3"/>
+        <ellipse class="dot" cx="-9" cy="206" rx="8" ry="4"/><ellipse class="dot" cx="9" cy="206" rx="8" ry="4"/>
+        <ellipse cx="0" cy="181" rx="23" ry="25" fill="#cdb4db"/>
+        <path d="M-22 176 C-24 150 24 150 22 176 C14 166 -14 166 -22 176 Z" fill="#2a9d8f"/>
+        <circle cx="-9" cy="163" r="1.8" fill="#fff" stroke="none"/><circle cx="2" cy="159" r="1.8" fill="#fff" stroke="none"/>
+        <circle cx="12" cy="165" r="1.8" fill="#fff" stroke="none"/>
+        <path d="M17 171 l9 5 l-2 -9 Z" fill="#2a9d8f"/>
+        <circle class="paper-fill" cx="-8" cy="179" r="6"/><circle class="paper-fill" cx="8" cy="179" r="6"/>
+        <path d="M-2 179 h4"/>
+        <circle class="dot" cx="-8" cy="180" r="1.8"/><circle class="dot" cx="8" cy="180" r="1.8"/>
+        <path class="crowd c-happy dot" d="M-6 190 Q0 199 6 190 Z"/>
+        <path class="crowd c-grumpy" d="M-5 194 Q0 189 5 194"/>
+        <path class="crowd c-neutral" d="M-4 192 h8"/>
+        <path d="M21 188 Q26 187 29 183"/><circle cx="30" cy="182" r="3.5" fill="#cdb4db"/>
+      </g></g>
+
+      <!-- Pip: tiny, curious, holding a balloon -->
+      <g transform="translate(318 0)"><g class="bob" id="pip">
+        <g>
+          <animateTransform attributeName="transform" type="translate" values="0 0; 0 -4; 0 0" dur="2.4s" repeatCount="indefinite"/>
+          <path d="M11 186 Q24 160 20 132"/>
+          <ellipse cx="20" cy="119" rx="11" ry="13" fill="#ff6b6b"/>
+          <path d="M17 132 l3 4 l3 -4 Z" fill="#ff6b6b"/>
+          <path d="M14 114 q2 -5 6 -6" stroke="#fff"/>
+        </g>
+        <ellipse class="dot" cx="-6" cy="206" rx="6" ry="3.5"/><ellipse class="dot" cx="6" cy="206" rx="6" ry="3.5"/>
+        <ellipse cx="0" cy="190" rx="15" ry="17" fill="#a8dadc"/>
+        <path d="M0 173 q-5 -8 2 -10 q6 1 2 6"/>
+        <circle class="dot" cx="-5" cy="187" r="3"/><circle cx="-4" cy="186" r="1" fill="#fff" stroke="none"/>
+        <circle class="dot" cx="5" cy="187" r="3"/><circle cx="6" cy="186" r="1" fill="#fff" stroke="none"/>
+        <ellipse cx="-10" cy="193" rx="3" ry="1.8" fill="#ffafcc" stroke="none"/>
+        <ellipse cx="10" cy="193" rx="3" ry="1.8" fill="#ffafcc" stroke="none"/>
+        <path class="crowd c-happy dot" d="M-4 194 Q0 201 4 194 Z"/>
+        <path class="crowd c-grumpy" d="M-3 198 Q0 194 3 198"/>
+        <circle class="crowd c-neutral" cx="0" cy="196" r="1.8"/>
+      </g></g>
+
+      <!-- Olivia the snail, who slides along the grass and is in no hurry.
+           The code below moves her, grows her, and handles eagle snatches. -->
+      <g id="olivia">
+        <g transform="translate(0 -42) scale(1.3)">
+        <g id="oliviaGrow">
+        <!-- her parachute (only while floating back down) -->
+        <g id="oliviaChute" style="display:none">
+          <path d="M12 196 L-6 172 M12 196 L30 172 M12 196 L12 172" stroke-width="1"/>
+          <path d="M-6 172 Q12 142 30 172 Q25 167 21 172 Q16 167 12 172 Q8 167 3 172 Q-1 167 -6 172 Z" fill="#ffafcc"/>
+        </g>
+        <text id="oliviaEek" x="24" y="186" class="dot" style="display:none; font: 12px 'Gochi Hand', cursive">Eek!</text>
+        <text x="-14" y="209" text-anchor="end" class="dot" style="font: 16px 'Gochi Hand', cursive">Olivia</text>
+        <path d="M-11 204 Q-6 200 -2 204 M-6 202 L-2 204 L-5 208" stroke-width="2"/>
+        <path d="M0 211 Q10 203 26 207 Q31 210 26 212 L0 212 Z" fill="#d4e09b"/>
+        <path d="M24 206 L26 197 M27 206 L31 198"/>
+        <circle class="dot" cx="26" cy="196" r="1.6"/><circle class="dot" cx="31" cy="197" r="1.6"/>
+        <ellipse cx="29" cy="193" rx="5" ry="2" fill="#e63946"/>
+        <circle cx="10" cy="201" r="8" fill="#f4a261"/>
+        <path d="M10 201 a1.5 1.5 0 1 1 2 -1 a4 4 0 1 1 -6 -3"/>
+        </g>
+        </g>
+      </g>
+
+      <!-- Gary the eagle (drawn with his talons at 0,0 so he can grab things) -->
+      <g id="eagle" style="display:none">
+        <path class="wing" d="M-6 -26 Q-30 -54 -52 -36 Q-40 -34 -36 -26 Q-24 -30 -6 -18 Z" fill="#8d5a3b"/>
+        <path class="wing" d="M6 -26 Q30 -54 52 -36 Q40 -34 36 -26 Q24 -30 6 -18 Z" fill="#8d5a3b"/>
+        <path d="M-5 -6 L-5 0 M5 -6 L5 0 M-9 0 h7 M2 0 h7" stroke="#ffb703" stroke-width="3"/>
+        <ellipse cx="0" cy="-20" rx="13" ry="15" fill="#8d5a3b"/>
+        <path d="M-6 -16 q3 3 6 0 q3 3 6 0" stroke="#5e3a24" stroke-width="1.5"/>
+        <circle cx="0" cy="-38" r="11" fill="#fff"/>
+        <path d="M-8 -43 L-2 -40 M8 -43 L2 -40" stroke-width="2.5"/>
+        <circle class="dot" cx="-4" cy="-38" r="1.8"/><circle class="dot" cx="4" cy="-38" r="1.8"/>
+        <path d="M-4 -34 Q0 -24 5 -33 Z" fill="#ffb703"/>
+      </g>
+
+    </g>
+    </svg>
+    <div class="bubble" id="bubble" data-who="gerard"></div>
+    </div>
+
+    <p class="hint" id="hintText"></p>
+    <p class="lives" id="livesText"></p>
+    <div class="word" id="wordBox"></div>
+    <div class="keys" id="keys"></div>
+
+    <div id="endBox" class="hidden">
+      <p class="result" id="resultText"></p>
+      <button class="btn" id="replyBtn">Send a word back</button>
+      <button class="btn secondary" id="againBtn">Play a random word</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // ---------- Difficulty modes ----------
+  const MODES = {
+    easy: {
+      name: "Still in Diapers", emoji: "🍼", lives: 10, freeLetter: true, hints: true,
+      win: "Big kid now! 🎉", lose: "Waaah! Time for a nap. 🍼"
+    },
+    regular: {
+      name: "Regular Joe", emoji: "🧢", lives: 6, freeLetter: false, hints: true,
+      win: "Nice work, Joe! 🎉", lose: "Better luck next time, Joe."
+    },
+    prison: {
+      name: "Prison Mode", emoji: "⛓️", lives: 4, freeLetter: false, hints: false,
+      win: "You broke out! 🔓", lose: "Locked up for life! ⛓️"
+    }
+  };
+
+  // Words used in "play by yourself" mode, one list per difficulty
+  const SOLO_WORDS = {
+    easy: [
+      ["cat", "Animal"], ["dog", "Animal"], ["duck", "Animal"], ["frog", "Animal"], ["pig", "Animal"],
+      ["cow", "Animal"], ["bear", "Animal"], ["fish", "Animal"], ["cake", "Food"], ["milk", "Food"],
+      ["apple", "Food"], ["pizza", "Food"], ["sun", "Nature"], ["tree", "Nature"], ["moon", "Nature"],
+      ["star", "Nature"], ["ball", "Toy"], ["kite", "Toy"], ["hat", "Clothes"], ["shoe", "Clothes"],
+      ["bus", "Vehicle"], ["boat", "Vehicle"], ["book", "Thing"], ["bed", "Thing"]
+    ],
+    regular: [
+      ["giraffe", "Animal"], ["penguin", "Animal"], ["octopus", "Animal"], ["kangaroo", "Animal"],
+      ["hedgehog", "Animal"], ["flamingo", "Animal"], ["pineapple", "Food"], ["spaghetti", "Food"],
+      ["pancake", "Food"], ["avocado", "Food"], ["broccoli", "Food"], ["croissant", "Food"],
+      ["guitar", "Instrument"], ["trumpet", "Instrument"], ["violin", "Instrument"], ["accordion", "Instrument"],
+      ["volcano", "Nature"], ["glacier", "Nature"], ["rainbow", "Nature"], ["waterfall", "Nature"],
+      ["thunderstorm", "Nature"], ["desert", "Nature"], ["umbrella", "Thing"], ["telescope", "Thing"],
+      ["backpack", "Thing"], ["lighthouse", "Place"], ["library", "Place"], ["airport", "Place"],
+      ["castle", "Place"], ["basketball", "Sport"], ["skateboard", "Sport"], ["swimming", "Sport"],
+      ["bowling", "Sport"], ["astronaut", "Job"], ["firefighter", "Job"], ["detective", "Job"],
+      ["ice cream", "Food"], ["roller coaster", "Fun"], ["birthday party", "Fun"], ["treasure map", "Thing"]
+    ],
+    // Prison words use rare letters and few vowels (no hints shown in this mode)
+    prison: [
+      ["rhythm"], ["jazz"], ["sphinx"], ["zigzag"], ["oxygen"], ["quizzical"], ["buzzard"], ["jukebox"],
+      ["kayak"], ["xylophone"], ["awkward"], ["wizardry"], ["zephyr"], ["crypt"], ["galaxy"], ["jinx"],
+      ["fjord"], ["bagpipes"], ["vortex"], ["quartz"], ["mystify"], ["abyss"], ["gazebo"], ["pixel"],
+      ["nightclub"], ["glyph"], ["jigsaw"], ["frizzy"], ["blizzard"], ["syzygy"]
+    ]
+  };
+
+  // ---------- The cast and what they shout ----------
+  // "wrong" = after a wrong guess, "right" = after a right guess, "win"/"lose" = end of the game
+  const CAST = {
+    gerard: {
+      wrong: ["Ohohoho! Magnifique failure!", "Zut alors! Wrong again!", "Go to sleep!", "I bet my baguette on this!", "Encore! Encore!"],
+      right: ["Zut alors!", "She mocks us!", "Sacrebleu! A lucky one!", "Hmph. Bah.", "My mustache is offended."],
+      win:   ["Nooo! I sold tickets!", "Zut alors! They escaped!"],
+      lose:  ["Release the cows!", "Ohohoho! Magnifique!"]
+    },
+    margot: {
+      wrong: ["I should have used pencil!", "In my day we guessed vowels!", "My goat guesses better!", "Boooo!", "I knitted a whole scarf waiting for that."],
+      right: ["Cheater!", "Who told them?!", "Don't get cocky, dear.", "Rigged!", "Hmph. Fine."],
+      win:   ["Rigged, I tell you!", "Well I never!"],
+      lose:  ["Hooray! Pie for everyone!", "Same time next week?"]
+    },
+    pip: {
+      wrong: ["Is that bad?", "Mama, what's a vowel?", "Even the cow knew that one!", "Hehe. Oops.", "Can I have your shoes?"],
+      right: ["Yay! ...wait, are we sad?", "Ooh, good one!", "I like this one.", "Do it again!"],
+      win:   ["Yaaay! Can we keep them?", "Best show ever!"],
+      lose:  ["Bye bye!", "Can I have their shoes now?"]
+    },
+    bird: {
+      wrong: ["Tweet.<small>(Translation: yikes.)</small>", "Chirp chirp.<small>(Translation: oh dear.)</small>", "Tweet!<small>(Translation: the cow is coming.)</small>"],
+      right: ["Tweet.<small>(Translation: nice.)</small>", "Chirp!<small>(Translation: I believed in you.)</small>"],
+      win:   ["TWEET!<small>(Translation: freedom!)</small>"],
+      lose:  ["Tweet.<small>(Translation: I'll keep the nest warm.)</small>"]
+    }
+  };
+
+  const MOOS = ["Moo!", "MOOOO!", "Moo?", "Moo-la-la!", "Bonjour. Moo.", "Mooove aside!"];
+  const SUPER_MOOS = ["Super moo!", "To the barn!", "MOOOOO!"];
+
+  // ---------- Small helpers ----------
+  const $ = (id) => document.getElementById(id);
+  const pick = (list) => list[Math.floor(Math.random() * list.length)];
+
+  function showScreen(name) {
+    for (const id of ["home", "created", "game"]) $(id).classList.toggle("hidden", id !== name);
+    window.scrollTo(0, 0);
+  }
+
+  // Restart a CSS animation on an element (used for hops)
+  function replay(el, cls) {
+    el.classList.remove(cls);
+    void el.getBoundingClientRect();
+    el.classList.add(cls);
+  }
+
+  // Save/load the player's name and mode so they don't redo it (ignore errors in private browsing)
+  function saveName(name) { try { localStorage.setItem("hangman-name", name); } catch (e) {} }
+  function loadName() { try { return localStorage.getItem("hangman-name") || ""; } catch (e) { return ""; } }
+  function saveMode(mode) { try { localStorage.setItem("hangman-mode", mode); } catch (e) {} }
+  function loadMode() { try { return localStorage.getItem("hangman-mode"); } catch (e) { return null; } }
+
+  // Hide the puzzle inside the link so it isn't readable at a glance
+  function encodePuzzle(obj) {
+    const text = btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+    return text.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function decodePuzzle(code) {
+    let text = code.replace(/-/g, "+").replace(/_/g, "/");
+    while (text.length % 4) text += "=";
+    return JSON.parse(decodeURIComponent(escape(atob(text))));
+  }
+
+  // Make the lines "boil" like a hand-drawn cartoon by nudging the wobble a few times a second
+  let wobbleSeed = 1;
+  setInterval(() => {
+    wobbleSeed = (wobbleSeed % 3) + 1;
+    $("wobbleNoise").setAttribute("seed", wobbleSeed);
+  }, 180);
+
+  // ---------- Cows ----------
+  function cowSvg(cape) {
+    return `
+    <svg viewBox="0 0 130 92" stroke="#1f2a6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#wobble)">
+      <path d="M26 46 Q12 40 13 28" fill="none"/><circle cx="13" cy="26" r="4" fill="#1f2a6b"/>
+      <rect x="34" y="58" width="10" height="21" rx="5" fill="#fff"/><rect x="49" y="60" width="10" height="21" rx="5" fill="#fff"/>
+      <rect x="76" y="60" width="10" height="21" rx="5" fill="#fff"/><rect x="91" y="58" width="10" height="21" rx="5" fill="#fff"/>
+      <ellipse cx="65" cy="50" rx="42" ry="25" fill="#fff"/>
+      <path d="M42 36 q8 -6 14 2 q4 8 -6 10 q-10 0 -8 -12 Z" fill="#1f2a6b"/>
+      <path d="M74 52 q8 -4 11 3 q1 7 -7 7 q-8 -2 -4 -10 Z" fill="#1f2a6b"/>
+      <circle cx="62" cy="31" r="3.5" fill="#1f2a6b"/>
+      <ellipse cx="62" cy="74" rx="8" ry="4.5" fill="#ffc2d1"/>
+      ${cape ? '<path d="M92 30 Q60 8 18 20 Q30 28 22 40 Q52 32 88 42 Z" fill="#e63946"/>' : ""}
+      <path d="M101 21 q-4 -8 1 -12 M117 21 q4 -8 -1 -12" fill="none" stroke="#c9a227" stroke-width="3"/>
+      <ellipse cx="92" cy="28" rx="7" ry="4" fill="#fff" transform="rotate(-20 92 28)"/>
+      <ellipse cx="126" cy="28" rx="7" ry="4" fill="#fff" transform="rotate(20 126 28)"/>
+      <ellipse cx="109" cy="34" rx="17" ry="16" fill="#fff"/>
+      <ellipse cx="111" cy="45" rx="14" ry="9" fill="#ffc2d1"/>
+      <circle cx="106" cy="44" r="1.6" fill="#1f2a6b" stroke="none"/><circle cx="116" cy="44" r="1.6" fill="#1f2a6b" stroke="none"/>
+      <path d="M105 49 Q111 53 117 49" fill="none"/>
+      <circle cx="103" cy="30" r="3.2" fill="#1f2a6b" stroke="none"/><circle cx="104" cy="29" r="1.1" fill="#fff" stroke="none"/>
+      <circle cx="115" cy="30" r="3.2" fill="#1f2a6b" stroke="none"/><circle cx="116" cy="29" r="1.1" fill="#fff" stroke="none"/>
+    </svg>`;
+  }
+
+  function launchCow(delay = 0) {
+    setTimeout(() => {
+      const kind = pick(["fly", "walk", "drop"]);
+      const cow = document.createElement("div");
+      cow.className = "cow " + kind;
+      // Flying cows are super cows and wear a cape
+      cow.innerHTML = `<span class="moo">${kind === "fly" ? pick(SUPER_MOOS) : pick(MOOS)}</span>` + cowSvg(kind === "fly");
+      if (kind === "fly") cow.style.top = 10 + Math.random() * 30 + "vh";
+      if (kind === "walk") cow.style.bottom = 5 + Math.random() * 25 + "vh";
+      if (kind === "drop") cow.style.left = 10 + Math.random() * 55 + "vw";
+      cow.addEventListener("animationend", (e) => { if (e.target === cow) cow.remove(); });
+      document.body.appendChild(cow);
+      replay($("bird"), "hop"); // the bird is startled
+    }, delay);
+  }
+
+  $("titleCow").innerHTML = cowSvg(false);
+
+  // ---------- Heckling ----------
+  let bubbleTimer;
+  function heckle(kind) {
+    // Usually a peasant speaks; sometimes the bird chimes in.
+    // During the game the bubble fades out; at the end it stays up.
+    const who = Math.random() < 0.15 ? "bird" : pick(["gerard", "margot", "pip"]);
+    say(who, pick(CAST[who][kind]), kind === "win" || kind === "lose");
+  }
+
+  function say(who, text, stays) {
+    const bubble = $("bubble");
+    bubble.classList.remove("show");
+    bubble.innerHTML = text;
+    bubble.dataset.who = who;
+    void bubble.offsetWidth;
+    bubble.classList.add("show");
+    replay($(who), "hop");
+    clearTimeout(bubbleTimer);
+    if (!stays) bubbleTimer = setTimeout(() => bubble.classList.remove("show"), 2800);
+  }
+
+  // ---------- Olivia the snail (and Gary the eagle) ----------
+  const OLIVIA_TRIP = 90000; // milliseconds to cross the scene
+  const olivia = { progress: Math.random() * 0.6, state: "crawl", start: 0, dx: 0, dy: 0 };
+
+  const SNATCH_LINES = {
+    gerard: ["Zut alors! Not Olivia!", "Sacrebleu! Unhand that snail!"],
+    margot: ["Put her down, you brute!", "OLIVIA!"],
+    pip:    ["OLIVIA, NOOO!", "Bye Olivia! ...wait, NO!"],
+    bird:   ["TWEET!<small>(Translation: not cool, Gary.)</small>"]
+  };
+  const RETURN_LINES = {
+    gerard: ["She lives! Magnifique!", "Olivia! Ze legend!"],
+    margot: ["Oh thank heavens.", "Someone get that snail a medal."],
+    pip:    ["OLIVIA! You came back!", "Can I have a parachute too?"],
+    bird:   ["Tweet.<small>(Translation: welcome home.)</small>"]
+  };
+
+  // Where she is and how big she is depend on how far along she is
+  const oliviaX = () => -110 + 530 * olivia.progress;
+  const oliviaSize = () => 0.5 + 1.9 * olivia.progress;
+
+  // The top of her shell, in scene coordinates (where Gary grabs her)
+  function shellTop() {
+    const s = oliviaSize();
+    return { x: oliviaX() + 16.9 - 3.9 * s, y: 233.6 - 24.7 * s };
+  }
+
+  function drawOlivia() {
+    $("olivia").setAttribute("transform", `translate(${oliviaX() + olivia.dx} ${olivia.dy})`);
+    $("oliviaGrow").setAttribute("transform", `translate(13 212) scale(${oliviaSize()}) translate(-13 -212)`);
+  }
+
+  function snatchOlivia() {
+    const x = oliviaX();
+    if (olivia.state !== "crawl" || x < 10 || x > 320) return; // only while she's on screen
+    olivia.state = "snatch";
+    olivia.start = performance.now();
+    olivia.grab = shellTop();
+    olivia.eagleSize = Math.max(1, oliviaSize() * 0.75);
+    $("eagle").style.display = "";
+    setTimeout(() => {
+      const who = Math.random() < 0.25 ? "bird" : pick(["gerard", "margot", "pip"]);
+      if (!(game && game.over)) say(who, pick(SNATCH_LINES[who]));
+    }, 1300);
+  }
+
+  const ease = (t) => t * t * (3 - 2 * t);
+  const clamp01 = (t) => Math.max(0, Math.min(1, t));
+
+  // The snatch, step by step (times in milliseconds since it started)
+  function updateSnatch(now) {
+    const t = now - olivia.start;
+    const g = olivia.grab;
+    const eagle = $("eagle");
+
+    if (t < 1400) {
+      // Gary swoops in from the top right, dipping low before he reaches her
+      const p = ease(t / 1400), sx = 420, sy = -90, cx = g.x + 140, cy = g.y;
+      const ex = (1 - p) * (1 - p) * sx + 2 * (1 - p) * p * cx + p * p * g.x;
+      const ey = (1 - p) * (1 - p) * sy + 2 * (1 - p) * p * cy + p * p * g.y;
+      eagle.setAttribute("transform", `translate(${ex} ${ey}) scale(${olivia.eagleSize})`);
+    } else if (t < 1700) {
+      // Grab!
+      $("oliviaEek").style.display = "";
+      eagle.setAttribute("transform", `translate(${g.x} ${g.y}) scale(${olivia.eagleSize})`);
+    } else if (t < 3700) {
+      // ...and away they go, up and off to the left
+      const p = clamp01((t - 1700) / 2000) ** 2;
+      olivia.dx = -170 * p;
+      olivia.dy = (-150 - g.y) * p;
+      eagle.setAttribute("transform", `translate(${g.x + olivia.dx} ${g.y + olivia.dy}) scale(${olivia.eagleSize})`);
+    } else if (t < 9000) {
+      // Gone. Everyone holds their breath.
+      eagle.style.display = "none";
+      $("olivia").style.display = "none";
+    } else if (t < 12500) {
+      // She floats back down on a parachute somewhere new
+      if (!olivia.landing) {
+        olivia.landing = true;
+        olivia.progress = 0.15 + Math.random() * 0.45;
+        $("olivia").style.display = "";
+        $("oliviaChute").style.display = "";
+        $("oliviaEek").style.display = "none";
+      }
+      const p = clamp01((t - 9000) / 3500);
+      olivia.dy = -280 * (1 - p) * (1 - p);
+      olivia.dx = 10 * Math.sin(t / 300) * (1 - p);
+    } else {
+      // Landed safely
+      olivia.dx = olivia.dy = 0;
+      olivia.landing = false;
+      olivia.state = "crawl";
+      $("oliviaChute").style.display = "none";
+      const who = Math.random() < 0.25 ? "bird" : pick(["gerard", "margot", "pip"]);
+      if (!(game && game.over)) say(who, pick(RETURN_LINES[who]));
+    }
+  }
+
+  let lastFrame = performance.now();
+  function oliviaFrame(now) {
+    const dt = Math.min(now - lastFrame, 100);
+    lastFrame = now;
+    if (olivia.state === "crawl") {
+      olivia.progress += dt / OLIVIA_TRIP;
+      if (olivia.progress > 1) olivia.progress -= 1;
+    } else {
+      updateSnatch(now);
+    }
+    drawOlivia();
+    requestAnimationFrame(oliviaFrame);
+  }
+  requestAnimationFrame(oliviaFrame);
+
+  // Every so often, even if nobody is guessing, Gary gets ideas
+  setInterval(() => {
+    if (!$("game").classList.contains("hidden") && Math.random() < 0.3) snatchOlivia();
+  }, 20000);
+
+  // ---------- Home screen: picking a difficulty ----------
+  let currentLink = "";
+  $("nameInput").value = loadName();
+
+  let selectedMode = MODES[loadMode()] ? loadMode() : "regular";
+
+  function selectMode(mode) {
+    selectedMode = mode;
+    saveMode(mode);
+    document.querySelectorAll(".mode").forEach((btn) => btn.classList.toggle("selected", btn.dataset.mode === mode));
+    $("hintField").classList.toggle("hidden", !MODES[mode].hints); // no hints in Prison Mode
+  }
+  document.querySelectorAll(".mode").forEach((btn) => btn.addEventListener("click", () => selectMode(btn.dataset.mode)));
+  selectMode(selectedMode);
+
+  // ---------- Home screen: making a link ----------
+  $("makeBtn").addEventListener("click", () => {
+    const name = $("nameInput").value.trim();
+    const word = $("wordInput").value.trim().toLowerCase().replace(/\s+/g, " ");
+    const hint = MODES[selectedMode].hints ? $("hintInput").value.trim() : "";
+    const letterCount = (word.match(/[a-z]/g) || []).length;
+
+    if (!/^[a-z' -]+$/.test(word)) return showError("Use letters only (spaces, hyphens and apostrophes are OK).");
+    if (letterCount < 2) return showError("Your word needs at least 2 letters.");
+
+    showError("");
+    saveName(name);
+    currentLink = location.href.split("#")[0] + "#g=" + encodePuzzle({ w: word, h: hint, f: name, m: selectedMode });
+
+    $("linkBox").textContent = currentLink;
+    $("localNote").classList.toggle("hidden", location.protocol !== "file:");
+    $("shareBtn").classList.toggle("hidden", !navigator.share);
+    $("wordInput").value = "";
+    $("hintInput").value = "";
+    showScreen("created");
+  });
+
+  function showError(msg) { $("err").textContent = msg; }
+
+  $("shareBtn").addEventListener("click", async () => {
+    try {
+      await navigator.share({ title: "Hangman", text: "I made you a hangman puzzle! Can you guess it?", url: currentLink });
+    } catch (e) { /* user closed the share sheet */ }
+  });
+
+  $("copyBtn").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(currentLink);
+      $("copyBtn").textContent = "Copied!";
+    } catch (e) {
+      $("copyBtn").textContent = "Couldn't copy, select the link below";
+    }
+    setTimeout(() => ($("copyBtn").textContent = "Copy link"), 2000);
+  });
+
+  $("backBtn").addEventListener("click", goHome);
+  $("homeBtn").addEventListener("click", goHome);
+  $("replyBtn").addEventListener("click", goHome);
+  $("soloBtn").addEventListener("click", startSolo);
+  $("againBtn").addEventListener("click", startSolo);
+
+  function goHome() {
+    history.replaceState(null, "", location.pathname + location.search);
+    showScreen("home");
+  }
+
+  // ---------- The game ----------
+  let game = null; // { word, mode, guessed: Set, wrong, over }
+
+  function startSolo() {
+    const list = SOLO_WORDS[selectedMode];
+    const [word, category] = list[Math.floor(Math.random() * list.length)];
+    history.replaceState(null, "", location.pathname + location.search);
+    startGame(word, category ? "Category: " + category : "", "", selectedMode);
+  }
+
+  function startGame(word, hint, from, modeKey) {
+    const mode = MODES[modeKey];
+    game = { word, mode, guessed: new Set(), wrong: 0, over: false };
+
+    // Still in Diapers: give away the first letter for free
+    if (mode.freeLetter) game.guessed.add(word.match(/[a-z]/)[0]);
+
+    $("fromText").textContent = from ? from + " sent you a puzzle!" : "";
+    $("modeText").textContent = mode.emoji + " " + mode.name;
+    $("hintText").textContent = mode.hints ? hint : "";
+    $("scene").dataset.mode = modeKey;   // costumes: diaper, cap or prison stripes
+    $("scene").dataset.crowd = "neutral";
+    $("endBox").classList.add("hidden");
+    $("bubble").classList.remove("show");
+    buildKeyboard();
+    render();
+    showScreen("game");
+  }
+
+  function buildKeyboard() {
+    const keys = $("keys");
+    keys.innerHTML = "";
+    for (const letter of "abcdefghijklmnopqrstuvwxyz") {
+      const btn = document.createElement("button");
+      btn.className = "key";
+      btn.textContent = letter.toUpperCase();
+      btn.dataset.letter = letter;
+      btn.addEventListener("click", () => guess(letter));
+      keys.appendChild(btn);
+    }
+  }
+
+  function guess(letter) {
+    if (!game || game.over || game.guessed.has(letter)) return;
+    game.guessed.add(letter);
+    const correct = game.word.includes(letter);
+    if (!correct) game.wrong++;
+
+    const solved = [...game.word].every((ch) => !/[a-z]/.test(ch) || game.guessed.has(ch));
+    if (solved || game.wrong >= game.mode.lives) {
+      game.over = true;
+      $("resultText").textContent = solved ? game.mode.win : game.mode.lose;
+      $("resultText").className = "result " + (solved ? "win" : "lose");
+      $("endBox").classList.remove("hidden");
+    }
+
+    // The crowd cheers when you're wrong and sulks when you're right
+    $("scene").dataset.crowd = (game.over ? !solved : !correct) ? "happy" : "grumpy";
+    render();
+
+    // Someone shouts, and sometimes a cow shows up
+    if (game.over && solved) {
+      heckle("win");
+      launchCow(300);
+    } else if (game.over) {
+      heckle("lose");
+      launchCow(300); launchCow(900); launchCow(1500); // stampede!
+    } else {
+      heckle(correct ? "right" : "wrong");
+      if (Math.random() < 0.3) launchCow(400);
+      if (Math.random() < 0.12) setTimeout(snatchOlivia, 800);
+    }
+  }
+
+  // How the blob (and the sun) feel, and how hard the blob swings
+  const SWING_SPEED = { calm: "3s", worried: "2s", scared: "0.9s", happy: "3s", dizzy: "4s" };
+
+  function render() {
+    // Word slots
+    const box = $("wordBox");
+    box.innerHTML = "";
+    for (const ch of game.word) {
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      if (ch === " ") slot.classList.add("gap");
+      else if (!/[a-z]/.test(ch)) { slot.classList.add("extra"); slot.textContent = ch; }
+      else if (game.guessed.has(ch)) slot.textContent = ch;
+      else if (game.over) { slot.textContent = ch; slot.classList.add("missed"); }
+      box.appendChild(slot);
+    }
+
+    // The blob: spread its 6 body parts across however many lives this mode has,
+    // so it's always complete exactly on the last wrong guess
+    // (when you win, the whole blob appears so you can see it celebrate)
+    const won = game.over && game.wrong < game.mode.lives;
+    const partsShown = won ? 6 : Math.round((game.wrong * 6) / game.mode.lives);
+    document.querySelectorAll(".scene .part").forEach((part) => {
+      part.classList.toggle("on", Number(part.dataset.part) <= partsShown);
+    });
+
+    // Mood
+    const danger = game.wrong / game.mode.lives;
+    let mood = danger < 0.34 ? "calm" : danger < 0.67 ? "worried" : "scared";
+    if (game.over) mood = game.wrong < game.mode.lives ? "happy" : "dizzy";
+    $("scene").dataset.mood = mood;
+    const swing = $("swing");
+    if (swing.getAttribute("dur") !== SWING_SPEED[mood]) swing.setAttribute("dur", SWING_SPEED[mood]);
+
+    // Keyboard colors
+    document.querySelectorAll(".key").forEach((btn) => {
+      const l = btn.dataset.letter;
+      const used = game.guessed.has(l);
+      btn.classList.toggle("hit", used && game.word.includes(l));
+      btn.classList.toggle("miss", used && !game.word.includes(l));
+      btn.disabled = used || game.over;
+    });
+
+    const left = game.mode.lives - game.wrong;
+    $("livesText").textContent = game.over ? "" : left + (left === 1 ? " wrong guess left" : " wrong guesses left");
+  }
+
+  // Let people use a real keyboard on a computer too
+  document.addEventListener("keydown", (e) => {
+    if ($("game").classList.contains("hidden") || e.ctrlKey || e.metaKey || e.altKey) return;
+    const letter = e.key.toLowerCase();
+    if (/^[a-z]$/.test(letter)) guess(letter);
+  });
+
+  // ---------- Open a puzzle from a link ----------
+  function route() {
+    const match = location.hash.match(/^#g=(.+)$/);
+    if (!match) return showScreen("home");
+    try {
+      const p = decodePuzzle(match[1]);
+      if (typeof p.w !== "string" || !/^[a-z' -]+$/.test(p.w)) throw new Error("bad word");
+      startGame(p.w, p.h ? "Hint: " + p.h : "", p.f || "A friend", MODES[p.m] ? p.m : "regular");
+    } catch (e) {
+      showScreen("home");
+      showError("That puzzle link looks broken. Ask your friend to send it again.");
+    }
+  }
+  window.addEventListener("hashchange", route);
+  route();
+</script>
+</body>
+</html>
