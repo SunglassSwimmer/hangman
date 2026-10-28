@@ -23,6 +23,14 @@
     }
   }
 
+  /* In dark mode, the drawings sit on their own sheet of paper so faces stay drawn in dark ink */
+  @media (prefers-color-scheme: dark) {
+    .scene {
+      --ink: #1f2a6b; --card: #fffefa; --muted: #6b6f8f; --grass: #c7eab4; --wood: #e0aa72;
+      background: #fffdf6; border-radius: 20px 26px 18px 24px / 24px 18px 26px 20px; padding: 4px;
+    }
+  }
+
   /* ---------- Page ---------- */
   * { box-sizing: border-box; }
   html { overflow-x: clip; }
@@ -43,7 +51,7 @@
   .title-cow svg { display: block; width: 100%; animation: waddle .9s ease-in-out infinite alternate; }
 
   /* Everything gets wonky "drawn by hand" corners */
-  .card, .btn, .mode, .key, input, .badge {
+  .card, .btn, .mode, .key, input, .badge, .charbtn {
     border: 2.5px solid var(--ink);
     border-radius: 18px 24px 16px 26px / 24px 16px 26px 18px;
   }
@@ -83,6 +91,34 @@
   .mode.selected small { color: #4a4f73; }
   .badge { display: block; width: fit-content; margin: 0 auto 2px; padding: 2px 14px; background: var(--card); font-size: 1.1rem; }
 
+  /* ---------- Character picker ---------- */
+  .chars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .charbtn { padding: 4px 2px 6px; background: var(--card); box-shadow: 3px 3px 0 var(--ink); }
+  .charbtn:nth-child(even) { border-radius: 24px 16px 26px 18px / 16px 26px 18px 24px; }
+  .charbtn.selected { background: var(--yellow); color: #1f2a6b; }
+  .charbtn .thumb { margin: 0 auto; width: 72px; }
+  .charbtn span { display: block; font-family: "Gochi Hand", cursive; font-size: 1.15rem; line-height: 1.1; }
+  .thumb [data-piece="rope"] { display: none; }
+
+  /* Dress-up panel */
+  .dressup { margin-top: 16px; padding-top: 12px; border-top: 2px dashed var(--line); border-top-color: var(--muted); }
+  .dressup h3 { font-family: "Gochi Hand", cursive; font-weight: 400; font-size: 1.4rem; margin: 0; text-align: center; }
+  .dressup .preview { width: 130px; margin: 4px auto 6px; }
+  .optrow { margin-top: 8px; }
+  .optrow b { display: block; font-weight: 400; color: var(--muted); margin-bottom: 4px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    padding: 3px 10px; font-size: 1rem; background: var(--card); border: 2px solid var(--ink);
+    border-radius: 14px 18px 12px 20px / 18px 12px 20px 14px; box-shadow: 2px 2px 0 var(--ink);
+  }
+  .chip.on { background: var(--yellow); color: #1f2a6b; }
+  .genderchips { justify-content: center; margin-bottom: 12px; }
+  .genderchips .chip { font-size: 1.2rem; padding: 6px 18px; }
+  .swatch { width: 32px; height: 32px; padding: 0; border-radius: 50%; }
+  .swatch.on { box-shadow: 0 0 0 3px var(--yellow), 2px 2px 0 3px var(--ink); }
+  .dressup-actions { display: flex; gap: 8px; }
+  .dressup-actions .btn { margin-top: 12px; font-size: 1.15rem; padding: 8px; }
+
   /* ---------- The scene (gallows, blob, crowd, bird, sun, snail) ---------- */
   .from { text-align: center; color: var(--muted); margin: 0 0 4px; font-size: 1.15rem; }
   .scene { position: relative; max-width: 380px; margin: 4px auto 0; }
@@ -96,11 +132,79 @@
   .scene .sweat { fill: #9bd0f5; stroke: none; }
   .scene[data-mode="prison"] .shirt { fill: url(#stripes); }
 
-  /* Body parts of the blob appear one per wrong guess */
-  .scene .part { opacity: 0; transition: opacity .3s; }
-  .scene .part.on { opacity: 1; }
+  /* Pieces of the gallows and the character appear one wrong guess at a time */
+  .scene .piece { opacity: 0; transition: opacity .3s; }
+  .scene .piece.on, .thumb .piece { opacity: 1; }
 
-  /* Faces change with the mood; mouths in the crowd change with the crowd's mood; costumes change with the mode */
+  /* Each character's colors, and their extras (glasses, ears, hair...) */
+  .char { display: none; }
+  [data-char="blob"]     { --skin: #ffe3b3; --shirt: #ffb5a7; --hair: #4a3728; }
+  [data-char="nerd"]     { --skin: #f1c27d; --shirt: #f4f4f0; --hair: #3d2b1f; }
+  [data-char="jock"]     { --skin: #a0663e; --shirt: #e63946; --hair: #6b4423; }
+  [data-char="gamer"]    { --skin: #e0ac69; --shirt: #52b788; --hair: #4a3728; }
+  [data-char="hipster"]  { --skin: #ffe0bd; --shirt: #a8323e; --hair: #6f4e37; }
+  [data-char="diva"]     { --skin: #c68642; --shirt: #c77dff; --hair: #f6d365; }
+  [data-char="boss"]     { --skin: #8d5524; --shirt: #34495e; --hair: #2b1d14; }
+  [data-char="skater"]   { --skin: #f1c27d; --shirt: #ffd166; --hair: #b5523b; }
+  [data-char="rockstar"] { --skin: #8d5524; --shirt: #3d3d3d; --hair: #2b1d14; }
+  [data-char="grandpa"]  { --skin: #ffe0bd; --shirt: #8d6e63; --hair: #e9e9e9; }
+  .scene .hair { fill: var(--hair); }
+  /* Male / female versions: "g-m" parts are only for the male version, "g-f" only for the female one */
+  [data-gender="male"] .g-f, [data-gender="female"] .g-m { display: none !important; }
+  [data-char="diva"] .shoe.dot, [data-char="boss"][data-gender="female"] .shoe.dot { fill: #e63946; }
+  [data-char="blob"] .char-blob, [data-char="nerd"] .char-nerd, [data-char="jock"] .char-jock,
+  [data-char="gamer"] .char-gamer, [data-char="hipster"] .char-hipster, [data-char="diva"] .char-diva,
+  [data-char="boss"] .char-boss, [data-char="skater"] .char-skater, [data-char="rockstar"] .char-rockstar,
+  [data-char="grandpa"] .char-grandpa { display: inline; }
+
+  /* Body types (dress-up): squash or stretch the body, and move the arms and legs to match */
+  [data-piece="body"], [data-piece="larm"], [data-piece="rarm"], [data-piece="lleg"], [data-piece="rleg"] {
+    transform-box: fill-box; transform-origin: 50% 50%;
+  }
+  [data-body="round"] [data-piece="body"] { transform: scaleX(1.35); }
+  [data-body="round"] [data-piece="larm"] { transform: translateX(-6px); }
+  [data-body="round"] [data-piece="rarm"] { transform: translateX(6px); }
+  [data-body="round"] [data-piece="lleg"] { transform: translateX(-3px); }
+  [data-body="round"] [data-piece="rleg"] { transform: translateX(3px); }
+  [data-body="slim"] [data-piece="body"] { transform: scaleX(.78); }
+  [data-body="slim"] [data-piece="larm"] { transform: translateX(4px); }
+  [data-body="slim"] [data-piece="rarm"] { transform: translateX(-4px); }
+  [data-body="slim"] [data-piece="lleg"] { transform: translateX(2px); }
+  [data-body="slim"] [data-piece="rleg"] { transform: translateX(-2px); }
+
+  /* Dress-up: resting face and extras */
+  .calmface, .opt { display: none; }
+  .scene[data-mood="calm"][data-face="normal"] .face-normal,
+  .scene[data-mood="calm"][data-face="confused"] .face-confused,
+  .scene[data-mood="calm"][data-face="concerned"] .face-concerned,
+  .scene[data-mood="calm"][data-face="smug"] .face-smug,
+  .scene[data-mood="calm"][data-face="sleepy"] .face-sleepy,
+  .scene[data-mood="calm"][data-face="goofy"] .face-goofy,
+  .scene[data-mood="calm"][data-face="angry"] .face-angry,
+  .scene[data-mood="calm"][data-face="shocked"] .face-shocked,
+  .scene[data-mood="calm"][data-face="nervous"] .face-nervous,
+  .scene[data-mood="calm"][data-face="starstruck"] .face-starstruck,
+  .scene[data-mood="calm"][data-face="wink"] .face-wink,
+  .scene[data-mood="calm"][data-face="pouty"] .face-pouty,
+  [data-extras~="glasses"] .opt-glasses, [data-extras~="shades"] .opt-shades,
+  [data-extras~="eyepatch"] .opt-eyepatch, [data-extras~="mustache"] .opt-mustache,
+  [data-extras~="clownnose"] .opt-clownnose, [data-extras~="pants"] .opt-pants,
+  [data-extras~="crown"] .opt-crown, [data-extras~="cowboy"] .opt-cowboy,
+  [data-extras~="partyhat"] .opt-partyhat, [data-extras~="flower"] .opt-flower,
+  [data-extras~="chain"] .opt-chain, [data-extras~="scarf"] .opt-scarf { display: inline; }
+
+  /* The Yoked body type swaps in a V-shaped torso and beefs up the arms */
+  .yoked-only { display: none; }
+  [data-body="yoked"] .yoked-only { display: inline; }
+  [data-body="yoked"] .torso { display: none; }
+  [data-body="yoked"] [data-piece="larm"] { transform: translateX(-6px); }
+  [data-body="yoked"] [data-piece="rarm"] { transform: translateX(6px); }
+  [data-body="yoked"] [data-piece="larm"] > path:first-child,
+  [data-body="yoked"] [data-piece="rarm"] > path:first-child { stroke-width: 7; }
+  [data-body="yoked"] [data-piece="lleg"] { transform: translateX(-3px); }
+  [data-body="yoked"] [data-piece="rleg"] { transform: translateX(3px); }
+
+  /* Faces change with the mood; mouths in the crowd change with the crowd's mood; prison bars in Prison Mode */
   .mood, .crowd, .costume { display: none; }
   .scene[data-mood="calm"] .when-calm, .scene[data-mood="worried"] .when-worried,
   .scene[data-mood="scared"] .when-scared, .scene[data-mood="happy"] .when-happy,
@@ -112,6 +216,15 @@
 
   .scene .wing { transform-box: fill-box; transform-origin: 50% 100%; animation: flap .22s ease-in-out infinite alternate; }
   @keyframes flap { to { transform: scaleY(.35); } }
+
+  /* The entrance cart's wheels, and the character flinching when lettuce hits */
+  .scene .wheel { transform-box: fill-box; transform-origin: center; }
+  #entrance.rolling .wheel { animation: spin .5s linear infinite; }
+  #entrance.rolling.backwards .wheel { animation-direction: reverse; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #entranceChar { transform-box: fill-box; transform-origin: 50% 100%; }
+  #entranceChar.bonk { animation: bonk .35s ease-out; }
+  @keyframes bonk { 30% { transform: translate(-4px, 2px) rotate(-7deg); } 65% { transform: translate(2px, 0) rotate(3deg); } }
 
   .bob.hop { animation: hop .45s ease-out; }
   @keyframes hop { 40% { transform: translateY(-10px); } }
@@ -131,9 +244,10 @@
     content: ""; position: absolute; top: 100%; left: var(--tail); margin-left: -8px;
     border: 8px solid transparent; border-top-color: var(--ink);
   }
-  .bubble[data-who="gerard"] { left: 56.9%; bottom: 46%; --shift: -30%; --tail: 30%; }
-  .bubble[data-who="margot"] { left: 72.8%; bottom: 41%; --shift: -55%; --tail: 55%; }
-  .bubble[data-who="pip"]    { left: 88.3%; bottom: 44%; --shift: -95%; --tail: 92%; }
+  .bubble[data-who="klaus"]  { left: 48.9%; bottom: 57.5%; --shift: -15%; --tail: 15%; }
+  .bubble[data-who="gerard"] { left: 59.4%; bottom: 52%; --shift: -30%; --tail: 30%; }
+  .bubble[data-who="margot"] { left: 73.9%; bottom: 47.5%; --shift: -55%; --tail: 55%; }
+  .bubble[data-who="pip"]    { left: 88.9%; bottom: 50%; --shift: -95%; --tail: 92%; }
   .bubble[data-who="bird"]   { left: 30%; top: -2%; bottom: auto; --shift: 0%; transform-origin: 0 50%; }
   .bubble[data-who="bird"]::after {
     top: 10px; left: -16px; margin-left: 0; border-top-color: transparent; border-right-color: var(--ink);
@@ -168,27 +282,137 @@
   .result { text-align: center; font-family: "Gochi Hand", cursive; font-size: 2rem; margin: 12px 0 0; transform: rotate(-1.5deg); }
   .result.win { color: #2f9e63; }
   .result.lose { color: #e05561; }
+  .result.kidlose { color: #9b5de5; }
 
-  /* ---------- Cows that come out of nowhere ---------- */
-  .cow { position: fixed; left: 0; top: 0; z-index: 50; width: 120px; pointer-events: none; }
-  .cow svg { display: block; width: 120px; }
-  .cow .moo {
-    position: absolute; top: -30px; left: 64px; padding: 1px 10px; white-space: nowrap;
-    background: #fff; color: #1f2a6b; border: 2.5px solid #1f2a6b; border-radius: 14px 18px 12px 20px;
-    font-size: 1.15rem;
+  /* ---------- Spectators who wander in to watch ---------- */
+  .spectator .flip { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .25s; }
+  .spectator .waddle { transform-box: fill-box; transform-origin: 50% 100%; }
+  .spectator.walking .waddle { animation: waddle .3s ease-in-out infinite alternate; }
+  .spectator .tail { transform-box: fill-box; transform-origin: 0% 100%; animation: wag .3s ease-in-out infinite alternate; }
+  .spectator-say { font: 20px "Gochi Hand", cursive; animation: sayfade 2s forwards; }
+
+  /* The crowd runs off for ice cream (and comes back), and does the wave */
+  .scene .bob { transition: translate .9s ease-in, opacity .9s ease-in; }
+  .scene .bob.away { translate: 230px 0 !important; opacity: 0; }
+  .bob.crowdwave { animation: crowdwave .55s ease-out; }
+  @keyframes crowdwave { 40% { transform: translateY(-18px); } }
+
+  /* Bernard the streaker: jiggles as he runs, waves his arms */
+  .spectator.streaker.walking .waddle { animation: jiggle .17s ease-in-out infinite alternate; }
+  @keyframes jiggle { from { transform: rotate(-7deg) translateY(0); } to { transform: rotate(7deg) translateY(-4px); } }
+  .spectator.streaker .arms { transform-box: fill-box; transform-origin: 50% 100%; animation: wave .22s ease-in-out infinite alternate; }
+  @keyframes wave { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+
+  /* Pierre the drunk: staggers, keels over, snores */
+  .spectator.drunk.walking .waddle { animation: stagger .8s ease-in-out infinite alternate; }
+  @keyframes stagger { from { transform: rotate(-16deg) translateY(0); } to { transform: rotate(14deg) translateY(-3px); } }
+  .spectator.drunk .waddle { transition: transform .35s ease-in; }
+  .spectator.drunk.collapsed .waddle { transform: rotate(-88deg); }
+  .snore { font: 16px "Gochi Hand", cursive; animation: snore 2s ease-out infinite; }
+  @keyframes snore { 0% { opacity: 0; transform: translate(0, 0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(8px, -14px); } }
+
+  /* The mischievous bird: flapping, and wobbling when it's stuck on Klaus's spike */
+  #bird.flying .birdwing { transform-box: fill-box; transform-origin: 50% 0%; animation: birdflap .12s ease-in-out infinite alternate; }
+  @keyframes birdflap { to { transform: scaleY(-1.4); } }
+  #bird.stuck { transform-box: fill-box; transform-origin: 50% 50%; animation: stuck .25s ease-in-out infinite alternate; }
+  @keyframes stuck { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
+
+  /* The cow gag (Big Kid Words): tail up, poop plops down, cow stares at the camera */
+  .spectator .camface { display: none; }
+  .spectator.looking .camface { display: inline; }
+  .spectator.looking .sideface { display: none; }
+  .spectator .cowtail { transform-box: fill-box; transform-origin: 0% 0%; transition: transform .3s; }
+  .spectator.pooping .cowtail { transform: rotate(-75deg); }
+  .poop .plop { transform-box: fill-box; transform-origin: 50% 100%; animation: plop .5s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes plop { from { transform: translateY(-14px) scale(.4); } }
+  .poop .stink { animation: stink 1.6s ease-in-out infinite; opacity: 0; }
+  @keyframes stink { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: .9; } 100% { opacity: 0; transform: translateY(-10px); } }
+  @keyframes sayfade { 0% { opacity: 0; } 15%, 80% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes wag { to { transform: rotate(25deg); } }
+
+  /* ---------- Picture clues, read-aloud, word cards, long words ---------- */
+  .pichint { text-align: center; font-size: 3rem; line-height: 1.1; margin-top: 4px; }
+  .pichint:empty { display: none; }
+  .hearrow { text-align: center; }
+  .wordcard {
+    margin: 12px 0 4px; padding: 14px; text-align: center; background: var(--card);
+    border: 2.5px solid var(--ink); border-radius: 22px 18px 26px 16px / 16px 26px 18px 22px; box-shadow: 3px 3px 0 var(--ink);
   }
-  .cow.fly { animation: cowFly 2.8s ease-in-out forwards; }
-  @keyframes cowFly {
-    0%   { transform: translate(-150px, 60px) rotate(-15deg); }
-    50%  { transform: translate(calc(50vw - 60px), -30px) rotate(5deg); }
-    100% { transform: translate(calc(100vw + 40px), 70px) rotate(-10deg); }
+  .wc-pic { font-size: 3.2rem; line-height: 1.1; }
+  .wc-pic:empty { display: none; }
+  .wc-word { font-family: "Gochi Hand", cursive; font-size: 2rem; letter-spacing: .04em; overflow-wrap: anywhere; }
+  .wc-pos { color: var(--muted); font-style: italic; }
+  .wc-pos:empty, .wc-extra:empty { display: none; }
+  .wc-def { font-size: 1.15rem; margin: 6px 0; }
+  .wc-extra { color: var(--muted); margin: 6px 0 10px; }
+  .word.long { gap: 3px; }
+  .word.long .slot { width: 17px; height: 34px; line-height: 36px; font-size: 1.35rem; }
+  .word.long .slot.gap { width: 8px; }
+
+  /* In Big Kid Words mode the rope is a swing (no noose), and there's no halo */
+  .scene[data-mode="easy"] .noose, .scene[data-mode="easy"] .halo { display: none; }
+
+  /* ---------- Game bar, scoreboard, bribe, taunts ---------- */
+  .gamebar { display: flex; justify-content: space-between; align-items: center; }
+  .mutebtn { background: none; border: 0; font-size: 1.4rem; padding: 2px 6px; }
+  .score { text-align: center; margin: 2px 0 0; font-size: 1.15rem; }
+  .bribe { font-size: 1.1rem; }
+  .bribe small { display: block; font-size: .85rem; color: var(--muted); }
+  .taunts { margin-top: 12px; }
+  .taunts summary { cursor: pointer; font-size: 1.1rem; }
+
+  /* ---------- Sky, storm, lightning ---------- */
+  #sky { fill: #3d405b; opacity: 0; transition: opacity 1.2s, fill 1.2s; }
+  .scene[data-sky="cloudy"] #sky { fill: #8d99ae; opacity: .16; }
+  .scene[data-sky="stormy"] #sky { fill: #3d405b; opacity: .28; }
+  .scene[data-sky="sunset"] #sky { fill: #e76f51; opacity: .3; }
+  #sun { transition: opacity 1.2s; }
+  .scene[data-sky="cloudy"] #sun { opacity: .55; }
+  .scene[data-sky="stormy"] #sun, .scene[data-sky="sunset"] #sun { opacity: .2; }
+  #stormCloud { opacity: 0; transition: opacity 1.2s; }
+  .scene[data-sky="stormy"] #stormCloud, .scene[data-sky="sunset"] #stormCloud { opacity: 1; }
+  /* A sudden rain shower (with umbrellas) */
+  .scene.raining #sky { fill: #6c757d; opacity: .25; }
+  .scene.raining #stormCloud { opacity: 1; }
+  .scene.raining #sun { opacity: .2; }
+  #rainLayer { display: none; }
+  .scene.raining #rainLayer { display: inline; }
+  .rainfall { animation: rainfall .55s linear infinite; }
+  @keyframes rainfall { from { transform: translate(0, -16px); opacity: .9; } to { transform: translate(-4px, 16px); opacity: .2; } }
+  .umbrella { display: none; }
+  .scene.umbrellas .umbrella { display: inline; transform-box: fill-box; transform-origin: 50% 100%; animation: popopen .35s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes popopen { from { transform: scale(.2); } }
+  .drip { animation: drip .7s linear infinite; }
+  @keyframes drip { from { transform: translateY(0); opacity: 1; } to { transform: translateY(14px); opacity: 0; } }
+  .rain { animation: rain .5s linear infinite; }
+  @keyframes rain { from { transform: translateY(-6px); opacity: .9; } to { transform: translateY(8px); opacity: .3; } }
+  .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; border-radius: inherit; }
+  .flash.on { animation: flash .6s ease-out; }
+  @keyframes flash { 0%, 30% { opacity: .85; } 15%, 100% { opacity: 0; } }
+
+  /* ---------- Last chance ---------- */
+  .stamp {
+    position: absolute; top: 34%; left: 50%; padding: 2px 14px; pointer-events: none; z-index: 3;
+    font-family: "Gochi Hand", cursive; font-size: 2rem; color: #e05561; background: rgba(255, 253, 246, .9);
+    border: 3px solid #e05561; border-radius: 12px; opacity: 0; transform: translate(-50%, 0) rotate(-8deg) scale(.3);
   }
-  .cow.walk { top: auto; animation: cowWalk 5.5s linear forwards; }
-  .cow.walk svg { animation: waddle .3s ease-in-out infinite alternate; }
-  @keyframes cowWalk { from { transform: translateX(-140px); } to { transform: translateX(calc(100vw + 20px)); } }
+  .stamp.show { animation: stamp 2.4s ease-out forwards; }
+  @keyframes stamp {
+    0% { opacity: 0; transform: translate(-50%, 0) rotate(-8deg) scale(2.2); }
+    12%, 75% { opacity: 1; transform: translate(-50%, 0) rotate(-8deg) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, 0) rotate(-8deg) scale(1); }
+  }
+  .scene.lastchance .bob { translate: -3px -2px; transition: translate .6s; }
+
+  /* ---------- Endings ---------- */
+  #hangee.dance { transform-box: fill-box; transform-origin: 50% 100%; animation: dance .4s ease-in-out infinite alternate; }
+  @keyframes dance { from { transform: rotate(-12deg); } to { transform: rotate(12deg) translateY(-6px); } }
+  #ghost.rise { animation: rise 4.5s ease-in forwards; }
+  @keyframes rise { 0% { opacity: 0; transform: translateY(0); } 10% { opacity: 1; } 100% { opacity: 0; transform: translateY(-150px); } }
+  #ghost .wave { transform-box: fill-box; transform-origin: 0% 100%; animation: wag .35s ease-in-out infinite alternate; }
+  .fade-away { animation: fadeaway 1.4s ease-in forwards; }
+  @keyframes fadeaway { 0%, 50% { opacity: 1; } 100% { opacity: 0; } }
   @keyframes waddle { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
-  .cow.drop { animation: cowDrop 2.2s cubic-bezier(.5, 0, 1, 1) forwards; }
-  @keyframes cowDrop { from { transform: translateY(-150px) rotate(0); } to { transform: translateY(110vh) rotate(160deg); } }
 </style>
 </head>
 <body>
@@ -219,14 +443,36 @@
       <h2>Pick your difficulty</h2>
       <div class="modes" id="modes">
         <button class="mode" data-mode="easy">
-          <span class="emoji">🍼</span><b>Still in Diapers</b><small>10 wrong guesses + a free letter</small>
+          <span class="emoji">🌟</span><b>Big Kid Words</b><small>For little kids: picture clues, read-aloud, nothing scary</small>
         </button>
         <button class="mode" data-mode="regular">
-          <span class="emoji">🧢</span><b>Regular Joe</b><small>6 wrong guesses</small>
+          <span class="emoji">🧢</span><b>Regular Joe</b><small>7 wrong guesses</small>
         </button>
         <button class="mode" data-mode="prison">
-          <span class="emoji">⛓️</span><b>Prison Mode</b><small>Only 4 wrong guesses, no hints</small>
+          <span class="emoji">⛓️</span><b>Prison Mode</b><small>For word nerds: big words, cryptic clues, 8 wrong guesses</small>
         </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Who's on the rope?</h2>
+      <p>Challenging a friend? Pick the one that suits them best. 😈</p>
+      <div class="chips genderchips" id="genderChips"></div>
+      <div class="chars" id="chars"></div>
+
+      <div class="dressup">
+        <h3>Dress them up</h3>
+        <div class="scene thumb preview" id="preview" data-mood="calm"></div>
+        <div class="optrow"><b>Face</b><div class="chips" id="faceChips"></div></div>
+        <div class="optrow"><b>Skin tone</b><div class="chips" id="skinChips"></div></div>
+        <div class="optrow"><b>Hair color</b><div class="chips" id="hairChips"></div></div>
+        <div class="optrow"><b>Body</b><div class="chips" id="bodyChips"></div></div>
+        <div class="optrow"><b>Extras</b><div class="chips" id="extraChips"></div></div>
+        <div class="optrow"><b>Shirt</b><div class="chips" id="shirtChips"></div></div>
+        <div class="dressup-actions">
+          <button class="btn" id="surpriseBtn">🎲 Surprise me</button>
+          <button class="btn secondary" id="resetLookBtn">Reset</button>
+        </div>
       </div>
     </div>
 
@@ -238,9 +484,20 @@
       <label for="wordInput">Secret word or phrase</label>
       <input id="wordInput" maxlength="30" placeholder="e.g. pineapple" autocomplete="off" autocapitalize="off" spellcheck="false">
       <div id="hintField">
-        <label for="hintInput">Hint (optional)</label>
-        <input id="hintInput" maxlength="40" placeholder="e.g. A spiky fruit" autocomplete="off">
+        <label for="hintInput" id="hintLabel">Hint (optional)</label>
+        <input id="hintInput" maxlength="80" placeholder="e.g. A spiky fruit" autocomplete="off">
+        <label for="meaningInput">Meaning <small>(shown at the end, optional)</small></label>
+        <input id="meaningInput" maxlength="120" placeholder="e.g. A tropical fruit with spiky skin" autocomplete="off">
       </div>
+      <label for="friendInput">Their name <small>(keeps score between you)</small></label>
+      <input id="friendInput" maxlength="20" placeholder="e.g. Sam" autocomplete="off">
+      <details class="taunts">
+        <summary>😈 Add a personal taunt (optional)</summary>
+        <label for="loseTaunt">If they lose, the crowd shouts...</label>
+        <input id="loseTaunt" maxlength="60" placeholder="e.g. I TOLD you you'd never get it!" autocomplete="off">
+        <label for="winTaunt">If they win, the crowd grumbles...</label>
+        <input id="winTaunt" maxlength="60" placeholder="e.g. Fine. Lucky guess." autocomplete="off">
+      </details>
       <div class="err" id="err"></div>
       <button class="btn" id="makeBtn">Make my link</button>
     </div>
@@ -270,16 +527,23 @@
 
   <!-- ===== GAME SCREEN ===== -->
   <section id="game" class="hidden">
-    <button class="toplink" id="homeBtn">&larr; Start over</button>
+    <div class="gamebar">
+      <button class="toplink" id="homeBtn">&larr; Start over</button>
+      <button class="mutebtn" id="muteBtn" title="Sound on/off">🔊</button>
+    </div>
     <p class="from" id="fromText"></p>
     <span class="badge" id="modeText"></span>
+    <p class="score hidden" id="scoreText"></p>
 
-    <div class="scene" id="scene" data-mood="calm" data-crowd="neutral" data-mode="regular">
-    <svg viewBox="0 -20 360 260" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <div class="scene" id="scene" data-mood="calm" data-crowd="neutral" data-mode="regular" data-char="blob" data-face="normal" data-extras="" data-gender="male">
+    <svg viewBox="0 -20 360 292" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
     <g filter="url(#wobble)">
 
+      <!-- the sky darkens as things get worse -->
+      <rect id="sky" x="-10" y="-30" width="380" height="245" stroke="none"/>
+
       <!-- the sun (it gets nervous too) -->
-      <g>
+      <g id="sun">
         <g stroke="#f4a261" stroke-width="3">
           <path d="M330 -22 v-6 M330 26 v6 M306 2 h-6 M354 2 h6 M313 -15 l-4 -4 M347 19 l4 4 M347 -15 l4 -4 M313 19 l-4 4"/>
           <animateTransform attributeName="transform" type="rotate" values="0 330 2; 360 330 2" dur="40s" repeatCount="indefinite"/>
@@ -299,8 +563,18 @@
         <animateTransform attributeName="transform" type="translate" values="0 0; 45 0; 0 0" dur="26s" repeatCount="indefinite"/>
       </g>
 
+      <!-- a storm cloud with rain over the gallows (when it's going badly) and a lightning bolt (when you lose) -->
+      <g id="stormCloud">
+        <g class="rain" stroke="#7aa5d6" stroke-width="2">
+          <path d="M110 14 l-3 9 M126 16 l-3 9 M142 13 l-3 9 M158 16 l-3 9 M174 14 l-3 9 M118 30 l-3 9 M134 32 l-3 9 M150 29 l-3 9 M166 31 l-3 9"/>
+        </g>
+        <path d="M104 8 q-14 0 -12 -11 q2 -12 16 -9 q6 -13 22 -7 q14 -9 26 2 q14 -2 16 10 q12 3 6 12 q-3 4 -10 4 Z" fill="#6c757d"/>
+      </g>
+      <g id="rainLayer" stroke="#7aa5d6" stroke-width="2"></g>
+      <path id="bolt" d="M214 -12 L200 26 L211 26 L196 66 L226 18 L213 18 L228 -12 Z" fill="#ffd166" style="display:none"/>
+
       <!-- the ground, grass and flowers -->
-      <path class="grass" d="M-10 210 Q40 202 90 208 T190 207 T290 209 T370 205 L370 245 L-10 245 Z"/>
+      <path class="grass" d="M-10 210 Q40 202 90 208 T190 207 T290 209 T370 205 L370 277 L-10 277 Z"/>
       <path d="M20 206 l3 -7 l2 6 l3 -8 l2 9 M168 205 l3 -6 l2 5 l3 -7 l2 8 M240 208 l3 -7 l2 6 M296 207 l2 -6 l2 5 l3 -7 l2 8"/>
       <g id="flower">
         <path d="M160 206 V191" stroke="#5a9e4b"/>
@@ -310,51 +584,224 @@
       </g>
       <use href="#flower" transform="translate(196 4) scale(.8) translate(40 50)"/>
 
-      <!-- the gallows -->
-      <rect class="wood" x="12" y="198" width="112" height="13" rx="6"/>
-      <rect class="wood" x="38" y="16" width="15" height="186" rx="6"/>
-      <path class="wood" d="M50 64 L88 26 L98 28 L52 76 Z"/>
-      <rect class="wood" x="34" y="12" width="112" height="13" rx="6"/>
-      <path d="M43 60 v14 M47 110 v18 M43 150 v12 M70 17 h14 M110 19 h12" stroke-width="1.5"/>
+      <!-- the gallows, in pieces (in Big Kid Words mode it gets built one wrong guess at a time) -->
+      <rect class="piece wood" data-piece="base" x="12" y="198" width="112" height="13" rx="6"/>
+      <g class="piece" data-piece="post">
+        <rect class="wood" x="38" y="16" width="15" height="186" rx="6"/>
+        <path d="M43 60 v14 M47 110 v18 M43 150 v12" stroke-width="1.5"/>
+      </g>
+      <g class="piece" data-piece="beam">
+        <path class="wood" d="M50 64 L88 26 L98 28 L52 76 Z"/>
+        <rect class="wood" x="34" y="12" width="112" height="13" rx="6"/>
+        <path d="M70 17 h14 M110 19 h12" stroke-width="1.5"/>
+      </g>
 
-      <!-- the blob in trouble (swings on the rope) -->
-      <g>
+      <!-- the character in trouble (swings on the rope). Each character's extras are in "char-..." groups.
+           "hangeeLift" lets the code drop them to the ground or fly them away. -->
+      <g id="hangeeLift">
+      <g id="hangee">
         <animateTransform id="swing" attributeName="transform" type="rotate" values="-4 128 25; 4 128 25; -4 128 25" dur="3s" repeatCount="indefinite"/>
-        <path d="M128 25 Q131 38 128 52" stroke="#b08850" stroke-width="4"/>
+
+        <g class="piece" data-piece="rope" stroke="#b08850">
+          <g class="noose">
+            <path d="M128 25 Q131 38 128 52" stroke-width="4"/>
+            <ellipse cx="128" cy="57" rx="6" ry="7" stroke-width="3.5"/>
+          </g>
+          <!-- in Big Kid Words mode it's a swing instead -->
+          <g class="costume for-easy">
+            <path d="M112 25 L111 132 M144 25 L145 132" stroke-width="3"/>
+            <rect x="102" y="130" width="52" height="7" rx="3" fill="#e0aa72" stroke="#1f2a6b" stroke-width="2"/>
+          </g>
+        </g>
 
         <!-- arms and legs sit behind the body -->
-        <g class="part" data-part="3" stroke-width="3.5">
-          <path d="M114 102 Q100 106 98 117"/><circle class="skin" cx="98" cy="120" r="4.5" stroke-width="2.5"/>
+        <g class="piece" data-piece="larm" stroke-width="3.5">
+          <path d="M114 102 Q100 106 98 117"/><circle class="skin hand" cx="98" cy="120" r="4.5" stroke-width="2.5"/>
+          <g class="char char-nerd" stroke-width="2.5"><rect x="86" y="113" width="11" height="14" rx="2" fill="#4d7cff"/><path d="M89 117 h5 M89 121 h5" stroke-width="1.5"/></g>
+          <g class="char char-diva" stroke-width="2.5"><path d="M93 124 q5 -9 10 0" fill="none"/><rect x="90" y="124" width="16" height="11" rx="4" fill="#ffafcc"/></g>
+          <g class="char char-hipster" stroke-width="2">
+            <path d="M86 112 h13 l-2 15 h-9 Z" fill="#fff"/>
+            <rect x="86.5" y="116" width="12" height="5" fill="#c49a6c"/>
+            <path d="M85 112 h15" stroke-width="2.5"/>
+          </g>
+          <g class="char char-skater" stroke-width="2">
+            <rect x="82" y="104" width="9" height="36" rx="4.5" fill="#e63946"/>
+            <circle cx="80" cy="110" r="2.5" fill="#ffd166"/><circle cx="93" cy="110" r="2.5" fill="#ffd166"/>
+            <circle cx="80" cy="134" r="2.5" fill="#ffd166"/><circle cx="93" cy="134" r="2.5" fill="#ffd166"/>
+          </g>
+          <g class="char char-grandpa" stroke="#8b5a2b" stroke-width="3">
+            <path d="M97 122 L97 156 M97 122 q0 -7 6 -7 q5 0 5 5"/>
+          </g>
         </g>
-        <g class="part" data-part="4" stroke-width="3.5">
-          <path d="M142 102 Q156 106 158 117"/><circle class="skin" cx="158" cy="120" r="4.5" stroke-width="2.5"/>
+        <g class="piece" data-piece="rarm" stroke-width="3.5">
+          <path d="M142 102 Q156 106 158 117"/><circle class="skin hand" cx="158" cy="120" r="4.5" stroke-width="2.5"/>
+          <g class="char char-boss" stroke-width="2">
+            <rect x="155" y="104" width="10" height="16" rx="2" fill="#2b2d42"/>
+            <rect x="156.8" y="106.5" width="6.4" height="10" fill="#9bd0f5" stroke="none"/>
+          </g>
+          <g class="char char-rockstar">
+            <path d="M159 118 L165 108" stroke="#2b2d42" stroke-width="3"/>
+            <circle cx="167" cy="104" r="5" fill="#8d99ae" stroke-width="2"/>
+            <path d="M164 102 h6 M164 105 h6" stroke-width="1"/>
+          </g>
+          <g class="char char-gamer" stroke-width="2">
+            <rect x="153" y="113" width="20" height="11" rx="5" fill="#2b2d42"/>
+            <circle cx="167" cy="117" r="1.5" fill="#e63946" stroke="none"/><circle cx="170" cy="120" r="1.5" fill="#52b788" stroke="none"/>
+            <path d="M157 118.5 h5 M159.5 116 v5" stroke="#fff" stroke-width="1.5"/>
+          </g>
+          <g class="char char-jock" stroke-width="2.5">
+            <ellipse cx="166" cy="114" rx="9" ry="5.5" fill="#a0522d" transform="rotate(-35 166 114)"/>
+            <path d="M163 117 l6 -6 M164 112 l2 2 M166 110 l2 2" stroke="#fff" stroke-width="1.5"/>
+          </g>
         </g>
-        <g class="part" data-part="5" stroke-width="3.5">
-          <path d="M121 130 L118 147"/><ellipse class="dot" cx="115" cy="150" rx="7" ry="4"/>
+        <g class="piece" data-piece="lleg" stroke-width="3.5">
+          <path d="M121 130 L118 147"/>
+          <path class="opt opt-pants" d="M121 130 L118.6 143" stroke="#3a5a8c" stroke-width="9"/>
+          <ellipse class="dot shoe" cx="115" cy="150" rx="7" ry="4"/>
         </g>
-        <g class="part" data-part="6" stroke-width="3.5">
-          <path d="M135 130 L138 147"/><ellipse class="dot" cx="141" cy="150" rx="7" ry="4"/>
+        <g class="piece" data-piece="rleg" stroke-width="3.5">
+          <path d="M135 130 L138 147"/>
+          <path class="opt opt-pants" d="M135 130 L137.4 143" stroke="#3a5a8c" stroke-width="9"/>
+          <ellipse class="dot shoe" cx="141" cy="150" rx="7" ry="4"/>
         </g>
 
         <!-- body -->
-        <g class="part" data-part="2">
-          <path class="shirt" d="M128 90 C146 90 147 112 145 124 C143 135 113 135 111 124 C109 112 110 90 128 90 Z"/>
-          <g class="costume for-easy">
-            <path d="M111 118 Q113 135 128 135 Q143 135 145 118 Q128 126 111 118 Z" fill="#fff"/>
-            <circle cx="139" cy="123" r="2" fill="#ffd166"/>
+        <g class="piece" data-piece="body">
+          <path class="shirt torso" d="M128 90 C146 90 147 112 145 124 C143 135 113 135 111 124 C109 112 110 90 128 90 Z"/>
+          <!-- the Yoked body type: a broad V-shaped torso with pecs -->
+          <g class="yoked-only">
+            <path class="shirt" d="M103 97 Q128 86 153 97 Q152 118 141 134 Q128 139 115 134 Q104 118 103 97 Z"/>
+            <path d="M115 105 q6 6 13 0 q7 6 13 0 M128 112 v18" stroke-width="1.5"/>
           </g>
-          <g class="costume for-regular"><path d="M121 104 q3 -3 6 0 q3 -3 6 0 q0 5 -6 9 q-6 -4 -6 -9 Z" fill="#ff6b6b"/></g>
+          <g class="char char-blob"><path d="M121 104 q3 -3 6 0 q3 -3 6 0 q0 5 -6 9 q-6 -4 -6 -9 Z" fill="#ff6b6b"/></g>
+          <g class="char char-nerd">
+            <path d="M122 92 l6 3 l-6 3 Z M134 92 l-6 3 l6 3 Z" fill="#e63946" stroke-width="1.5"/>
+            <rect x="133" y="103" width="7" height="9" rx="1" fill="#fff" stroke-width="1.5"/>
+            <path d="M135 103 v-3 M138 103 v-4" stroke="#4d7cff" stroke-width="2"/>
+          </g>
+          <g class="char char-jock"><text x="128" y="121" text-anchor="middle" fill="#fff" stroke="none" style="font: 16px 'Gochi Hand', cursive">00</text></g>
+          <g class="char char-gamer">
+            <path d="M124 92 v9 M132 92 v9" stroke-width="1.5"/>
+            <path d="M117 115 h22 l-3 9 h-16 Z" stroke-width="1.5"/>
+          </g>
+          <g class="char char-hipster">
+            <path d="M112 109 h32 M112 121 h32 M122 91 v43 M134 91 v43" stroke="rgba(0,0,0,.25)" stroke-width="1.5"/>
+            <path d="M118 92 L120 134 M138 92 L136 134" stroke="#6f4e37" stroke-width="2.5"/>
+          </g>
+          <g class="char char-diva" fill="#fff" stroke-width="1">
+            <circle cx="118" cy="96" r="2"/><circle cx="122" cy="99" r="2"/><circle cx="126" cy="100.5" r="2"/>
+            <circle cx="130" cy="100.5" r="2"/><circle cx="134" cy="99" r="2"/><circle cx="138" cy="96" r="2"/>
+          </g>
+          <g class="char char-boss">
+            <path d="M122 91 L128 104 L134 91 Z" fill="#fff" stroke-width="1.5"/>
+            <path d="M121 92 L126 114 M135 92 L130 114" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="128" cy="113" r="1.6" fill="#ffd166" stroke="none"/><circle cx="128" cy="121" r="1.6" fill="#ffd166" stroke="none"/>
+            <path class="g-m" d="M128 93 l-3 4 l3 17 l3 -17 Z" fill="#e63946" stroke-width="1.5"/>
+          </g>
+          <g class="char char-skater"><path d="M131 101 l-7 10 h5 l-3 9 l9 -12 h-5 l3 -7 Z" fill="#fff" stroke-width="1.5"/></g>
+          <g class="char char-rockstar" stroke="#8d99ae" stroke-width="1.5">
+            <path d="M131 92 L129 134"/>
+            <path d="M118 92 l6 9 l3 -8 M138 92 l-6 9 l-3 -8" stroke="#1f2a6b"/>
+            <circle cx="116" cy="112" r="1.3" fill="#d9d9d9"/><circle cx="140" cy="112" r="1.3" fill="#d9d9d9"/>
+          </g>
+          <g class="char char-grandpa" stroke-width="1.3">
+            <path d="M121 91 L128 101 L135 91" stroke-width="2"/>
+            <path d="M117 113 l4 -5 l4 5 l-4 5 Z M131 113 l4 -5 l4 5 l-4 5 Z M124 125 l4 -5 l4 5 l-4 5 Z" stroke="#f4e3c1"/>
+          </g>
+          <g class="opt opt-pants">
+            <path d="M111 120 Q112 136 128 136 Q144 136 145 120 Q128 126 111 120 Z" fill="#3a5a8c"/>
+            <path d="M128 126 v9" stroke-width="1.5"/>
+          </g>
+          <g class="opt opt-chain">
+            <path d="M118 93 Q128 112 138 93" stroke="#d4a017" stroke-width="3"/>
+            <circle cx="128" cy="104" r="3.8" fill="#ffd166" stroke-width="1.5"/>
+          </g>
+          <g class="opt opt-scarf" stroke-width="1.5">
+            <path d="M136 97 l3 17 l6 -2 l-3 -16 Z" fill="#e63946"/>
+            <path d="M114 91 Q128 99 142 91 L143 97 Q128 106 113 97 Z" fill="#e63946"/>
+            <path d="M120 96 l1 4 M127 98 l0 4 M134 97 l-1 4" stroke="#fff"/>
+          </g>
         </g>
 
         <!-- head and face -->
-        <g class="part" data-part="1">
+        <g class="piece" data-piece="head">
+          <!-- things behind the head. Hair uses the "hair" class so it can be recolored;
+               "g-m" / "g-f" parts only show on the male / female version of a character. -->
+          <path class="char char-diva hair g-f" d="M100 80 Q90 40 128 36 Q166 40 156 80 Q160 94 146 92 L110 92 Q96 94 100 80 Z"/>
+          <path class="char char-skater char-nerd char-gamer char-hipster hair g-f" d="M104 70 Q102 44 128 42 Q154 44 152 70 L154 100 Q150 105 143 99 L113 99 Q106 105 102 100 Z"/>
+          <path class="char char-rockstar hair" d="M98 74 Q88 52 104 40 Q110 26 128 28 Q146 26 152 40 Q168 52 158 74 Q160 86 150 84 L106 84 Q96 86 98 74 Z"/>
+          <circle class="char char-boss hair g-f" cx="128" cy="41" r="8"/>
+          <path class="char char-jock hair g-f" d="M146 52 Q171 50 165 86 Q158 73 150 64 Z"/>
+          <circle class="char char-grandpa hair g-f" cx="128" cy="43" r="7"/>
+
           <circle class="skin" cx="128" cy="71" r="21"/>
+          <path class="char char-hipster hair g-m" d="M107 74 Q108 99 128 101 Q148 99 149 74 Q141 88 128 88 Q115 88 107 74 Z"/>
           <ellipse cx="115" cy="78" rx="4" ry="2.5" fill="#ffafcc" stroke="none"/>
           <ellipse cx="141" cy="78" rx="4" ry="2.5" fill="#ffafcc" stroke="none"/>
 
-          <g class="mood when-calm">
+          <!-- resting faces (chosen in the dress-up panel); the other moods take over as things get worse -->
+          <g class="calmface face-normal">
             <circle class="dot" cx="120" cy="69" r="2.5"/><circle class="dot" cx="136" cy="69" r="2.5"/>
             <path d="M122 79 Q128 84 134 79"/>
+          </g>
+          <g class="calmface face-confused">
+            <circle class="dot" cx="120" cy="69" r="2.5"/><circle class="dot" cx="136" cy="70" r="2.5"/>
+            <path d="M114 61 q6 -5 11 0 M132 64 h9"/>
+            <path d="M120 82 q2 -3 4 0 q2 3 4 0 q2 -3 4 0 q2 3 4 0"/>
+            <text x="150" y="58" class="dot" style="font: 16px 'Gochi Hand', cursive">?</text>
+          </g>
+          <g class="calmface face-concerned">
+            <circle class="dot" cx="120" cy="70" r="2.5"/><circle class="dot" cx="136" cy="70" r="2.5"/>
+            <path d="M114 64 L122 61 M142 64 L134 61"/>
+            <path d="M123 83 Q128 79 133 83"/>
+          </g>
+          <g class="calmface face-smug">
+            <path class="dot" d="M116 68 a4 4 0 0 0 8 0 Z M132 68 a4 4 0 0 0 8 0 Z"/>
+            <path d="M115 67 h10 M131 67 h10"/>
+            <path d="M121 81 Q129 84 135 77"/>
+          </g>
+          <g class="calmface face-sleepy">
+            <path d="M116 69 Q120 72 124 69 M132 69 Q136 72 140 69"/>
+            <circle cx="128" cy="82" r="2"/>
+            <text x="148" y="58" class="dot" style="font: 13px 'Gochi Hand', cursive">z</text>
+            <text x="155" y="50" class="dot" style="font: 10px 'Gochi Hand', cursive">z</text>
+          </g>
+          <g class="calmface face-goofy">
+            <circle class="dot" cx="120" cy="69" r="3.2"/><circle class="dot" cx="137" cy="68" r="1.8"/>
+            <path class="dot" d="M120 78 Q128 89 136 78 Z"/>
+            <ellipse cx="131" cy="85" rx="4" ry="3.5" fill="#ff8fab"/>
+          </g>
+          <g class="calmface face-angry">
+            <path d="M113 62 L123 66 M143 62 L133 66" stroke-width="2.8"/>
+            <circle class="dot" cx="120" cy="69.5" r="2.5"/><circle class="dot" cx="136" cy="69.5" r="2.5"/>
+            <path d="M122 84 Q128 78 134 84"/>
+          </g>
+          <g class="calmface face-shocked">
+            <path d="M114 60 q5 -3 10 0 M132 60 q5 -3 10 0"/>
+            <circle class="paper-fill" cx="120" cy="69" r="4.5"/><circle class="dot" cx="120" cy="69" r="1.8"/>
+            <circle class="paper-fill" cx="136" cy="69" r="4.5"/><circle class="dot" cx="136" cy="69" r="1.8"/>
+            <ellipse class="dot" cx="128" cy="83" rx="3.5" ry="5"/>
+          </g>
+          <g class="calmface face-nervous">
+            <circle class="dot" cx="120" cy="69" r="2.5"/><circle class="dot" cx="136" cy="69" r="2.5"/>
+            <rect x="119" y="79" width="18" height="7" rx="2" fill="#fff" stroke-width="1.8"/>
+            <path d="M119 82.5 h18 M124 79 v7 M128 79 v7 M132 79 v7" stroke-width="1"/>
+            <path class="sweat" d="M151 60 q-4 6 0 8 q4 -2 0 -8 Z"/>
+          </g>
+          <g class="calmface face-starstruck" stroke-width="1.2">
+            <path d="M120 64 l1.5 3 3.3.5 -2.4 2.3 .6 3.3 -3 -1.6 -3 1.6 .6 -3.3 -2.4 -2.3 3.3 -.5 Z" fill="#ffd166"/>
+            <path d="M136 64 l1.5 3 3.3.5 -2.4 2.3 .6 3.3 -3 -1.6 -3 1.6 .6 -3.3 -2.4 -2.3 3.3 -.5 Z" fill="#ffd166"/>
+            <path class="dot" d="M119 78 Q128 91 137 78 Z"/>
+          </g>
+          <g class="calmface face-wink">
+            <circle class="dot" cx="120" cy="69" r="2.5"/>
+            <path d="M132 69 q4 3 8 0"/>
+            <path d="M121 79 Q128 85 135 78"/>
+          </g>
+          <g class="calmface face-pouty">
+            <circle class="dot" cx="120" cy="70" r="2.5"/><circle class="dot" cx="136" cy="70" r="2.5"/>
+            <path d="M115 64 L122 63 M141 64 L134 63"/>
+            <path d="M124 82 q4 -4 8 0 q-4 5 -8 0 Z" fill="#ff8fab" stroke-width="1.8"/>
           </g>
           <g class="mood when-worried">
             <circle class="dot" cx="120" cy="70" r="2.5"/><circle class="dot" cx="136" cy="70" r="2.5"/>
@@ -376,16 +823,157 @@
           <g class="mood when-dizzy">
             <path d="M120 69 m-1 0 a1.5 1.5 0 1 1 2 1 a3.5 3.5 0 1 1 3 -4 M136 69 m-1 0 a1.5 1.5 0 1 1 2 1 a3.5 3.5 0 1 1 3 -4"/>
             <path d="M121 82 q3.5 -3 7 0 q3.5 3 7 0"/>
-            <ellipse cx="128" cy="36" rx="15" ry="4.5" stroke="#f4c430" stroke-width="3.5"/>
+            <ellipse class="halo" cx="128" cy="36" rx="15" ry="4.5" stroke="#f4c430" stroke-width="3.5"/>
           </g>
 
-          <!-- hats per mode -->
-          <g class="costume for-regular">
-            <path d="M107 64 Q108 44 128 44 Q148 44 149 64 Z" fill="#4d7cff"/>
-            <path d="M146 62 Q162 61 164 66 Q156 68 146 66 Z" fill="#4d7cff"/>
+          <!-- things on top of the head -->
+          <path class="g-f" d="M114 65 l-3 -3 M117 64 l-1 -4 M142 65 l3 -3 M139 64 l1 -4" stroke-width="1.5"/>
+          <g class="char char-blob g-f">
+            <path d="M137 52 l-7 -5 v10 Z M137 52 l7 -5 v10 Z" fill="#ff8fab" stroke-width="1.5"/>
+            <circle cx="137" cy="52" r="2.2" fill="#ff8fab" stroke-width="1.5"/>
           </g>
-          <g class="costume for-easy"><path d="M126 50 q-7 -10 2 -13 q8 0 4 7"/></g>
+          <g class="char char-nerd">
+            <path class="hair g-m" d="M107 63 Q108 46 128 47 Q147 47 149 61 Q138 53 122 55 Q112 57 107 63 Z"/>
+            <path class="hair g-f" d="M107 66 Q106 46 128 45 Q150 46 149 66 Q146 56 136 53 Q124 58 107 66 Z"/>
+            <circle cx="120" cy="69" r="7" fill="rgba(255,255,255,.25)" stroke-width="2"/>
+            <circle cx="136" cy="69" r="7" fill="rgba(255,255,255,.25)" stroke-width="2"/>
+            <path d="M127 69 h2" stroke-width="2"/>
+            <circle class="dot" cx="113" cy="80" r=".9"/><circle class="dot" cx="116" cy="82" r=".9"/>
+            <circle class="dot" cx="143" cy="80" r=".9"/><circle class="dot" cx="140" cy="82" r=".9"/>
+          </g>
+          <g class="char char-jock">
+            <path class="hair g-m" d="M110 57 l3 -9 l5 6 l4 -10 l5 8 l5 -9 l4 8 l5 -8 l3 9 Q128 50 110 57 Z"/>
+            <path class="hair g-f" d="M108 62 Q108 46 128 46 Q148 46 148 62 Z"/>
+            <path d="M108 60 Q128 51 148 60 L148 67 Q128 58 108 67 Z" fill="#fff"/>
+            <path d="M108 63.5 Q128 54.5 148 63.5" stroke="#e63946" stroke-width="2"/>
+          </g>
+          <g class="char char-gamer">
+            <path class="hair g-m" d="M109 56 q3 -9 8 -3 q3 -9 9 -2 q5 -8 9 0 q6 -6 8 3 q4 1 5 6 Q128 50 109 56 Z"/>
+            <path class="hair g-f" d="M107 66 Q106 46 128 45 Q150 46 149 66 Q140 56 128 56 Q116 56 107 66 Z"/>
+            <path d="M105 70 Q105 44 128 44 Q151 44 151 70" stroke="#2b2d42" stroke-width="4"/>
+            <rect x="100" y="62" width="9" height="16" rx="4" fill="#2b2d42"/>
+            <rect x="147" y="62" width="9" height="16" rx="4" fill="#2b2d42"/>
+            <path d="M104 76 Q107 88 118 87" stroke="#2b2d42" stroke-width="2"/>
+            <circle cx="119" cy="87" r="2.2" fill="#2b2d42" stroke="none"/>
+          </g>
+          <g class="char char-hipster">
+            <path d="M107 60 Q107 38 128 38 Q149 38 149 60 Z" fill="#e9c46a"/>
+            <rect x="105" y="55" width="46" height="8" rx="3.5" fill="#e9c46a"/>
+            <path d="M112 58 v3 M118 58 v3 M124 58 v3 M130 58 v3 M136 58 v3 M142 58 v3" stroke-width="1"/>
+          </g>
+          <g class="char char-diva">
+            <path class="hair g-m" d="M107 62 Q103 38 126 39 Q151 35 150 58 Q141 50 128 52 Q115 52 107 62 Z"/>
+            <path d="M113 53 l4 -9 l5 5 l6 -11 l6 11 l5 -5 l4 9 Z" fill="#ffd166"/>
+            <circle class="dot" cx="141" cy="83" r="1.2"/>
+          </g>
+          <g class="char char-boss">
+            <path class="hair g-f" d="M106 68 Q104 46 128 45 Q152 46 150 68 Q146 55 128 54 Q110 55 106 68 Z"/>
+            <path class="hair g-m" d="M107 64 Q106 47 128 47 Q150 47 149 64 Q144 55 128 55 Q112 55 107 64 Z"/>
+            <g class="g-f"><circle cx="107" cy="82" r="2.2" fill="#ffd166" stroke-width="1"/><circle cx="149" cy="82" r="2.2" fill="#ffd166" stroke-width="1"/></g>
+          </g>
+          <g class="char char-skater">
+            <path class="hair g-m" d="M107 57 l-5 10 l6 -2 l-1 8 l5 -7 Z M149 57 l5 10 l-6 -2 l1 8 l-5 -7 Z"/>
+            <path d="M107 60 Q108 41 128 41 Q148 41 149 60 Z" fill="#2a9d8f"/>
+            <path d="M123 60 q5 -6 10 0 Z" fill="#fffefa" stroke-width="1.5"/>
+          </g>
+          <path class="char char-rockstar g-m" d="M150 82 l1.5 3 l3 .4 l-2.2 2 l.6 3 l-2.9 -1.5 l-2.9 1.5 l.6 -3 l-2.2 -2 l3 -.4 Z" fill="#ffd166" stroke-width="1"/>
+          <g class="char char-rockstar g-f" stroke="#ffd166" stroke-width="1.8"><circle cx="107" cy="85" r="3.5"/><circle cx="149" cy="85" r="3.5"/></g>
+          <g class="char char-grandpa">
+            <g class="g-m">
+              <path class="hair" d="M106 71 q-8 -5 -2 -14 q2 6 6 4 M150 71 q8 -5 2 -14 q-2 6 -6 4"/>
+              <path d="M117 56 q6 -4 12 -3" stroke="#fff" stroke-width="2"/>
+              <path class="hair" d="M128 77 q-6 -5 -12 0 q-4 3 -6 -1 q2 7 8 7 q6 0 10 -3 q4 3 10 3 q6 0 8 -7 q-2 4 -6 1 q-6 -5 -12 0 Z"/>
+            </g>
+            <g class="g-f">
+              <path class="hair" d="M106 68 Q103 47 128 46 Q153 47 150 68 q-3 -6 -6 -4 q-2 -6 -6 -4 q-3 -5 -10 -3 q-7 -2 -10 3 q-4 -2 -6 4 q-3 -2 -6 4 Z"/>
+              <circle cx="107" cy="82" r="2" fill="#fff" stroke-width="1"/><circle cx="149" cy="82" r="2" fill="#fff" stroke-width="1"/>
+            </g>
+          </g>
+
+          <!-- dress-up extras for the head -->
+          <path class="opt opt-mustache" d="M128 78 q-5 -4 -10 0 q-3 2 -5 -1 M128 78 q5 -4 10 0 q3 2 5 -1" stroke-width="3"/>
+          <g class="opt opt-glasses" stroke-width="2">
+            <circle cx="120" cy="69" r="7" fill="rgba(255,255,255,.25)"/><circle cx="136" cy="69" r="7" fill="rgba(255,255,255,.25)"/>
+            <path d="M127 69 h2 M113 68 l-5 -2 M143 68 l5 -2"/>
+          </g>
+          <g class="opt opt-shades" stroke-width="2">
+            <rect x="111" y="63" width="15" height="10" rx="4" fill="#1f2a6b"/><rect x="130" y="63" width="15" height="10" rx="4" fill="#1f2a6b"/>
+            <path d="M126 66 h4 M111 66 l-4 -2 M145 66 l4 -2"/>
+            <path d="M114 66 l4 -2 M133 66 l4 -2" stroke="#fff" stroke-width="1.5"/>
+          </g>
+          <circle class="opt opt-clownnose" cx="128" cy="76" r="4.5" fill="#e63946" stroke-width="1.5"/>
+          <g class="opt opt-eyepatch">
+            <path d="M131 66 L108 60 M141 66 L149 64" stroke-width="1.8"/>
+            <ellipse class="dot" cx="136" cy="69" rx="6.5" ry="6"/>
+          </g>
+          <g class="opt opt-cowboy">
+            <path d="M114 50 Q113 31 128 32 Q143 31 142 50 Z" fill="#a0522d"/>
+            <path d="M128 33 v6" stroke-width="1.5"/>
+            <path d="M114 46 h28" stroke="#5e3a24" stroke-width="3"/>
+            <path d="M100 48 Q128 58 156 48 Q160 52 154 54 Q128 62 102 54 Q96 52 100 48 Z" fill="#a0522d"/>
+          </g>
+          <g class="opt opt-partyhat">
+            <path d="M117 51 L128 22 L139 51 Z" fill="#ff8fab"/>
+            <circle cx="125" cy="42" r="1.8" fill="#ffd166" stroke="none"/><circle cx="131" cy="35" r="1.8" fill="#4d7cff" stroke="none"/>
+            <circle cx="129" cy="46" r="1.8" fill="#52b788" stroke="none"/>
+            <circle cx="128" cy="21" r="3.5" fill="#ffd166" stroke-width="1.5"/>
+          </g>
+          <g class="opt opt-crown">
+            <path d="M112 53 l3 -15 l7 8 l6 -13 l6 13 l7 -8 l3 15 Z" fill="#ffd166"/>
+            <circle cx="128" cy="47" r="2.2" fill="#e63946" stroke="none"/>
+            <circle cx="119" cy="49" r="1.6" fill="#4d7cff" stroke="none"/><circle cx="137" cy="49" r="1.6" fill="#4d7cff" stroke="none"/>
+          </g>
+          <g class="opt opt-flower" stroke-width="1.5">
+            <circle cx="146" cy="50" r="4" fill="#ffafcc"/><circle cx="152" cy="54" r="4" fill="#ffafcc"/>
+            <circle cx="150" cy="60" r="4" fill="#ffafcc"/><circle cx="143" cy="59" r="4" fill="#ffafcc"/>
+            <circle cx="141" cy="53" r="4" fill="#ffafcc"/><circle cx="146" cy="55" r="3" fill="#ffd166"/>
+          </g>
         </g>
+      </g>
+
+      </g>
+
+      <!-- the little ghost that floats up when you lose -->
+      <g id="ghost" style="display:none">
+        <g transform="translate(128 72)">
+          <path d="M-16 4 Q-17 -24 0 -24 Q17 -24 16 4 L16 16 q-4 -4 -8 0 q-4 -4 -8 0 q-4 -4 -8 0 q-4 -4 -8 0 Z" fill="rgba(255,255,255,.9)"/>
+          <ellipse cx="0" cy="-32" rx="11" ry="3.5" stroke="#f4c430" stroke-width="3"/>
+          <circle class="dot" cx="-5" cy="-8" r="2"/><circle class="dot" cx="5" cy="-8" r="2"/>
+          <path d="M-4 -1 Q0 3 4 -1"/>
+          <path class="wave" d="M15 -4 q8 -4 8 -12" stroke-width="3"/>
+        </g>
+      </g>
+
+      <!-- the royal messenger who (rarely) gallops in with a pardon -->
+      <g id="messenger" style="display:none">
+        <g transform="translate(0 208)">
+          <path d="M-24 -22 q-10 2 -8 14" stroke="#5e3a24" stroke-width="3"/>
+          <path d="M-16 0 v-14 M-8 0 v-14 M10 0 v-14 M18 0 v-14" stroke-width="3"/>
+          <ellipse cx="0" cy="-20" rx="24" ry="11" fill="#b5835a"/>
+          <path d="M16 -26 L27 -42 L37 -38 L29 -22 Z" fill="#b5835a"/>
+          <ellipse cx="36" cy="-38" rx="7.5" ry="5.5" fill="#b5835a"/>
+          <path d="M19 -30 q4 -10 9 -13" stroke="#5e3a24" stroke-width="3"/>
+          <circle class="dot" cx="34" cy="-40" r="1.4"/>
+          <path d="M-7 -29 C-7 -46 8 -46 8 -29 Z" fill="#4d7cff"/>
+          <circle cx="0" cy="-50" r="7" fill="#f1c27d"/>
+          <circle class="dot" cx="-2" cy="-51" r="1.2"/><circle class="dot" cx="3" cy="-51" r="1.2"/>
+          <path d="M-8 -55 h16 l-3 -6 h-10 Z" fill="#2a9d8f"/>
+          <path d="M6 -60 q8 -6 10 -14" stroke="#e63946" stroke-width="2.5"/>
+          <g id="pardonScroll" style="display:none">
+            <rect x="8" y="-86" width="48" height="22" rx="3" fill="#fff8dc"/>
+            <text x="32" y="-71" text-anchor="middle" class="dot" style="font: 12px 'Gochi Hand', cursive">PARDON!</text>
+          </g>
+        </g>
+      </g>
+
+      <!-- the grand entrance: the character arrives on a cart at the start of each game -->
+      <g id="entrance" style="display:none">
+        <g transform="translate(0 36)"><g id="entranceChar"></g></g>
+        <path d="M97 184 L58 178" stroke="#8b5a2b" stroke-width="4"/>
+        <rect class="wood" x="96" y="160" width="64" height="34" rx="5"/>
+        <path d="M96 171 h64 M96 182 h64 M112 160 v34 M144 160 v34" stroke-width="1.5"/>
+        <g class="wheel"><circle cx="108" cy="200" r="10" fill="#8b5a2b"/><path d="M98 200 h20 M108 190 v20" stroke-width="2"/></g>
+        <g class="wheel"><circle cx="148" cy="200" r="10" fill="#8b5a2b"/><path d="M138 200 h20 M148 190 v20" stroke-width="2"/></g>
       </g>
 
       <!-- prison bars (Prison Mode only) -->
@@ -394,24 +982,75 @@
         <path d="M106 34 V162 M120 34 V162 M136 34 V162 M150 34 V162"/>
       </g>
 
-      <!-- the bird in its nest -->
+      <!-- the bird in its nest (it moves in once the beam is up). "birdFly" lets the code fly it around. -->
+      <g class="piece" data-piece="beam" id="birdHome">
+      <g id="birdFly">
       <g class="bob" id="bird">
         <path d="M68 3 L59 -2 L61 7 Z" fill="#9bd0f5"/>
         <ellipse cx="80" cy="0" rx="12" ry="10" fill="#9bd0f5"/>
-        <path d="M73 1 Q79 8 85 1"/>
+        <path class="birdwing" d="M73 1 Q79 8 85 1"/>
         <circle class="dot" cx="85" cy="-4" r="1.8"/>
         <path d="M91 -4 L98 -1 L91 1 Z" fill="#ffb347"/>
         <path d="M77 -10 q1 -5 4 -3 M81 -10 q3 -4 5 -1"/>
+        <!-- things the bird steals, and its dizzy stars -->
+        <g id="birdBeret" style="display:none"><ellipse cx="81" cy="-10" rx="9" ry="3.2" fill="#e63946"/><path d="M81 -13 v-4"/></g>
+        <g id="birdBaguette" style="display:none">
+          <rect x="56" y="1" width="50" height="7" rx="3.5" fill="#e9c46a"/>
+          <path d="M62 2 l3 5 M72 2 l3 5 M90 2 l3 5 M99 2 l3 5" stroke-width="1"/>
+        </g>
+        <g id="birdDizzy" style="display:none">
+          <animateTransform attributeName="transform" type="rotate" values="0 80 -16; 360 80 -16" dur="1s" repeatCount="indefinite"/>
+          <path d="M70 -16 l1 2 2 .3 -1.5 1.4 .4 2 -1.9 -1 -1.9 1 .4 -2 -1.5 -1.4 2 -.3 Z" fill="#ffd166" stroke-width=".8"/>
+          <path d="M90 -16 l1 2 2 .3 -1.5 1.4 .4 2 -1.9 -1 -1.9 1 .4 -2 -1.5 -1.4 2 -.3 Z" fill="#ffd166" stroke-width=".8"/>
+        </g>
+      </g>
+      </g>
         <path d="M63 11 Q80 22 97 11 Q90 6 80 7 Q70 6 63 11 Z" fill="#a47148"/>
         <path d="M67 12 l6 -3 M75 14 l6 -4 M84 13 l6 -3" stroke="#6b4423" stroke-width="1.5"/>
       </g>
 
-      <!-- Gerard: beret, mustache, baguette -->
-      <g transform="translate(205 0)"><g class="bob" id="gerard">
+      <!-- Sergeant Klaus: spiked helmet, monocle, upturned mustache, bugle -->
+      <g transform="translate(176 0)"><g class="bob" id="klaus">
+        <g class="icecream" style="display:none"><path d="M-21 176 l4 10 l4 -10 Z" fill="#e9c46a" stroke-width="1.5"/><circle cx="-17" cy="173" r="4.5" fill="#ff8fab" stroke-width="1.5"/></g>
+        <path d="M-6 189 V203 M6 189 V203" stroke="#2b2d42" stroke-width="5"/>
+        <ellipse class="dot" cx="-7" cy="206" rx="7" ry="4"/><ellipse class="dot" cx="7" cy="206" rx="7" ry="4"/>
+        <path d="M-13 158 L-15 180" stroke-width="3"/>
+        <path d="M-14 192 C-17 168 -12 150 0 150 C12 150 17 168 14 192 Z" fill="#3a5ba0"/>
+        <path d="M-15 178 H15" stroke="#fff" stroke-width="3"/>
+        <circle cx="0" cy="158" r="1.6" fill="#ffd166" stroke="none"/><circle cx="0" cy="166" r="1.6" fill="#ffd166" stroke="none"/>
+        <circle cx="0" cy="186" r="1.6" fill="#ffd166" stroke="none"/>
+        <path d="M-7 151 Q0 156 7 151" stroke="#e63946" stroke-width="3"/>
+        <path d="M13 158 L19 167" stroke-width="3"/>
+        <path d="M17 168 L28 161" stroke="#d4a017" stroke-width="3"/>
+        <path d="M27 161 l7 -6 v13 Z" fill="#ffd166" stroke-width="1.5"/>
+        <circle cx="0" cy="138" r="12" fill="#ffe0bd"/>
+        <circle class="dot" cx="-4" cy="139" r="1.6"/><circle class="dot" cx="4" cy="139" r="1.6"/>
+        <circle cx="4.5" cy="139" r="3.6" stroke="#d4a017" stroke-width="1.5"/>
+        <path d="M8 141 q3 6 -1 11" stroke="#d4a017" stroke-width="1"/>
+        <path d="M0 145 q-6 -3 -10 -1 q-3 1 -4 -4 M0 145 q6 -3 10 -1 q3 1 4 -4" stroke-width="2.5"/>
+        <path class="crowd c-happy dot" d="M-4 147 Q0 152 4 147 Z"/>
+        <path class="crowd c-grumpy" d="M-3 149.5 Q0 146.5 3 149.5"/>
+        <path class="crowd c-neutral" d="M-3 148.5 h6"/>
+        <path d="M-12 135 Q-12 119 0 119 Q12 119 12 135 Z" fill="#2b2d42"/>
+        <path d="M-14 135.5 h28" stroke-width="3"/>
+        <path d="M-3 119 L0 104 L3 119 Z" fill="#c0c0c0" stroke-width="1.5"/>
+        <circle cx="0" cy="127" r="3" fill="#ffd166" stroke-width="1"/>
+        <!-- his umbrella... which his spike goes straight through -->
+        <g class="umbrella">
+          <path d="M8 119 L18 165" stroke="#5e3a24" stroke-width="2"/>
+          <path d="M-16 120 Q8 98 32 120 Q26 116 20 120 Q14 116 8 120 Q2 116 -4 120 Q-10 116 -16 120 Z" fill="#2b2d42"/>
+          <path d="M-3 115 L0 100 L3 115 Z" fill="#c0c0c0" stroke-width="1.5"/>
+          <path d="M-5 112 l-3 -2 M5 112 l3 -2 M-5 115 l-4 1 M5 115 l4 1" stroke="#fff" stroke-width="1.2"/>
+          <path class="drip" d="M-1 122 q-1.5 3 0 4 q1.5 -1 0 -4 Z" fill="#7aa5d6" stroke="none"/>
+          <path class="drip" d="M2 122 q-1.5 3 0 4 q1.5 -1 0 -4 Z" fill="#7aa5d6" stroke="none" style="animation-delay: .35s"/>
+        </g>
+      </g></g>
+
+      <g transform="translate(214 0)"><g class="bob" id="gerard">
+        <g class="icecream" style="display:none"><path d="M-30 172 l4 10 l4 -10 Z" fill="#e9c46a" stroke-width="1.5"/><circle cx="-26" cy="169" r="4.5" fill="#c49a6c" stroke-width="1.5"/></g>
         <ellipse class="dot" cx="-9" cy="206" rx="8" ry="4"/><ellipse class="dot" cx="9" cy="206" rx="8" ry="4"/>
         <path d="M-20 203 C-25 168 -16 134 0 134 C16 134 25 168 20 203 Q0 208 -20 203 Z" fill="#f6bd60"/>
-        <ellipse cx="1" cy="135" rx="15" ry="5.5" fill="#e63946"/>
-        <path d="M1 130 v-5"/>
+        <g id="beret"><ellipse cx="1" cy="135" rx="15" ry="5.5" fill="#e63946"/><path d="M1 130 v-5"/></g>
         <circle class="dot" cx="-6" cy="152" r="2.2"/><circle class="dot" cx="6" cy="152" r="2.2"/>
         <ellipse cx="-12" cy="159" rx="3.5" ry="2" fill="#ffafcc" stroke="none"/>
         <ellipse cx="12" cy="159" rx="3.5" ry="2" fill="#ffafcc" stroke="none"/>
@@ -419,14 +1058,20 @@
         <path class="crowd c-happy dot" d="M-6 166 Q0 176 6 166 Z"/>
         <path class="crowd c-grumpy" d="M-5 170 Q0 165 5 170"/>
         <path class="crowd c-neutral" d="M-4 168 Q0 170 4 168"/>
-        <g transform="rotate(-25 18 172)">
+        <g id="baguette" transform="rotate(-25 18 172)">
           <rect x="13" y="146" width="10" height="52" rx="5" fill="#e9c46a"/>
           <path d="M15 156 l6 -3 M15 168 l6 -3 M15 180 l6 -3" stroke-width="1.5"/>
+        </g>
+        <g class="umbrella">
+          <path d="M1 127 L20 170" stroke="#5e3a24" stroke-width="2"/>
+          <path d="M-23 128 Q1 104 25 128 Q19 124 13 128 Q7 124 1 128 Q-5 124 -11 128 Q-17 124 -23 128 Z" fill="#e63946"/>
+          <path d="M1 116 v11 M-11 121 l3 6 M13 121 l-3 6" stroke="#fff" stroke-width="1.5"/>
         </g>
       </g></g>
 
       <!-- Margot: headscarf, glasses, pitchfork -->
-      <g transform="translate(262 0)"><g class="bob" id="margot">
+      <g transform="translate(266 0)"><g class="bob" id="margot">
+        <g class="icecream" style="display:none"><path d="M-32 180 l4 10 l4 -10 Z" fill="#e9c46a" stroke-width="1.5"/><circle cx="-28" cy="177" r="4.5" fill="#95d5b2" stroke-width="1.5"/></g>
         <path d="M30 205 V128" stroke="#8b5a2b" stroke-width="4"/>
         <path d="M22 130 V116 M30 130 V113 M38 130 V116 M21 130 H39" stroke="#8d99ae" stroke-width="3"/>
         <ellipse class="dot" cx="-9" cy="206" rx="8" ry="4"/><ellipse class="dot" cx="9" cy="206" rx="8" ry="4"/>
@@ -442,11 +1087,16 @@
         <path class="crowd c-grumpy" d="M-5 194 Q0 189 5 194"/>
         <path class="crowd c-neutral" d="M-4 192 h8"/>
         <path d="M21 188 Q26 187 29 183"/><circle cx="30" cy="182" r="3.5" fill="#cdb4db"/>
+        <g class="umbrella">
+          <path d="M0 151 L28 181" stroke="#5e3a24" stroke-width="2"/>
+          <path d="M-24 152 Q0 128 24 152 Q18 148 12 152 Q6 148 0 152 Q-6 148 -12 152 Q-18 148 -24 152 Z" fill="#9b5de5"/>
+        </g>
       </g></g>
 
       <!-- Pip: tiny, curious, holding a balloon -->
-      <g transform="translate(318 0)"><g class="bob" id="pip">
-        <g>
+      <g transform="translate(320 0)"><g class="bob" id="pip">
+        <g class="icecream" style="display:none"><path d="M-23 186 l4 10 l4 -10 Z" fill="#e9c46a" stroke-width="1.5"/><circle cx="-19" cy="183" r="4.5" fill="#fff8dc" stroke-width="1.5"/></g>
+        <g id="balloon">
           <animateTransform attributeName="transform" type="translate" values="0 0; 0 -4; 0 0" dur="2.4s" repeatCount="indefinite"/>
           <path d="M11 186 Q24 160 20 132"/>
           <ellipse cx="20" cy="119" rx="11" ry="13" fill="#ff6b6b"/>
@@ -463,7 +1113,14 @@
         <path class="crowd c-happy dot" d="M-4 194 Q0 201 4 194 Z"/>
         <path class="crowd c-grumpy" d="M-3 198 Q0 194 3 198"/>
         <circle class="crowd c-neutral" cx="0" cy="196" r="1.8"/>
+        <g class="umbrella">
+          <path d="M0 161 L12 186" stroke="#5e3a24" stroke-width="2"/>
+          <path d="M-18 162 Q0 142 18 162 Q12 158 6 162 Q0 158 -6 162 Q-12 158 -18 162 Z" fill="#ffd166"/>
+        </g>
       </g></g>
+
+      <!-- spectators who wander in to watch (added by the code) -->
+      <g id="spectators"></g>
 
       <!-- Olivia the snail, who slides along the grass and is in no hurry.
            The code below moves her, grows her, and handles eagle snatches. -->
@@ -488,6 +1145,9 @@
         </g>
       </g>
 
+      <!-- flying lettuce (added by the code during the entrance) -->
+      <g id="lettuceLayer"></g>
+
       <!-- Gary the eagle (drawn with his talons at 0,0 so he can grab things) -->
       <g id="eagle" style="display:none">
         <path class="wing" d="M-6 -26 Q-30 -54 -52 -36 Q-40 -34 -36 -26 Q-24 -30 -6 -18 Z" fill="#8d5a3b"/>
@@ -499,20 +1159,41 @@
         <path d="M-8 -43 L-2 -40 M8 -43 L2 -40" stroke-width="2.5"/>
         <circle class="dot" cx="-4" cy="-38" r="1.8"/><circle class="dot" cx="4" cy="-38" r="1.8"/>
         <path d="M-4 -34 Q0 -24 5 -33 Z" fill="#ffb703"/>
+        <!-- dizzy stars, for when Olivia makes him fly into the gallows -->
+        <g id="garyDizzy" style="display:none">
+          <animateTransform attributeName="transform" type="rotate" values="0 0 -54; 360 0 -54" dur="0.9s" repeatCount="indefinite"/>
+          <path d="M-14 -54 l1.3 2.6 2.9 .4 -2.1 2 .5 2.9 -2.6 -1.4 -2.6 1.4 .5 -2.9 -2.1 -2 2.9 -.4 Z" fill="#ffd166" stroke-width="1"/>
+          <path d="M14 -54 l1.3 2.6 2.9 .4 -2.1 2 .5 2.9 -2.6 -1.4 -2.6 1.4 .5 -2.9 -2.1 -2 2.9 -.4 Z" fill="#ffd166" stroke-width="1"/>
+        </g>
       </g>
 
     </g>
     </svg>
     <div class="bubble" id="bubble" data-who="gerard"></div>
+    <div class="stamp" id="stamp">LAST CHANCE!</div>
+    <div class="flash" id="flash"></div>
     </div>
 
+    <div class="pichint" id="picHint"></div>
     <p class="hint" id="hintText"></p>
+    <div class="hearrow"><button class="chip hidden" id="hearBtn">🔊 Hear the clue</button></div>
     <p class="lives" id="livesText"></p>
     <div class="word" id="wordBox"></div>
     <div class="keys" id="keys"></div>
+    <button class="btn secondary bribe hidden" id="bribeBtn">💰 Bribe Klaus for a letter <small>(costs you a body part)</small></button>
 
     <div id="endBox" class="hidden">
       <p class="result" id="resultText"></p>
+      <div class="wordcard hidden" id="wordCard">
+        <div class="wc-pic" id="wcPic"></div>
+        <div class="wc-word" id="wcWord"></div>
+        <div class="wc-pos" id="wcPos"></div>
+        <p class="wc-def" id="wcDef"></p>
+        <p class="wc-extra" id="wcExtra"></p>
+        <button class="chip" id="wcSpeak">🔊 Hear it</button>
+      </div>
+      <button class="btn" id="shareResultBtn">📣 Share your result</button>
+      <p class="note" id="shareNote"></p>
       <button class="btn" id="replyBtn">Send a word back</button>
       <button class="btn secondary" id="againBtn">Play a random word</button>
     </div>
@@ -522,29 +1203,97 @@
 
 <script>
   // ---------- Difficulty modes ----------
+  // "built" = pieces already there when the game starts.
+  // "stages" = what gets drawn on each wrong guess, in order (so the number of stages = wrong guesses allowed).
+  const GALLOWS = ["base", "post", "beam"];
   const MODES = {
     easy: {
-      name: "Still in Diapers", emoji: "🍼", lives: 10, freeLetter: true, hints: true,
-      win: "Big kid now! 🎉", lose: "Waaah! Time for a nap. 🍼"
+      // Kid-friendly: a swing set instead of gallows, a kind crowd, picture clues, nothing scary
+      name: "Big Kid Words", emoji: "🌟", freeLetter: true, hints: true, kid: true,
+      built: [],
+      stages: [["base"], ["post"], ["beam"], ["rope"], ["head"], ["body"], ["larm"], ["rarm"], ["lleg"], ["rleg"]],
+      win: "Big kid now! 🎉", lose: "Wheee! Let's learn this one together!"
     },
     regular: {
-      name: "Regular Joe", emoji: "🧢", lives: 6, freeLetter: false, hints: true,
+      name: "Regular Joe", emoji: "🧢", freeLetter: false, hints: true,
+      built: GALLOWS,
+      stages: [["rope"], ["head"], ["body"], ["larm"], ["rarm"], ["lleg"], ["rleg"]],
       win: "Nice work, Joe! 🎉", lose: "Better luck next time, Joe."
     },
     prison: {
-      name: "Prison Mode", emoji: "⛓️", lives: 4, freeLetter: false, hints: false,
+      // Cerebral: big words, crossword-style clues, more guesses, and no bribing Klaus
+      name: "Prison Mode", emoji: "⛓️", freeLetter: false, hints: true, bribes: false,
+      built: ["base", "post"],
+      stages: [["beam"], ["rope"], ["head"], ["body"], ["larm"], ["rarm"], ["lleg"], ["rleg"]],
       win: "You broke out! 🔓", lose: "Locked up for life! ⛓️"
     }
   };
+  for (const mode of Object.values(MODES)) mode.lives = mode.stages.length;
+
+  // ---------- Characters (who's on the rope) ----------
+  const CHARACTERS = {
+    blob:   { name: "The Blob",   tease: ["Aww, a little blob!", "Just a blob, doing its best."] },
+    nerd:   { name: "The Nerd",   tease: ["A nerd! Bet they know all the vowels.", "Ohohoho! Look at those glasses!"] },
+    jock:   { name: "The Jock",   tease: ["Can the jock even spell 'ball'?", "Nice headband. Can you read?"] },
+    gamer:  { name: "The Gamer",  tease: ["A gamer! Go touch some grass!", "No respawns here, buddy!"] },
+    hipster:{ name: "The Hipster",tease: ["Hanging? So mainstream.", "Nice beard. Is it artisanal?"] },
+    diva:   { name: "The Diva",   tease: ["Ooh, la diva!", "Don't break a nail, darling."] },
+    boss:   { name: "The Boss",   tease: ["The boss! Can't email your way out of this one!", "Is this meeting mandatory?"] },
+    skater: { name: "The Skater", tease: ["Nice board! Can you spell 'ollie'?", "Skate your way outta THIS!"] },
+    rockstar: { name: "The Rockstar", tease: ["A rockstar! Sing your way out of THIS!", "Ooh, will there be an encore?"] },
+    grandpa:  { name: "The Grandpa",  tease: ["Grandpa! Past your bedtime!", "Back in my day, we guessed with stones!"] }
+  };
+  // Some characters get a different name (and teasing) when they're the other gender
+  const GENDER_VERSIONS = {
+    grandpa: { f: { name: "The Grandma", tease: ["Grandma! Past your bedtime!", "Back in my day, we guessed with stones!"] } },
+    diva:    { m: { name: "The Divo",    tease: ["Ooh, la divo!", "Don't break a nail, darling."] } }
+  };
+  function charInfo(key, gender) {
+    return { ...CHARACTERS[key], ...((GENDER_VERSIONS[key] || {})[gender] || {}) };
+  }
 
   // Words used in "play by yourself" mode, one list per difficulty
   const SOLO_WORDS = {
+    // For 4-8 year olds: a picture, a clue they can hear read aloud, a simple meaning and a sentence
     easy: [
-      ["cat", "Animal"], ["dog", "Animal"], ["duck", "Animal"], ["frog", "Animal"], ["pig", "Animal"],
-      ["cow", "Animal"], ["bear", "Animal"], ["fish", "Animal"], ["cake", "Food"], ["milk", "Food"],
-      ["apple", "Food"], ["pizza", "Food"], ["sun", "Nature"], ["tree", "Nature"], ["moon", "Nature"],
-      ["star", "Nature"], ["ball", "Toy"], ["kite", "Toy"], ["hat", "Clothes"], ["shoe", "Clothes"],
-      ["bus", "Vehicle"], ["boat", "Vehicle"], ["book", "Thing"], ["bed", "Thing"]
+      { w: "cat", pic: "🐱", clue: "A furry pet that says meow!", def: "A cat is a small furry animal. Lots of people keep cats as pets.", ex: "The cat curled up for a nap." },
+      { w: "dog", pic: "🐶", clue: "A pet that barks and wags its tail!", def: "A dog is an animal that barks. Dogs love to play fetch.", ex: "My dog chased the ball." },
+      { w: "cow", pic: "🐄", clue: "A big farm animal that says moo!", def: "A cow is a big farm animal. Cows give us milk.", ex: "The cow ate the green grass." },
+      { w: "pig", pic: "🐷", clue: "A pink farm animal that says oink!", def: "A pig is a farm animal with a curly tail and a round nose.", ex: "The pig rolled in the mud." },
+      { w: "duck", pic: "🦆", clue: "A bird that swims and says quack!", def: "A duck is a bird that swims in ponds and says quack.", ex: "The duck paddled across the pond." },
+      { w: "frog", pic: "🐸", clue: "A green jumper that says ribbit!", def: "A frog is a small animal that hops and lives near water.", ex: "The frog jumped onto a lily pad." },
+      { w: "fish", pic: "🐟", clue: "It swims in water and has fins!", def: "A fish lives in water and breathes through gills.", ex: "A shiny fish swam past the boat." },
+      { w: "bee", pic: "🐝", clue: "A buzzy bug that makes honey!", def: "A bee is a flying insect that buzzes and makes honey.", ex: "The bee buzzed around the flower." },
+      { w: "owl", pic: "🦉", clue: "A bird that says hoo and stays up all night!", def: "An owl is a bird with big eyes that is awake at night.", ex: "The owl hooted in the dark." },
+      { w: "bear", pic: "🐻", clue: "A big furry animal that loves honey!", def: "A bear is a large, strong animal with thick fur.", ex: "The bear slept all winter long." },
+      { w: "lion", pic: "🦁", clue: "The king of the jungle! ROAR!", def: "A lion is a big wild cat. Boy lions have a fluffy mane.", ex: "The lion gave a mighty roar." },
+      { w: "horse", pic: "🐴", clue: "You can ride it, and it says neigh!", def: "A horse is a big animal with a long mane that people can ride.", ex: "The horse galloped across the field." },
+      { w: "turtle", pic: "🐢", clue: "It carries its house on its back!", def: "A turtle is an animal with a hard shell that keeps it safe.", ex: "The turtle tucked its head into its shell." },
+      { w: "apple", pic: "🍎", clue: "A crunchy fruit that grows on trees!", def: "An apple is a round fruit. It can be red, green or yellow.", ex: "I packed an apple for lunch." },
+      { w: "banana", pic: "🍌", clue: "A long yellow fruit that monkeys love!", def: "A banana is a long fruit with a yellow peel.", ex: "She peeled a banana for a snack." },
+      { w: "cake", pic: "🎂", clue: "A sweet treat with candles on your birthday!", def: "A cake is a sweet baked treat, often eaten at parties.", ex: "We sang and cut the birthday cake." },
+      { w: "pizza", pic: "🍕", clue: "A cheesy food cut into slices!", def: "Pizza is flat bread with sauce and cheese on top, baked in an oven.", ex: "We shared a pizza for dinner." },
+      { w: "egg", pic: "🥚", clue: "Chickens lay these!", def: "An egg has a shell. Baby birds hatch out of eggs, and we can cook them too.", ex: "He cracked an egg into the bowl." },
+      { w: "milk", pic: "🥛", clue: "A white drink that comes from cows!", def: "Milk is a white drink that helps build strong bones.", ex: "I poured milk on my cereal." },
+      { w: "sun", pic: "☀️", clue: "It shines in the sky during the day!", def: "The sun is a giant star that gives us light and keeps us warm.", ex: "The sun came up in the morning." },
+      { w: "moon", pic: "🌙", clue: "It glows in the night sky!", def: "The moon goes around the Earth and shines at night.", ex: "We saw a big round moon tonight." },
+      { w: "star", pic: "⭐", clue: "It twinkles in the night sky!", def: "A star is a giant ball of hot gas, very far away in space.", ex: "I made a wish on a star." },
+      { w: "tree", pic: "🌳", clue: "It has a trunk, branches and leaves!", def: "A tree is a tall plant with a wooden trunk and branches.", ex: "A bird built a nest in the tree." },
+      { w: "rain", pic: "🌧️", clue: "Water that falls from the clouds!", def: "Rain is water that falls from clouds in the sky.", ex: "We splashed in the rain puddles." },
+      { w: "snow", pic: "❄️", clue: "Cold, white and fluffy. Build a snowman!", def: "Snow is frozen water that falls from the clouds when it is very cold.", ex: "We built a snowman in the snow." },
+      { w: "rainbow", pic: "🌈", clue: "Lots of colors in the sky after the rain!", def: "A rainbow is a curve of colors you see when sunlight shines through rain.", ex: "A rainbow stretched across the sky." },
+      { w: "ball", pic: "⚽", clue: "You can kick it, throw it and bounce it!", def: "A ball is a round toy used in lots of games.", ex: "Kick the ball to me!" },
+      { w: "kite", pic: "🪁", clue: "It flies in the wind on a long string!", def: "A kite is a toy that flies high in the wind on a string.", ex: "Our kite flew higher than the trees." },
+      { w: "book", pic: "📖", clue: "It has pages and stories inside!", def: "A book has pages with words and pictures to read.", ex: "Dad read me a book at bedtime." },
+      { w: "sock", pic: "🧦", clue: "You wear it on your foot, inside your shoe!", def: "A sock is something soft you wear on your foot.", ex: "I lost one sock in the wash!" },
+      { w: "bus", pic: "🚌", clue: "A big vehicle that takes kids to school!", def: "A bus is a big vehicle that carries lots of people.", ex: "We rode the bus to school." },
+      { w: "boat", pic: "⛵", clue: "It floats on the water!", def: "A boat floats and carries people across the water.", ex: "The boat sailed across the lake." },
+      { w: "train", pic: "🚂", clue: "It goes choo-choo on the tracks!", def: "A train is a line of cars that rolls along on tracks.", ex: "The train whistled at the station." },
+      { w: "rocket", pic: "🚀", clue: "It blasts off into space!", def: "A rocket is a vehicle that blasts off into outer space.", ex: "Three, two, one... the rocket blasted off!" },
+      { w: "robot", pic: "🤖", clue: "A machine that can move and help!", def: "A robot is a machine that can do jobs all by itself.", ex: "The robot swept the floor." },
+      { w: "dragon", pic: "🐉", clue: "A make-believe creature that breathes fire!", def: "A dragon is a make-believe creature with wings that breathes fire.", ex: "The dragon guarded its treasure." },
+      { w: "house", pic: "🏠", clue: "A building where a family lives!", def: "A house is a building where people live.", ex: "Our house has a red door." },
+      { w: "clock", pic: "⏰", clue: "It tells you what time it is!", def: "A clock is a machine that shows the time.", ex: "The clock says it's time for bed." }
     ],
     regular: [
       ["giraffe", "Animal"], ["penguin", "Animal"], ["octopus", "Animal"], ["kangaroo", "Animal"],
@@ -558,12 +1307,47 @@
       ["bowling", "Sport"], ["astronaut", "Job"], ["firefighter", "Job"], ["detective", "Job"],
       ["ice cream", "Food"], ["roller coaster", "Fun"], ["birthday party", "Fun"], ["treasure map", "Thing"]
     ],
-    // Prison words use rare letters and few vowels (no hints shown in this mode)
+    // For adults with a good vocabulary: words you've seen in a good newspaper or novel, but don't use every day.
+    // Each has a crossword-style clue, plus the meaning and origin revealed at the end.
     prison: [
-      ["rhythm"], ["jazz"], ["sphinx"], ["zigzag"], ["oxygen"], ["quizzical"], ["buzzard"], ["jukebox"],
-      ["kayak"], ["xylophone"], ["awkward"], ["wizardry"], ["zephyr"], ["crypt"], ["galaxy"], ["jinx"],
-      ["fjord"], ["bagpipes"], ["vortex"], ["quartz"], ["mystify"], ["abyss"], ["gazebo"], ["pixel"],
-      ["nightclub"], ["glyph"], ["jigsaw"], ["frizzy"], ["blizzard"], ["syzygy"]
+      { w: "gasconade", clue: "Hot air from the south of France?", pos: "noun", def: "Extravagant boasting; bravado.", origin: "From the Gascons of southwestern France, once stereotyped as braggarts." },
+      { w: "quixotic", clue: "Tilting at windmills, so to speak", pos: "adjective", def: "Exceedingly idealistic; unrealistic and impractical.", origin: "From Don Quixote, Cervantes's starry-eyed knight-errant." },
+      { w: "truculent", clue: "Spoiling for a fight", pos: "adjective", def: "Eager or quick to argue or fight; aggressively defiant.", origin: "Latin trux, 'fierce'." },
+      { w: "mellifluous", clue: "Honeyed, as a late-night DJ's voice", pos: "adjective", def: "Sweet or musical; pleasant to hear.", origin: "Latin mel, 'honey', + fluere, 'to flow'." },
+      { w: "lugubrious", clue: "Gloomy enough to put a dirge to shame", pos: "adjective", def: "Looking or sounding sad and dismal, often exaggeratedly so.", origin: "Latin lugere, 'to mourn'." },
+      { w: "obstreperous", clue: "Hardly the indoor-voice type", pos: "adjective", def: "Noisy and difficult to control.", origin: "Latin obstrepere, 'to make a noise against'." },
+      { w: "pusillanimous", clue: "Like a lion that never quite manages a roar", pos: "adjective", def: "Showing a lack of courage or determination; timid.", origin: "Latin pusillus, 'very small', + animus, 'spirit'." },
+      { w: "defenestration", clue: "Exit strategy for an unpopular official, historically", pos: "noun", def: "The act of throwing someone out of a window.", origin: "Latin fenestra, 'window'. Prague made it famous in 1618." },
+      { w: "kerfuffle", clue: "Brouhaha's flustered cousin", pos: "noun", def: "A commotion or fuss, especially one caused by conflicting views.", origin: "Scottish curfuffle, from Gaelic car, 'twist', + fuffle, 'to disorder'." },
+      { w: "callow", clue: "Green, but not with envy", pos: "adjective", def: "Inexperienced and immature.", origin: "Old English calu, 'bald', as in a young bird without feathers." },
+      { w: "apocryphal", clue: "Like many a cherry-tree anecdote", pos: "adjective", def: "Of doubtful authenticity, though widely circulated as true.", origin: "Greek apokryphos, 'hidden away'." },
+      { w: "petrichor", clue: "After-shower scent that isn't sold in bottles", pos: "noun", def: "The pleasant, earthy smell after rain falls on dry ground.", origin: "Coined in 1964 from Greek petra, 'stone', + ichor, the fluid in the veins of the gods." },
+      { w: "hornswoggle", clue: "Pull a fast one on", pos: "verb", def: "To get the better of someone by cheating or deception.", origin: "19th-century American slang." },
+      { w: "obsequious", clue: "Like a butler who's a bit too eager to please", pos: "adjective", def: "Excessively eager to please or obey.", origin: "Latin obsequi, 'to comply with'." },
+      { w: "loquacious", clue: "Never at a loss for words, and rarely stopping for breath", pos: "adjective", def: "Tending to talk a great deal; talkative.", origin: "Latin loqui, 'to speak'." },
+      { w: "ebullient", clue: "Bubbling over, but not in the kitchen", pos: "adjective", def: "Cheerful and full of energy.", origin: "Latin ebullire, 'to boil over'." },
+      { w: "insouciant", clue: "Shrugging it all off, with a certain French flair", pos: "adjective", def: "Showing a casual lack of concern.", origin: "French, from souci, 'care'." },
+      { w: "laconic", clue: "Spartan, conversationally speaking", pos: "adjective", def: "Using very few words.", origin: "From Laconia, home of the famously terse Spartans." },
+      { w: "pernicious", clue: "Harmful in a quiet, creeping way", pos: "adjective", def: "Having a harmful effect, especially in a gradual or subtle way.", origin: "Latin pernicies, 'ruin'." },
+      { w: "recalcitrant", clue: "Like a mule that's made up its mind", pos: "adjective", def: "Stubbornly uncooperative toward authority or guidance.", origin: "Latin recalcitrare, 'to kick back'." },
+      { w: "magnanimous", clue: "Big-hearted, especially toward a beaten rival", pos: "adjective", def: "Generous or forgiving, especially toward a rival or someone less powerful.", origin: "Latin magnus, 'great', + animus, 'soul'." },
+      { w: "sanguine", clue: "Optimistic, though its roots are bloody", pos: "adjective", def: "Optimistic, especially in a difficult situation.", origin: "Latin sanguis, 'blood'. A ruddy, blood-rich temperament was thought to be a cheerful one." },
+      { w: "ephemeral", clue: "Here today, gone tomorrow", pos: "adjective", def: "Lasting for a very short time.", origin: "Greek ephemeros, 'lasting only a day'." },
+      { w: "cacophony", clue: "What a middle-school band tuning up might produce", pos: "noun", def: "A harsh, discordant mixture of sounds.", origin: "Greek kakos, 'bad', + phone, 'sound'." },
+      { w: "obfuscate", clue: "Muddy the waters, on purpose", pos: "verb", def: "To make something unclear or hard to understand.", origin: "Latin obfuscare, 'to darken'." },
+      { w: "garrulous", clue: "Like the seatmate who tells you their life story on a flight", pos: "adjective", def: "Excessively talkative, especially about trivial matters.", origin: "Latin garrire, 'to chatter'." },
+      { w: "sardonic", clue: "Smiling, but not because anything's funny", pos: "adjective", def: "Grimly mocking or cynical.", origin: "Greek sardonios, from a Sardinian plant said to make its victims grimace." },
+      { w: "bombastic", clue: "Gasconade's long-winded cousin", pos: "adjective", def: "High-sounding but with little meaning; inflated.", origin: "From bombast, cotton padding once used to stuff clothing." },
+      { w: "mendacious", clue: "Pants on fire, in a word", pos: "adjective", def: "Not telling the truth; lying.", origin: "Latin mendax, 'lying'." },
+      { w: "sycophant", clue: "Yes-man extraordinaire", pos: "noun", def: "A person who flatters someone important to gain an advantage.", origin: "Greek sykophantes, which originally meant an informer." },
+      { w: "querulous", clue: "Complaining, with a whine in it", pos: "adjective", def: "Complaining in a petulant or whining manner.", origin: "Latin queri, 'to complain'." },
+      { w: "soporific", clue: "Like a lecture you can't stay awake for", pos: "adjective", def: "Tending to make people drowsy or sleepy.", origin: "Latin sopor, 'deep sleep'." },
+      { w: "capricious", clue: "Changeable as spring weather", pos: "adjective", def: "Given to sudden, unaccountable changes of mood or behavior.", origin: "Italian capriccio, possibly from capra, 'goat', for its sudden leaps." },
+      { w: "schadenfreude", clue: "Joy at another's misfortune, imported from Germany", pos: "noun", def: "Pleasure taken in someone else's misfortune.", origin: "German Schaden, 'harm', + Freude, 'joy'." },
+      { w: "bellicose", clue: "Itching for a war", pos: "adjective", def: "Showing aggression and a willingness to fight.", origin: "Latin bellum, 'war'." },
+      { w: "perfunctory", clue: "Done just to check the box", pos: "adjective", def: "Carried out with minimal effort or reflection.", origin: "Latin perfunctorius, 'careless'." },
+      { w: "pedantic", clue: "Like someone correcting 'who' to 'whom' at a party", pos: "adjective", def: "Overly concerned with minor details or rules.", origin: "Italian pedante, 'teacher'." },
+      { w: "zeitgeist", clue: "What every trend piece claims to capture", pos: "noun", def: "The defining spirit or mood of a particular period of history.", origin: "German Zeit, 'time', + Geist, 'spirit'." }
     ]
   };
 
@@ -588,6 +1372,12 @@
       win:   ["Yaaay! Can we keep them?", "Best show ever!"],
       lose:  ["Bye bye!", "Can I have their shoes now?"]
     },
+    klaus: {
+      wrong: ["Achtung! Wrong letter!", "Ja, ja. Very bad guess.", "Zis is most irregular!", "I will write zis down.", "*toot toot* Wrong!"],
+      right: ["Hmph. Acceptable.", "Gut. Too gut.", "Zis was not in ze plan!", "Suspicious..."],
+      win:   ["Unacceptable! Back to ze barracks!", "I demand a recount!"],
+      lose:  ["Achtung! Ze show is over!", "*victory toot*"]
+    },
     bird: {
       wrong: ["Tweet.<small>(Translation: yikes.)</small>", "Chirp chirp.<small>(Translation: oh dear.)</small>", "Tweet!<small>(Translation: the cow is coming.)</small>"],
       right: ["Tweet.<small>(Translation: nice.)</small>", "Chirp!<small>(Translation: I believed in you.)</small>"],
@@ -596,8 +1386,18 @@
     }
   };
 
+  // In Big Kid Words mode the crowd is kind and encouraging instead
+  const KIND_LINES = {
+    wrong: ["Ooh, so close!", "Try another letter!", "You can do it!", "Hmm, not that one!", "Keep going!"],
+    right: ["Yay! Great job!", "You found one!", "Wow, you're good at this!", "Hooray!", "Super duper!"],
+    win:   ["Hooray! You did it!", "Best speller ever!", "Yaaay! Wunderbar!"],
+    lose:  ["Good try! Let's learn this one!", "Wheee! Let's play again!"]
+  };
+  const KID_GREETINGS = ["Hello, little speller!", "Let's find the word!", "Yay, a new word!"];
+  const KID_ENTRANCE = ["Flowers for our speller!", "Hooray! Here they come!", "*happy toot toot*"];
+
+  const PEASANTS = ["klaus", "gerard", "margot", "pip"]; // the main crowd (everyone who can talk except the bird)
   const MOOS = ["Moo!", "MOOOO!", "Moo?", "Moo-la-la!", "Bonjour. Moo.", "Mooove aside!"];
-  const SUPER_MOOS = ["Super moo!", "To the barn!", "MOOOOO!"];
 
   // ---------- Small helpers ----------
   const $ = (id) => document.getElementById(id);
@@ -632,12 +1432,6 @@
     return JSON.parse(decodeURIComponent(escape(atob(text))));
   }
 
-  // Make the lines "boil" like a hand-drawn cartoon by nudging the wobble a few times a second
-  let wobbleSeed = 1;
-  setInterval(() => {
-    wobbleSeed = (wobbleSeed % 3) + 1;
-    $("wobbleNoise").setAttribute("seed", wobbleSeed);
-  }, 180);
 
   // ---------- Cows ----------
   function cowSvg(cape) {
@@ -664,22 +1458,6 @@
     </svg>`;
   }
 
-  function launchCow(delay = 0) {
-    setTimeout(() => {
-      const kind = pick(["fly", "walk", "drop"]);
-      const cow = document.createElement("div");
-      cow.className = "cow " + kind;
-      // Flying cows are super cows and wear a cape
-      cow.innerHTML = `<span class="moo">${kind === "fly" ? pick(SUPER_MOOS) : pick(MOOS)}</span>` + cowSvg(kind === "fly");
-      if (kind === "fly") cow.style.top = 10 + Math.random() * 30 + "vh";
-      if (kind === "walk") cow.style.bottom = 5 + Math.random() * 25 + "vh";
-      if (kind === "drop") cow.style.left = 10 + Math.random() * 55 + "vw";
-      cow.addEventListener("animationend", (e) => { if (e.target === cow) cow.remove(); });
-      document.body.appendChild(cow);
-      replay($("bird"), "hop"); // the bird is startled
-    }, delay);
-  }
-
   $("titleCow").innerHTML = cowSvg(false);
 
   // ---------- Heckling ----------
@@ -687,11 +1465,16 @@
   function heckle(kind) {
     // Usually a peasant speaks; sometimes the bird chimes in.
     // During the game the bubble fades out; at the end it stays up.
-    const who = Math.random() < 0.15 ? "bird" : pick(["gerard", "margot", "pip"]);
+    if (game && game.mode.kid) return say(pick(PEASANTS), pick(KIND_LINES[kind]), kind === "win" || kind === "lose");
+    const who = Math.random() < 0.15 && birdIsHome() ? "bird" : pick(PEASANTS);
     say(who, pick(CAST[who][kind]), kind === "win" || kind === "lose");
   }
 
+  // The bird only lives on the gallows once the beam is built
+  const birdIsHome = () => $("birdHome").classList.contains("on") && !birdBusy;
+
   function say(who, text, stays) {
+    if (crowdAway && who !== "bird") return; // they're off buying ice cream
     const bubble = $("bubble");
     bubble.classList.remove("show");
     bubble.innerHTML = text;
@@ -699,6 +1482,7 @@
     void bubble.offsetWidth;
     bubble.classList.add("show");
     replay($(who), "hop");
+    if (who === "klaus" && Math.random() < 0.4) play("toot");
     clearTimeout(bubbleTimer);
     if (!stays) bubbleTimer = setTimeout(() => bubble.classList.remove("show"), 2800);
   }
@@ -711,18 +1495,20 @@
     gerard: ["Zut alors! Not Olivia!", "Sacrebleu! Unhand that snail!"],
     margot: ["Put her down, you brute!", "OLIVIA!"],
     pip:    ["OLIVIA, NOOO!", "Bye Olivia! ...wait, NO!"],
+    klaus:  ["Halt! Zat snail is a civilian!", "Achtung! Air raid!"],
     bird:   ["TWEET!<small>(Translation: not cool, Gary.)</small>"]
   };
   const RETURN_LINES = {
     gerard: ["She lives! Magnifique!", "Olivia! Ze legend!"],
     margot: ["Oh thank heavens.", "Someone get that snail a medal."],
     pip:    ["OLIVIA! You came back!", "Can I have a parachute too?"],
+    klaus:  ["A perfect landing! *salutes*", "Ze snail returns!"],
     bird:   ["Tweet.<small>(Translation: welcome home.)</small>"]
   };
 
-  // Where she is and how big she is depend on how far along she is
+  // Where she is depends on how far along she is (she stays the same size the whole way)
   const oliviaX = () => -110 + 530 * olivia.progress;
-  const oliviaSize = () => 0.5 + 1.9 * olivia.progress;
+  const oliviaSize = () => 1;
 
   // The top of her shell, in scene coordinates (where Gary grabs her)
   function shellTop() {
@@ -740,17 +1526,67 @@
     if (olivia.state !== "crawl" || x < 10 || x > 320) return; // only while she's on screen
     olivia.state = "snatch";
     olivia.start = performance.now();
+    play("whoosh");
     olivia.grab = shellTop();
     olivia.eagleSize = Math.max(1, oliviaSize() * 0.75);
+    olivia.miss = Math.random() < 0.3; // sometimes Olivia ducks and Gary hits the gallows instead
+    olivia.crashed = false;
     $("eagle").style.display = "";
     setTimeout(() => {
-      const who = Math.random() < 0.25 ? "bird" : pick(["gerard", "margot", "pip"]);
+      const who = Math.random() < 0.25 && birdIsHome() ? "bird" : pick(PEASANTS);
       if (!(game && game.over)) say(who, pick(SNATCH_LINES[who]));
     }, 1300);
   }
 
   const ease = (t) => t * t * (3 - 2 * t);
   const clamp01 = (t) => Math.max(0, Math.min(1, t));
+
+  // ---------- Olivia's revenge: she ducks, and Gary slams into the gallows post ----------
+  const MISS_LINES = {
+    gerard: ["Ha! Missed!", "Olivia: 1, Gary: 0!"],
+    margot: ["Serves you right, Gary!", "Ooh, that's gonna leave a mark."],
+    pip:    ["Yay Olivia!", "Is Gary okay? ...Yay Olivia!"],
+    klaus:  ["Bravo, snail! *salutes*", "A tactical masterpiece!"]
+  };
+  const FEATHER = '<path d="M0 -6 q5 3 0 12 q-5 -3 0 -12 Z M0 -6 v12" fill="#8d5a3b" stroke-width="1"/>';
+
+  function updateMiss(t, g, eagle) {
+    const size = olivia.eagleSize;
+    const post = [68, 172]; // where Gary smacks into the gallows post
+    if (t < 1900) {
+      // Olivia ducks; Gary overshoots...
+      $("oliviaEek").textContent = "Nope!";
+      $("oliviaEek").style.display = "";
+      const p = (t - 1400) / 500;
+      eagle.setAttribute("transform", `translate(${g.x + (post[0] - g.x) * p} ${g.y + (post[1] - g.y) * p}) scale(${size})`);
+    } else if (t < 3700) {
+      // ...THUD. Feathers everywhere, stars, applause.
+      if (!olivia.crashed) {
+        olivia.crashed = true;
+        play("thud");
+        play("cheer");
+        $("garyDizzy").style.display = "";
+        for (let i = 0; i < 6; i++) {
+          throwThing(FEATHER, [66, 150], [40 + Math.random() * 60, 205], null, 900 + Math.random() * 600, 15);
+        }
+        const who = pick(PEASANTS);
+        if (!(game && game.over)) say(who, pick(MISS_LINES[who]));
+      }
+      const wobble = Math.sin(t / 60) * 5;
+      eagle.setAttribute("transform", `translate(${post[0]} ${post[1]}) rotate(${wobble}) scale(${size})`);
+    } else if (t < 5200) {
+      // He wobbles off into the sky
+      const p = clamp01((t - 3700) / 1500) ** 2;
+      eagle.setAttribute("transform", `translate(${post[0] + (420 - post[0]) * p} ${post[1] + (-100 - post[1]) * p}) scale(${size})`);
+    } else {
+      eagle.style.display = "none";
+      $("garyDizzy").style.display = "none";
+      $("oliviaEek").style.display = "none";
+      $("oliviaEek").textContent = "Eek!";
+      olivia.miss = olivia.crashed = false;
+      olivia.state = "crawl";
+    }
+  }
 
   // The snatch, step by step (times in milliseconds since it started)
   function updateSnatch(now) {
@@ -764,6 +1600,8 @@
       const ex = (1 - p) * (1 - p) * sx + 2 * (1 - p) * p * cx + p * p * g.x;
       const ey = (1 - p) * (1 - p) * sy + 2 * (1 - p) * p * cy + p * p * g.y;
       eagle.setAttribute("transform", `translate(${ex} ${ey}) scale(${olivia.eagleSize})`);
+    } else if (olivia.miss) {
+      updateMiss(t, g, eagle);
     } else if (t < 1700) {
       // Grab!
       $("oliviaEek").style.display = "";
@@ -796,7 +1634,7 @@
       olivia.landing = false;
       olivia.state = "crawl";
       $("oliviaChute").style.display = "none";
-      const who = Math.random() < 0.25 ? "bird" : pick(["gerard", "margot", "pip"]);
+      const who = Math.random() < 0.25 && birdIsHome() ? "bird" : pick(PEASANTS);
       if (!(game && game.over)) say(who, pick(RETURN_LINES[who]));
     }
   }
@@ -808,7 +1646,7 @@
     if (olivia.state === "crawl") {
       olivia.progress += dt / OLIVIA_TRIP;
       if (olivia.progress > 1) olivia.progress -= 1;
-    } else {
+    } else if (olivia.state === "snatch") {
       updateSnatch(now);
     }
     drawOlivia();
@@ -821,20 +1659,1482 @@
     if (!$("game").classList.contains("hidden") && Math.random() < 0.3) snatchOlivia();
   }, 20000);
 
+  // ---------- Spectators: the worse it's going, the bigger the audience ----------
+  // Each drawing stands with its feet at 0,0 and faces left (toward the gallows).
+  const SPECTATORS = {
+    cow: { sound: () => pick(MOOS), art: () => `
+      <g class="cowtail"><path d="M20 -24 q9 2 7 13"/><circle class="dot" cx="27" cy="-10" r="2.5"/></g>
+      <rect x="-17" y="-14" width="7" height="14" rx="3.5" fill="#fff"/><rect x="-7" y="-13" width="7" height="13" rx="3.5" fill="#fff"/>
+      <rect x="5" y="-13" width="7" height="13" rx="3.5" fill="#fff"/><rect x="14" y="-14" width="7" height="14" rx="3.5" fill="#fff"/>
+      <ellipse cx="0" cy="-22" rx="23" ry="13" fill="#fff"/>
+      <path class="dot" d="M-4 -31 q7 -4 11 1 q3 6 -5 8 q-7 0 -6 -9 Z"/>
+      <path class="dot" d="M11 -20 q5 -3 8 2 q1 5 -5 5 q-5 -1 -3 -7 Z"/>
+      <g class="sideface">
+        <path d="M-31 -39 q-3 -6 1 -9 M-19 -39 q3 -6 -1 -9" stroke="#c9a227" stroke-width="2.5"/>
+        <ellipse cx="-25" cy="-31" rx="11" ry="10" fill="#fff"/>
+        <ellipse cx="-29" cy="-25" rx="8" ry="5.5" fill="#ffc2d1"/>
+        <circle class="dot" cx="-32" cy="-25" r="1"/><circle class="dot" cx="-27" cy="-25" r="1"/>
+        <circle class="dot" cx="-24" cy="-34" r="2"/>
+      </g>
+      <!-- the "...what?" face, looking right at the camera -->
+      <g class="camface">
+        <path d="M-35 -37 q-7 -4 -9 2 q4 3 9 1 Z M-15 -37 q7 -4 9 2 q-4 3 -9 1 Z" fill="#fff"/>
+        <path d="M-30 -40 q-2 -6 1 -9 M-20 -40 q2 -6 -1 -9" stroke="#c9a227" stroke-width="2.5"/>
+        <ellipse cx="-25" cy="-30" rx="11" ry="11" fill="#fff"/>
+        <circle cx="-29" cy="-33" r="3.2" fill="#fff" stroke-width="1.5"/><circle class="dot" cx="-29" cy="-33" r="1.7"/>
+        <circle cx="-21" cy="-33" r="3.2" fill="#fff" stroke-width="1.5"/><circle class="dot" cx="-21" cy="-33" r="1.7"/>
+        <path d="M-33 -38.5 l5 1 M-17 -38.5 l-5 1" stroke-width="1.5"/>
+        <ellipse cx="-25" cy="-23.5" rx="8" ry="5" fill="#ffc2d1"/>
+        <circle class="dot" cx="-27.5" cy="-24" r="1"/><circle class="dot" cx="-22.5" cy="-24" r="1"/>
+        <path d="M-28 -20.5 h6" stroke-width="1.2"/>
+      </g>` },
+    // Pierre's wife, who has had enough
+    wife: { sound: () => "PIERRE!!", sfx: "thud", art: (skin) => `
+      <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
+      <path d="M0 -32 Q-17 -30 -17 -2 Q0 2 17 -2 Q17 -30 0 -32 Z" fill="#9b5de5"/>
+      <path d="M-9 -20 h18 v16 q-9 3 -18 0 Z" fill="#fff" stroke-width="1.5"/>
+      <path d="M-14 -24 L-21 -36" stroke-width="3"/>
+      <rect x="-30" y="-46" width="6" height="22" rx="3" fill="#e0aa72" transform="rotate(-35 -27 -35)"/>
+      <circle cx="0" cy="-53" r="5" fill="#8d99ae"/>
+      <circle cx="0" cy="-42" r="10" fill="${skin}"/>
+      <path d="M-10 -44 Q-10 -53 0 -53 Q10 -53 10 -44 Q5 -49 0 -49 Q-5 -49 -10 -44 Z" fill="#8d99ae"/>
+      <path d="M-7 -46 L-2 -44 M7 -46 L2 -44" stroke-width="2"/>
+      <circle class="dot" cx="-3.5" cy="-42" r="1.4"/><circle class="dot" cx="3.5" cy="-42" r="1.4"/>
+      <ellipse class="dot" cx="0" cy="-36" rx="3" ry="2.5"/>` },
+    // The executioner, who is very late (Regular Joe and Prison Mode only)
+    executioner: { sound: () => "*munch munch*", sfx: "chomp", art: () => `
+      <ellipse class="dot" cx="-6" cy="-1" rx="6" ry="3"/><ellipse class="dot" cx="6" cy="-1" rx="6" ry="3"/>
+      <path d="M0 -36 C16 -36 17 -14 15 -6 C13 1 -13 1 -15 -6 C-17 -14 -16 -36 0 -36 Z" fill="#3d3d3d"/>
+      <path d="M-15 -26 L-22 -18" stroke-width="3"/>
+      <path d="M-30 -21 h12 M-30 -17 h12" stroke="#e9c46a" stroke-width="3.5"/><path d="M-30 -19 h12" stroke="#52b788" stroke-width="2"/>
+      <path d="M15 -26 L19 -14" stroke-width="3"/><rect x="16" y="-18" width="6" height="4" rx="1" fill="#ffd166" stroke-width="1"/>
+      <path d="M-11 -38 Q-12 -58 0 -58 Q12 -58 11 -38 Q0 -34 -11 -38 Z" fill="#2b2d42"/>
+      <ellipse cx="-4.5" cy="-47" rx="3" ry="2" fill="#fff" stroke="none"/><ellipse cx="4.5" cy="-47" rx="3" ry="2" fill="#fff" stroke="none"/>
+      <circle class="dot" cx="-4.5" cy="-47" r="1.1"/><circle class="dot" cx="4.5" cy="-47" r="1.1"/>` },
+    // The ice cream truck
+    truck: { sound: () => "♪ ding-a-ling ♪", sfx: "pop", art: () => `
+      <rect x="-34" y="-36" width="58" height="28" rx="4" fill="#ffafcc"/>
+      <path d="M-34 -24 h-11 q-4 0 -4 4 v12 h15 Z" fill="#ffafcc"/>
+      <rect x="-46" y="-21" width="7" height="6" rx="1" fill="#9bd0f5" stroke-width="1.5"/>
+      <path d="M-30 -14 h50" stroke="#fff" stroke-width="3"/>
+      <text x="-5" y="-20" text-anchor="middle" fill="#e63946" stroke="none" style="font: 8px 'Gochi Hand', cursive">ICE CREAM</text>
+      <path d="M-11 -48 l6 12 l6 -12 Z" fill="#e9c46a" stroke-width="1.5"/><circle cx="-5" cy="-50" r="6" fill="#ff8fab" stroke-width="1.5"/>
+      <circle cx="-34" cy="-6" r="6" fill="#2b2d42"/><circle cx="12" cy="-6" r="6" fill="#2b2d42"/>
+      <circle cx="-34" cy="-6" r="2" fill="#adb5bd" stroke="none"/><circle cx="12" cy="-6" r="2" fill="#adb5bd" stroke="none"/>` },
+    // Bernard the streaker (Regular Joe and Prison Mode only): nothing on but socks and a censor bar
+    streaker: { sound: () => "WOOOO!", sfx: "pop", art: (skin) => `
+      <path d="M-6 -12 L-9 -2 M6 -12 L9 -2" stroke-width="3.5"/>
+      <path d="M-11 -6 h5 M6 -6 h5" stroke="#e63946" stroke-width="2"/>
+      <ellipse cx="-10" cy="-1" rx="5" ry="2.5" fill="#fff"/><ellipse cx="10" cy="-1" rx="5" ry="2.5" fill="#fff"/>
+      <g class="arms">
+        <path d="M-14 -32 Q-25 -42 -21 -54 M14 -32 Q25 -42 21 -54" stroke-width="3.5"/>
+        <circle cx="-21" cy="-56" r="3.5" fill="${skin}"/><circle cx="21" cy="-56" r="3.5" fill="${skin}"/>
+      </g>
+      <ellipse cx="0" cy="-26" rx="17" ry="16" fill="${skin}"/>
+      <path d="M-6 -35 q2 -2 4 0 M2 -35 q2 -2 4 0" stroke-width="1"/>
+      <circle class="dot" cx="0" cy="-23" r="1"/>
+      <rect x="-13" y="-17" width="26" height="8" rx="1" fill="#1f2a6b" stroke="none"/>
+      <text x="0" y="-11" text-anchor="middle" fill="#fff" stroke="none" style="font: bold 5.5px sans-serif">CENSORED</text>
+      <circle cx="0" cy="-49" r="9" fill="${skin}"/>
+      <circle class="dot" cx="-3.5" cy="-51" r="1.5"/><circle class="dot" cx="3.5" cy="-51" r="1.5"/>
+      <path class="dot" d="M-4 -46 Q0 -40 4 -46 Z"/>
+      <ellipse cx="-6" cy="-47" rx="2.5" ry="1.5" fill="#ff8fab" stroke="none"/><ellipse cx="6" cy="-47" rx="2.5" ry="1.5" fill="#ff8fab" stroke="none"/>` },
+    // Pierre, the town drunk (Regular Joe and Prison Mode only)
+    drunk: { sound: () => "*hic*", sfx: "hic", art: () => `
+      <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
+      <path d="M-11 -18 L-16 -12" stroke-width="3"/>
+      <path d="M0 -30 C13 -30 14 -12 12 -5 C10 1 -10 1 -12 -5 C-14 -12 -13 -30 0 -30 Z" fill="#a98467"/>
+      <rect x="3" y="-17" width="5" height="5" fill="#d4a373" stroke-width="1"/>
+      <path d="M-21 -27 h4 v4 l2.5 3 v13 h-9 v-13 l2.5 -3 Z" fill="#52b788"/>
+      <rect x="-22" y="-17" width="7" height="4" fill="#fff8dc" stroke="none"/>
+      <circle cx="0" cy="-40" r="10" fill="#f1c27d"/>
+      <path d="M-5 -49 q2 -6 4 -1 q2 -6 5 0"/>
+      <path d="M-7 -42 h4 M2 -42 h4" stroke-width="2"/>
+      <ellipse cx="-6" cy="-37" rx="3" ry="2" fill="#ff8fab" stroke="none"/><ellipse cx="6" cy="-37" rx="3" ry="2" fill="#ff8fab" stroke="none"/>
+      <circle cx="-1" cy="-38" r="2.6" fill="#e63946" stroke-width="1.2"/>
+      <path d="M-3 -34 q2 2 4 0 q1 -1 2 1"/>` },
+    pig: { sound: () => "Oink!", art: () => `
+      <path d="M17 -20 q7 -5 5 2 q-2 5 4 3"/>
+      <rect x="-13" y="-8" width="6" height="8" rx="3" fill="#ffc8dd"/><rect x="6" y="-8" width="6" height="8" rx="3" fill="#ffc8dd"/>
+      <ellipse cx="0" cy="-16" rx="18" ry="12" fill="#ffc8dd"/>
+      <path d="M-20 -30 l-2 -9 l8 5 Z" fill="#ffc8dd"/>
+      <circle cx="-17" cy="-22" r="10" fill="#ffc8dd"/>
+      <ellipse cx="-26" cy="-20" rx="4.5" ry="4" fill="#ff9fb8"/>
+      <circle class="dot" cx="-27.5" cy="-20" r=".9"/><circle class="dot" cx="-24.5" cy="-20" r=".9"/>
+      <circle class="dot" cx="-17" cy="-26" r="1.8"/>` },
+    sheep: { sound: () => "Baa!", art: () => `
+      <path d="M-10 0 v-10 M-3 0 v-10 M6 0 v-10 M12 0 v-10" stroke-width="3"/>
+      <path d="M-18 -16 q-4 -10 6 -12 q2 -9 12 -6 q8 -6 14 2 q9 0 7 9 q5 7 -3 11 q-2 6 -10 4 q-6 5 -12 0 q-9 3 -11 -4 q-7 -1 -3 -4 Z" fill="#fff"/>
+      <ellipse cx="-20" cy="-24" rx="6.5" ry="8.5" fill="#3d3d3d"/>
+      <path d="M-26 -28 l-6 2 M-14 -28 l5 1" stroke-width="3"/>
+      <circle cx="-22" cy="-26" r="1.3" fill="#fff" stroke="none"/>` },
+    chicken: { sound: () => "Bawk!", art: () => `
+      <path d="M-3 0 v-6 M3 0 v-6 M-6 0 h4 M1 0 h4" stroke="#ff9f1c" stroke-width="2"/>
+      <path d="M8 -16 l8 -8 l-1 8 l5 -2 l-6 8 Z" fill="#fff"/>
+      <ellipse cx="0" cy="-13" rx="11" ry="9" fill="#fff"/>
+      <circle cx="-7" cy="-23" r="5.5" fill="#fff"/>
+      <path d="M-10 -28 q1 -4 3 -1 q1 -4 3 0 q2 -3 2 1" fill="#e63946"/>
+      <path d="M-12 -24 l-5 1.5 l5 1.5 Z" fill="#ff9f1c"/>
+      <circle class="dot" cx="-8" cy="-24" r="1.2"/>
+      <path d="M-3 -13 q4 4 9 0"/>` },
+    dog: { sound: () => "Woof!", art: () => `
+      <path class="tail" d="M14 -16 q8 -6 6 -12" stroke-width="3"/>
+      <rect x="-12" y="-9" width="5" height="9" rx="2.5" fill="#c49a6c"/><rect x="6" y="-9" width="5" height="9" rx="2.5" fill="#c49a6c"/>
+      <ellipse cx="0" cy="-14" rx="15" ry="9" fill="#c49a6c"/>
+      <circle cx="-15" cy="-23" r="8.5" fill="#c49a6c"/>
+      <ellipse cx="-22" cy="-20" rx="5" ry="4" fill="#e3c39d"/>
+      <circle class="dot" cx="-26" cy="-21" r="1.8"/>
+      <path d="M-12 -30 q6 0 5 10 q-5 -2 -5 -10 Z" fill="#6b4423"/>
+      <circle class="dot" cx="-17" cy="-25" r="1.6"/>
+      <path d="M-22 -16 q1 4 3 0" fill="#ff8fab"/>` },
+    popcorn: { sound: () => "Popcorn, anyone?", art: (skin, shirt) => `
+      <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
+      <path d="M0 -30 C13 -30 14 -12 12 -5 C10 1 -10 1 -12 -5 C-14 -12 -13 -30 0 -30 Z" fill="${shirt}"/>
+      <circle cx="0" cy="-40" r="10" fill="${skin}"/>
+      <circle class="dot" cx="-3.5" cy="-41" r="1.5"/><circle class="dot" cx="3.5" cy="-41" r="1.5"/>
+      <path d="M-3 -36 Q0 -33 3 -36"/>
+      <path d="M-19 -22 h11 l-2 13 h-7 Z" fill="#fff"/>
+      <path d="M-16 -22 l1 13 M-12 -22 l-.5 13" stroke="#e63946" stroke-width="2"/>
+      <circle cx="-17" cy="-24" r="2.5" fill="#fff8dc"/><circle cx="-13" cy="-25.5" r="2.5" fill="#fff8dc"/><circle cx="-10" cy="-23.5" r="2.5" fill="#fff8dc"/>` },
+    parasol: { sound: () => "Ooh la la!", art: (skin, shirt) => `
+      <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
+      <path d="M0 -30 Q-6 -30 -14 -2 Q0 2 14 -2 Q6 -30 0 -30 Z" fill="${shirt}"/>
+      <circle cx="0" cy="-51" r="5" fill="#3d2b1f"/>
+      <circle cx="0" cy="-39" r="9" fill="${skin}"/>
+      <path d="M-9 -41 Q-9 -50 0 -50 Q9 -50 9 -41 Q5 -46 0 -46 Q-5 -46 -9 -41 Z" fill="#3d2b1f"/>
+      <circle class="dot" cx="-3" cy="-39" r="1.4"/><circle class="dot" cx="3" cy="-39" r="1.4"/>
+      <path d="M-2.5 -35 Q0 -33 2.5 -35"/>
+      <path d="M10 -24 L10 -58"/>
+      <path d="M-6 -56 Q10 -72 26 -56 Q18 -59 10 -56 Q2 -59 -6 -56 Z" fill="#ffd6e0"/>` },
+    knight: { sound: () => "Huzzah!", art: () => `
+      <ellipse cx="-5" cy="-1" rx="5" ry="2.5" fill="#868e96"/><ellipse cx="5" cy="-1" rx="5" ry="2.5" fill="#868e96"/>
+      <path d="M0 -30 C13 -30 14 -12 12 -5 C10 1 -10 1 -12 -5 C-14 -12 -13 -30 0 -30 Z" fill="#adb5bd"/>
+      <path d="M0 -26 v20 M-6 -18 h12" stroke="#e63946" stroke-width="3"/>
+      <path d="M0 -50 q2 -10 10 -10 q-2 6 -6 10 Z" fill="#e63946"/>
+      <rect x="-10" y="-50" width="20" height="20" rx="8" fill="#ced4da"/>
+      <path d="M-7 -41 h14" stroke-width="2.5"/>` },
+    kid: { sound: () => "Did I miss it?", art: (skin, shirt) => `
+      <ellipse class="dot" cx="-4" cy="-1" rx="4" ry="2"/><ellipse class="dot" cx="4" cy="-1" rx="4" ry="2"/>
+      <ellipse cx="0" cy="-11" rx="9" ry="10" fill="${shirt}"/>
+      <circle cx="0" cy="-27" r="8" fill="${skin}"/>
+      <circle class="dot" cx="-3" cy="-28" r="1.6"/><circle class="dot" cx="3" cy="-28" r="1.6"/>
+      <path d="M-2.5 -24 Q0 -21.5 2.5 -24"/>
+      <path d="M-15 -19 l4 10 l4 -10 Z" fill="#e9c46a"/><circle cx="-11" cy="-21" r="4.5" fill="#ffafcc"/>` }
+  };
+
+  // Where spectators stand: a front row along the bottom of the grass
+  const SPECTATOR_SLOTS = [[160, 268], [205, 269], [30, 268], [250, 268], [75, 269], [295, 268], [338, 269], [118, 268]];
+  const VISITOR_SLOT = [146, 209]; // the spot by the gallows where a curious cow stands
+  const SVG_NS = "http://www.w3.org/2000/svg";
+
+  let spectators = [];
+  let visitor = null;
+  const shuffle = (list) => list.map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map((p) => p[1]);
+
+  function clearSpectators() {
+    $("spectators").replaceChildren();
+    spectators = [];
+    visitor = null;
+    if (drunk) clearInterval(drunk.snoring);
+    drunk = null;
+  }
+
+  // Someone walks in from the nearest side, stops at their spot, turns to watch, and says something
+  function addSpectator(type, [x, y], size = 0.75, speed = 1) {
+    const kind = SPECTATORS[type];
+    const startX = x < 180 ? -40 : 400;
+    const g = document.createElementNS(SVG_NS, "g");
+    g.setAttribute("class", "spectator walking");
+    g.innerHTML = `<g class="bob"><g class="flip"><g class="waddle">${kind.art(pick(SKINS), pick(SHIRTS))}</g></g></g>`;
+    Object.assign(g.dataset, { x, y, size, type });
+    const flip = g.querySelector(".flip");
+    flip.style.transform = `scaleX(${startX < x ? -1 : 1})`; // face the way they're walking
+    g.style.transform = `translate(${startX}px, ${y}px) scale(${size})`;
+    $("spectators").appendChild(g);
+
+    const seconds = Math.abs(x - startX) / 90 / speed;
+    g.getBoundingClientRect(); // let the browser notice the starting spot before moving
+    g.style.transition = `transform ${seconds}s linear`;
+    g.style.transform = `translate(${x}px, ${y}px) scale(${size})`;
+    setTimeout(() => {
+      if (!g.isConnected || g.dataset.leaving) return;
+      g.classList.remove("walking");
+      flip.style.transform = `scaleX(${x < 128 ? -1 : 1})`; // turn to watch the gallows
+      sayFromSpectator(g, kind.sound());
+      play(kind.sfx || (type === "cow" ? "moo" : "pop"));
+    }, seconds * 1000 + 50);
+    return g;
+  }
+
+  function sayFromSpectator(g, text) {
+    const t = document.createElementNS(SVG_NS, "text");
+    t.setAttribute("class", "dot spectator-say");
+    // Keep the words on screen for spectators standing near the edges
+    const x = Number(g.dataset.x);
+    t.setAttribute("text-anchor", x > 290 ? "end" : x < 70 ? "start" : "middle");
+    t.setAttribute("x", x > 290 ? "20" : x < 70 ? "-20" : "0");
+    t.setAttribute("y", "-64");
+    t.textContent = text;
+    g.appendChild(t);
+    setTimeout(() => t.remove(), 2000);
+  }
+
+  // Walk back off the nearest side and disappear
+  function sendAway(g) {
+    if (!g.isConnected || g.dataset.leaving) return;
+    g.dataset.leaving = "yes";
+    const x = Number(g.dataset.x), y = Number(g.dataset.y), size = Number(g.dataset.size);
+    const endX = x < 180 ? -40 : 400;
+    g.classList.add("walking");
+    g.querySelector(".flip").style.transform = `scaleX(${endX < x ? 1 : -1})`;
+    const seconds = Math.abs(endX - x) / 90;
+    g.style.transition = `transform ${seconds}s linear`;
+    g.style.transform = `translate(${endX}px, ${y}px) scale(${size})`;
+    setTimeout(() => g.remove(), seconds * 1000 + 100);
+  }
+
+  // After the first wrong guess, each wrong guess brings one more spectator
+  function updateAudience() {
+    const wanted = Math.min(SPECTATOR_SLOTS.length, Math.max(0, game.wrong - 1));
+    while (spectators.length < wanted) {
+      const type = game.audience[spectators.length % game.audience.length];
+      spectators.push(addSpectator(type, SPECTATOR_SLOTS[spectators.length]));
+    }
+  }
+
+  // Now and then a cow wanders up to the gallows, has a look, and wanders off
+  function cowVisit() {
+    if (visitor) return;
+    // Little kids get a big cow right up front, so they don't miss the show
+    const kid = game && game.mode.kid;
+    const me = (visitor = kid ? addSpectator("cow", [190, 266], 0.95) : addSpectator("cow", VISITOR_SLOT, 0.55));
+    if (birdIsHome()) replay($("bird"), "hop"); // the bird is startled
+    // In Big Kid Words the cow usually... does its business. (It takes about 2 seconds to walk up.)
+    const poops = kid && Math.random() < 0.85;
+    if (poops) setTimeout(() => cowPoop(me), 3200);
+    setTimeout(() => {
+      sendAway(me);
+      if (visitor === me) visitor = null;
+    }, poops ? 8000 : 7000);
+  }
+
+  const POOP_LINES = {
+    pip:    ["Hee hee! The cow pooped!", "Ewww! Stinky!"],
+    gerard: ["Zut alors! Ze cow!", "Sacrebleu! On ze grass!"],
+    margot: ["Not on my flowers!", "Oh dear. Somebody fetch a shovel."],
+    klaus:  ["Achtung! Poop alert!", "*holds nose* Ja, ja..."]
+  };
+  const POOP = `
+    <g class="plop">
+      <path d="M-9 0 q-2 -6 4 -6 h10 q6 0 4 6 Z" fill="#8b5a2b"/>
+      <path d="M-6 -6 q-1 -5 4 -5 h4 q5 0 4 5 Z" fill="#8b5a2b"/>
+      <path d="M-3 -11 q0 -5 3 -6 q3 1 3 6 Z" fill="#8b5a2b"/>
+      <path d="M-5 -3 q3 -1 5 0" stroke="#c49a6c" stroke-width="1.2"/>
+    </g>
+    <path class="stink" d="M-8 -20 q-3 -4 0 -8 q3 -4 0 -8" stroke="#7bb661" stroke-width="1.5"/>
+    <path class="stink" d="M0 -22 q-3 -4 0 -8 q3 -4 0 -8" stroke="#7bb661" stroke-width="1.5" style="animation-delay: .5s"/>
+    <path class="stink" d="M8 -20 q-3 -4 0 -8 q3 -4 0 -8" stroke="#7bb661" stroke-width="1.5" style="animation-delay: 1s"/>
+    <g>
+      <animateTransform attributeName="transform" type="rotate" values="0 0 -14; 360 0 -14" dur="1.2s" repeatCount="indefinite"/>
+      <circle class="dot" cx="10" cy="-14" r="1.6"/>
+      <path d="M10 -15.5 l-2 -2.5 M10 -15.5 l2 -2.5" stroke-width=".8"/>
+    </g>`;
+
+  // ---------- Pierre, the town drunk (Regular Joe and Prison Mode, instead of the visiting cow) ----------
+  const DRUNK_LINES = {
+    gerard: ["Ah, Pierre. Every Tuesday.", "Pierre! It is not even noon!"],
+    margot: ["Somebody take that bottle away!", "Pierre, you're scaring the cows."],
+    pip:    ["Is he napping?", "Mama, why is that man sleeping on the grass?"],
+    klaus:  ["Disgraceful! *takes notes*", "Achtung! Man down! ...again."]
+  };
+  let drunk = null;
+
+  function drunkVisit() {
+    if (drunk || !game || game.over) return;
+    const x = pick([150, 230, 300]);
+    const me = (drunk = addSpectator("drunk", [x, 266], 1, 0.55));
+    me.classList.add("drunk");
+    const walkSeconds = Math.abs(x - (x < 180 ? -40 : 400)) / 90 / 0.55;
+    const g = game;
+    // He arrives, hiccups... then keels over
+    setTimeout(() => {
+      if (!me.isConnected || game !== g) return;
+      me.classList.add("collapsed");
+      play("thud");
+      const who = pick(PEASANTS);
+      say(who, pick(DRUNK_LINES[who]));
+      const zzz = document.createElementNS(SVG_NS, "text");
+      zzz.setAttribute("class", "dot snore");
+      zzz.setAttribute("x", x < 128 ? "20" : "-30");
+      zzz.setAttribute("y", "-20");
+      zzz.textContent = "Zzz";
+      me.appendChild(zzz);
+      me.snoring = setInterval(() => play("snore"), 2000);
+    }, walkSeconds * 1000 + 1300);
+    // ...and eventually either staggers off, none the wiser, or his wife comes to fetch him
+    setTimeout(() => {
+      if (!me.isConnected || game !== g) { clearInterval(me.snoring); if (drunk === me) drunk = null; return; }
+      if (Math.random() < 0.5) return wifeFetchesPierre(me, x);
+      clearInterval(me.snoring);
+      me.querySelectorAll(".snore").forEach((t) => t.remove());
+      me.classList.remove("collapsed");
+      sayFromSpectator(me, "*hic* ...where am I?");
+      play("hic");
+      setTimeout(() => { sendAway(me); if (drunk === me) drunk = null; }, 1500);
+    }, walkSeconds * 1000 + 9500);
+  }
+
+  const WIFE_LINES = {
+    margot: ["Ooh, he's in trouble now.", "Get him, Brigitte!"],
+    gerard: ["Every Tuesday, I tell you.", "Run, Pierre! ...too late."],
+    pip:    ["Bye Pierre!", "Is she going to bonk him?"],
+    klaus:  ["Finally, some order around here.", "Zat is one scary woman."]
+  };
+
+  // His wife storms in with a rolling pin, yells "PIERRE!!", and marches him home by the ear
+  function wifeFetchesPierre(pierre, x) {
+    const wx = x < 180 ? x - 30 : x + 30;
+    const wife = addSpectator("wife", [wx, 266], 1, 1.4);
+    const arrive = Math.abs(wx - (wx < 180 ? -40 : 400)) / 90 / 1.4;
+    setTimeout(() => {
+      if (!pierre.isConnected) return;
+      const who = pick(PEASANTS);
+      say(who, pick(WIFE_LINES[who]));
+    }, arrive * 1000 + 300);
+    setTimeout(() => {
+      clearInterval(pierre.snoring);
+      if (!pierre.isConnected) return;
+      pierre.querySelectorAll(".snore, .spectator-say").forEach((t) => t.remove());
+      wife.querySelectorAll(".spectator-say").forEach((t) => t.remove()); // her "PIERRE!!" makes way for his reply
+      pierre.classList.remove("collapsed");
+      play("boing");
+      sayFromSpectator(pierre, "Yes, dear...");
+    }, arrive * 1000 + 1300);
+    setTimeout(() => {
+      sendAway(wife);
+      sendAway(pierre);
+      if (drunk === pierre) drunk = null;
+    }, arrive * 1000 + 2700);
+  }
+
+  // ---------- The late executioner (Regular Joe and Prison Mode, once a game at most) ----------
+  const LATE_LINES = {
+    klaus:  ["You are LATE!", "Unprofessional! *takes notes*"],
+    gerard: ["Ze executioner! Finally!", "He's eating a sandwich?!"],
+    margot: ["He always does this.", "Is that egg salad?"],
+    pip:    ["Who's the man in the hood?", "Can I have a bite?"]
+  };
+
+  function executionerVisit() {
+    if (!game || game.over || game.mode.kid) return;
+    const x = 110;
+    const me = addSpectator("executioner", [x, 268], 1, 0.8);
+    const arrive = Math.abs(x + 40) / 90 / 0.8;
+    const g = game;
+    // "*munch munch*"... checks his watch... "Did I miss it?"... shrugs, leaves
+    const line = (text, at) => setTimeout(() => {
+      if (!me.isConnected || game !== g) return;
+      me.querySelectorAll(".spectator-say").forEach((t) => t.remove());
+      sayFromSpectator(me, text);
+    }, arrive * 1000 + at);
+    line("Did I miss it?", 1900);
+    line("I was told 3 o'clock...", 3700);
+    setTimeout(() => {
+      if (!me.isConnected || game !== g) return;
+      const who = pick(PEASANTS);
+      say(who, pick(LATE_LINES[who]));
+    }, arrive * 1000 + 2600);
+    line("*shrug*", 5500);
+    setTimeout(() => sendAway(me), arrive * 1000 + 6600);
+  }
+
+  // ---------- The wave (after a great streak) ----------
+  function doWave() {
+    // Left to right across the crowd and the audience... with Klaus a beat late
+    const order = [["gerard", 0], ["margot", 150], ["pip", 300], ["klaus", 950]];
+    for (const [who, delay] of order) setTimeout(() => { if (!crowdAway) replay($(who), "crowdwave"); }, delay);
+    [...spectators].sort((a, b) => a.dataset.x - b.dataset.x).forEach((s, i) => {
+      setTimeout(() => replay(s.querySelector(".bob"), "crowdwave"), 80 * i);
+    });
+    play("cheer");
+    setTimeout(() => say("klaus", "Wait... are we doing ze wave?"), 1400);
+  }
+
+  // ---------- The ice cream truck (any mode, once a game at most) ----------
+  let crowdAway = false;
+
+  function playJingle() {
+    [523, 659, 784, 659, 523, 659, 784, 1047, 784, 659].forEach((f, i) => tone(f, i * 0.18, 0.16, { type: "square", vol: 0.05 }));
+  }
+
+  function iceCreamTruck() {
+    if (!game || game.over || crowdAway) return;
+    const g = game;
+    playJingle();
+    say("pip", "ICE CREAM!!");
+    // The truck pulls up on the right...
+    const truck = addSpectator("truck", [300, 210], 1, 1.6);
+    // ...and the whole crowd runs off
+    setTimeout(() => {
+      if (game !== g) return;
+      crowdAway = true;
+      $("bubble").classList.remove("show");
+      ["klaus", "gerard", "margot", "pip"].forEach((who, i) => setTimeout(() => $(who).classList.add("away"), i * 150));
+    }, 900);
+    // A few seconds later they sheepishly come back, ice creams in hand
+    setTimeout(() => {
+      if (game !== g) return;
+      document.querySelectorAll("#scene .icecream").forEach((c) => (c.style.display = ""));
+      ["pip", "margot", "gerard", "klaus"].forEach((who, i) => setTimeout(() => $(who).classList.remove("away"), i * 150));
+      sendAway(truck);
+    }, 5200);
+    setTimeout(() => {
+      if (game !== g) return;
+      crowdAway = false;
+      say("gerard", "...we were never gone.");
+    }, 6400);
+    setTimeout(() => { if (game === g && !game.over) say("klaus", "*licks ice cream* Carry on."); }, 8800);
+  }
+
+  // ---------- A sudden rain shower: umbrellas up, and Klaus's spike goes right through his ----------
+  const UMBRELLA_LINES = {
+    gerard: ["Nice umbrella, Klaus!", "Zut alors, ze rain!"],
+    margot: ["Klaus, dear... your hat.", "Everyone stay dry! Except Klaus, apparently."],
+    pip:    ["Klaus has a hole in his umbrella!", "Splish splash!"]
+  };
+  let raining = false;
+
+  // Raindrops scattered across the sky (made once, shown only while it rains)
+  for (let i = 0; i < 60; i++) {
+    const drop = document.createElementNS(SVG_NS, "path");
+    drop.setAttribute("d", `M${Math.random() * 380 - 10} ${Math.random() * 220 - 20} l-3 9`);
+    drop.setAttribute("class", "rainfall");
+    drop.style.animationDelay = `${-Math.random() * 0.55}s`;
+    $("rainLayer").appendChild(drop);
+  }
+
+  function rainShower() {
+    if (!game || game.over || raining) return;
+    raining = true;
+    const g = game;
+    $("scene").classList.add("raining");
+    play("rain");
+    setTimeout(() => { if (game === g) { $("scene").classList.add("umbrellas"); play("pop"); } }, 900);
+    setTimeout(() => {
+      if (game !== g) return;
+      play("rip");
+      say("klaus", pick(["Ach! Zis happens EVERY time!", "*drip* ...I hate umbrellas."]));
+    }, 1500);
+    setTimeout(() => {
+      if (game !== g) return;
+      const who = pick(["gerard", "margot", "pip"]);
+      say(who, pick(UMBRELLA_LINES[who]));
+    }, 4200);
+    setTimeout(() => { if (game === g) stopRain(); }, 7500);
+  }
+
+  function stopRain() {
+    raining = false;
+    $("scene").classList.remove("raining", "umbrellas");
+  }
+
+  function resetCrowd() {
+    stopRain();
+    crowdAway = false;
+    ["klaus", "gerard", "margot", "pip"].forEach((who) => $(who).classList.remove("away"));
+    document.querySelectorAll("#scene .icecream").forEach((c) => (c.style.display = "none"));
+  }
+
+  // ---------- Bernard the streaker (Regular Joe and Prison Mode, rare, once a game at most) ----------
+  const STREAKER_LINES = {
+    margot: ["Pip, cover your eyes!", "Put some clothes on, Bernard!"],
+    gerard: ["Mon dieu! Bernard again!", "Such... confidence."],
+    klaus:  ["HALT! *frantic bugle*", "Achtung! Indecent exposure!"],
+    pip:    ["Why is that man naked?", "He forgot his pants!"]
+  };
+
+  function streak() {
+    if (!game || game.over || game.mode.kid) return;
+    // He sprints in from one side, strikes a pose in the middle...
+    const midX = pick([170, 215]); // (he comes in from whichever side is nearest)
+    const me = addSpectator("streaker", [midX, 266], 1, 2.2);
+    me.classList.add("streaker");
+    const runIn = Math.abs(midX - (midX < 180 ? -40 : 400)) / 90 / 2.2;
+    const g = game;
+    setTimeout(() => {
+      if (!me.isConnected || game !== g) return;
+      play("cheer");
+      play("toot");
+      const who = pick(PEASANTS);
+      say(who, pick(STREAKER_LINES[who]));
+    }, runIn * 1000 + 100);
+    // ...then keeps right on running, off the other side
+    setTimeout(() => {
+      if (!me.isConnected) return;
+      const endX = midX < 180 ? 400 : -40;
+      me.dataset.leaving = "yes";
+      me.classList.add("walking");
+      me.querySelector(".flip").style.transform = `scaleX(${endX > midX ? -1 : 1})`;
+      const seconds = Math.abs(endX - midX) / 90 / 2.2;
+      me.style.transition = `transform ${seconds}s linear`;
+      me.style.transform = `translate(${endX}px, 266px) scale(1)`;
+      setTimeout(() => me.remove(), seconds * 1000 + 100);
+    }, runIn * 1000 + 1700);
+  }
+
+  // ---------- The mischievous bird (Regular Joe and Prison Mode) ----------
+  const BIRD_STUNTS = ["balloon", "beret", "baguette", "spike"];
+  let birdBusy = false;
+  let birdTrip = 0;          // bumps every new game, so an old flight can't keep going
+  let birdPos = [0, 0];      // how far the bird is from its nest
+
+  // Fly the bird to a spot (relative to its nest), along an arc, facing the way it flies
+  function flyBird(to, ms, arc, done) {
+    const trip = birdTrip;
+    const from = birdPos.slice();
+    const facingLeft = to[0] < from[0];
+    const t0 = performance.now();
+    $("bird").classList.add("flying");
+    play("tweet");
+    (function step(now) {
+      if (trip !== birdTrip) return;
+      const p = Math.min(1, (now - t0) / ms), e = ease(p);
+      const x = from[0] + (to[0] - from[0]) * e;
+      const y = from[1] + (to[1] - from[1]) * e - arc * 4 * e * (1 - e);
+      birdPos = [x, y];
+      const flip = facingLeft ? " translate(80 0) scale(-1 1) translate(-80 0)" : "";
+      $("birdFly").setAttribute("transform", `translate(${x} ${y})${flip}`);
+      if (p < 1) return requestAnimationFrame(step);
+      $("bird").classList.remove("flying");
+      if (to[0] === 0 && to[1] === 0) $("birdFly").setAttribute("transform", ""); // home, facing forward again
+      if (done) done();
+    })(t0);
+  }
+
+  // While it's out causing trouble, the bird flies in front of everyone (except when it hits Klaus's spike)
+  function birdOnTop(onTop) {
+    const bird = $("birdFly");
+    if (onTop) $("eagle").parentNode.insertBefore(bird, $("eagle"));
+    else $("birdHome").insertBefore(bird, $("birdHome").firstChild);
+  }
+
+  function birdMischief() {
+    const options = BIRD_STUNTS.filter((s) => !game.birdUsed.has(s));
+    if (!options.length || !birdIsHome() || game.over) return;
+    const stunt = pick(options.includes("spike") ? [...options, "spike", "spike"] : options); // the spike is its favorite
+    game.birdUsed.add(stunt);
+    birdBusy = true;
+    const trip = birdTrip;
+    const goHome = (wait) => setTimeout(() => {
+      if (trip !== birdTrip) return;
+      flyBird([0, 0], 1300, 40, () => { birdOnTop(false); birdBusy = false; });
+    }, wait);
+
+    if (stunt === "balloon") {
+      birdOnTop(true);
+      flyBird([244, 110], 1300, 50, () => {
+        $("balloon").style.display = "none";
+        play("balloonpop");
+        leaveMark('<text class="dot" text-anchor="middle" style="font: 18px \'Gochi Hand\', cursive">POP!</text>', [340, 112]);
+        say("pip", "MY BALLOON! 😭");
+        goHome(700);
+      });
+    } else if (stunt === "beret") {
+      birdOnTop(true);
+      flyBird([135, 124], 1300, 50, () => {
+        $("beret").style.display = "none";
+        $("birdBeret").style.display = "";
+        say("gerard", pick(["Mon béret! Come back here!", "Zut alors! My beret!"]));
+        goHome(600); // and it keeps wearing the beret in its nest
+      });
+    } else if (stunt === "baguette") {
+      birdOnTop(true);
+      flyBird([150, 158], 1300, 50, () => {
+        $("baguette").style.display = "none";
+        $("birdBaguette").style.display = "";
+        say("gerard", pick(["MY BAGUETTE! Zut alors!", "Thief! Zat was my lunch!"]));
+        goHome(600);
+      });
+    } else {
+      // Swoops at Klaus... and gets stuck on his spiked helmet
+      flyBird([96, 104], 900, 30, () => {
+        play("boing");
+        $("bird").classList.add("stuck");
+        $("birdDizzy").style.display = "";
+        say("klaus", pick(["Ach! Not again!", "Get off my helmet, you feathered fool!"]));
+        // It struggles for a bit, then gives up. It stays stuck up there for the rest of the game
+        // (birdBusy stays true, so no more stunts), and Klaus just has to live with it.
+        setTimeout(() => {
+          if (trip !== birdTrip) return;
+          $("bird").classList.remove("stuck");
+          replay($("klaus"), "hop");
+          say("klaus", pick(["*sigh* Fine. Stay zere.", "Zis is my life now."]));
+        }, 3500);
+        setTimeout(() => { if (trip === birdTrip) $("birdDizzy").style.display = "none"; }, 6000);
+      });
+    }
+  }
+
+  // Put everything the bird messed with back where it belongs (new game)
+  function resetBird() {
+    birdTrip++;
+    birdBusy = false;
+    birdPos = [0, 0];
+    birdOnTop(false);
+    $("birdFly").setAttribute("transform", "");
+    $("bird").classList.remove("flying", "stuck");
+    for (const id of ["birdBeret", "birdBaguette", "birdDizzy"]) $(id).style.display = "none";
+    for (const id of ["balloon", "beret", "baguette"]) $(id).style.display = "";
+  }
+
+  // Tail up, pbbbt, plop... then the cow turns and stares right at the camera
+  function cowPoop(cow) {
+    if (!cow.isConnected || cow.dataset.leaving) return;
+    const x = Number(cow.dataset.x), y = Number(cow.dataset.y), size = Number(cow.dataset.size);
+    const facing = x < 128 ? -1 : 1; // the cow is drawn facing left, and flipped when it stands left of the gallows
+    cow.classList.add("pooping");
+    play("fart");
+    setTimeout(() => {
+      const poop = document.createElementNS(SVG_NS, "g");
+      poop.setAttribute("class", "poop");
+      poop.setAttribute("transform", `translate(${x + 26 * size * facing} ${y}) scale(${size * 1.5})`);
+      poop.innerHTML = POOP;
+      $("spectators").insertBefore(poop, cow); // it stays on the grass after the cow leaves
+      play("plop");
+    }, 350);
+    setTimeout(() => {
+      cow.classList.remove("pooping");
+      cow.classList.add("looking");
+      const who = pick(PEASANTS);
+      say(who, pick(POOP_LINES[who]));
+    }, 1000);
+    setTimeout(() => cow.classList.remove("looking"), 3400);
+  }
+
+  // When you lose, the audience jumps for joy and a couple more cows come running
+  function celebrateLoss() {
+    setTimeout(() => spectators.forEach((s) => replay(s.querySelector(".bob"), "hop")), 400);
+    for (let i = 0; i < 2 && spectators.length < SPECTATOR_SLOTS.length; i++) {
+      spectators.push(addSpectator("cow", SPECTATOR_SLOTS[spectators.length], 0.75, 2.5));
+    }
+  }
+
+  // ---------- The grand entrance (the character is carted in and pelted with lettuce) ----------
+  const ENTRANCE_LINES = {
+    gerard: ["Ohohoho! Here zey come!", "Lettuce have justice!"],
+    margot: ["BOOOO!", "I brought my good lettuce for this!"],
+    pip:    ["Can I throw one?", "Wheee! A parade!"],
+    klaus:  ["*TOOT TOOT* Ze prisoner arrives!", "Achtung! Ready... aim... LETTUCE!"]
+  };
+  // Where each peasant throws from (roughly their hand), in scene coordinates
+  const THROWERS = { klaus: [190, 160], gerard: [232, 150], margot: [296, 182], pip: [331, 186] };
+  const LETTUCE = '<circle r="7.5" fill="#95d5b2"/><path d="M-5 -2 q5 -6 10 0 M-4 3 q4 -4 8 0 M0 -7 v14" stroke="#2d6a4f" stroke-width="1.3"/>';
+
+  let entrance = null;
+
+  function startEntrance(character) {
+    stopEntrance();
+    // A full copy of the character (all body parts showing) rides in the cart
+    const art = $("hangee").cloneNode(true);
+    art.removeAttribute("id");
+    art.querySelectorAll("animateTransform, [data-piece='rope']").forEach((el) => el.remove());
+    art.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+    art.querySelectorAll(".piece").forEach((el) => el.classList.remove("piece"));
+    $("entranceChar").replaceChildren(art);
+    $("entrance").style.display = "";
+    entrance = {
+      start: performance.now(), character, lettuce: [], said: [],
+      throws: [
+        { at: 3200, who: "klaus" }, { at: 3650, who: "gerard" }, { at: 4100, who: "margot" },
+        { at: 4500, who: "pip" }, { at: 4900, who: "klaus" }, { at: 5300, who: "gerard" }
+      ]
+    };
+    requestAnimationFrame(entranceFrame);
+  }
+
+  function stopEntrance() {
+    if (!entrance) return;
+    entrance = null;
+    $("entrance").style.display = "none";
+    $("lettuceLayer").replaceChildren();
+  }
+
+  function entranceFrame(now) {
+    if (!entrance) return;
+    const t = now - entrance.start;
+    const IN = 3100, LEAVE = 6600, OUT = 2700; // milliseconds: roll in slowly, stay a while, roll out slowly
+
+    // Roll in, wait under the gallows, then roll back out of sight
+    let dx = 0;
+    if (t < IN) dx = -260 * (1 - ease(t / IN));
+    else if (t > LEAVE) dx = -260 * clamp01((t - LEAVE) / OUT) ** 2;
+    const moving = t < IN || t > LEAVE;
+    const bump = moving ? -Math.abs(Math.sin(t / 80)) * 1.5 : 0;
+    const cart = $("entrance");
+    cart.setAttribute("transform", `translate(${dx} ${bump})`);
+    cart.classList.toggle("rolling", moving);
+    cart.classList.toggle("backwards", t > LEAVE);
+
+    // The crowd has opinions
+    if (t > IN && !entrance.said[0]) {
+      entrance.said[0] = true;
+      say(pick(PEASANTS), pick(game.mode.kid ? KID_GREETINGS : entrance.character.tease));
+    }
+    if (t > IN + 1600 && !entrance.said[1]) {
+      entrance.said[1] = true;
+      const who = pick(PEASANTS);
+      say(who, pick(game.mode.kid ? KID_ENTRANCE : ENTRANCE_LINES[who]));
+    }
+
+    // Throw lettuce
+    for (const th of entrance.throws) {
+      if (th.done || t < th.at) continue;
+      th.done = true;
+      const el = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      el.innerHTML = game.mode.kid ? FLOWER : LETTUCE; // little kids get flowers, not lettuce
+      $("lettuceLayer").appendChild(el);
+      entrance.lettuce.push({ el, from: THROWERS[th.who], to: [120 + Math.random() * 16, 98 + Math.random() * 14], t0: t });
+      replay($(th.who), "hop");
+    }
+
+    // Lettuce flies in an arc, bonks the character, then drops into the cart
+    for (const l of entrance.lettuce) {
+      const p = (t - l.t0) / 600;
+      if (p < 1) {
+        const x = l.from[0] + (l.to[0] - l.from[0]) * p;
+        const y = l.from[1] + (l.to[1] - l.from[1]) * p - 280 * p * (1 - p);
+        l.el.setAttribute("transform", `translate(${x} ${y}) rotate(${p * 600})`);
+      } else {
+        if (!l.hit) {
+          l.hit = true;
+          if (game.mode.kid) play("pop");
+          else { replay($("entranceChar"), "bonk"); play("splat"); }
+        }
+        const f = Math.min(p - 1, 0.6);
+        l.el.setAttribute("transform", `translate(${l.to[0] - 10 * f} ${l.to[1] + 140 * f * f + 30 * f}) rotate(${600 + f * 200})`);
+        l.el.setAttribute("opacity", Math.max(0, 1 - f / 0.6));
+      }
+    }
+
+    if (t > LEAVE + OUT) return stopEntrance();
+    requestAnimationFrame(entranceFrame);
+  }
+
+  // Tapping the scene skips the entrance
+  $("scene").addEventListener("click", stopEntrance);
+
+  // ---------- Sound effects (made with the browser's built-in synthesizer, so no sound files needed) ----------
+  let audio = null;
+  let muted = false;
+  try { muted = localStorage.getItem("hangman-muted") === "1"; } catch (e) {}
+
+  function audioCtx() {
+    if (muted) return null;
+    if (!audio) { try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+    if (audio.state === "suspended") audio.resume();
+    return audio;
+  }
+
+  // A single note that can slide in pitch and wobble (vibrato)
+  function tone(freq, start, dur, { type = "sine", vol = 0.15, to = 0, vibrato = 0 } = {}) {
+    const a = audioCtx();
+    if (!a) return;
+    const t0 = a.currentTime + start;
+    const osc = a.createOscillator(), gain = a.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if (to) osc.frequency.exponentialRampToValueAtTime(to, t0 + dur);
+    if (vibrato) {
+      const lfo = a.createOscillator(), depth = a.createGain();
+      lfo.frequency.value = 6;
+      depth.gain.value = vibrato;
+      lfo.connect(depth).connect(osc.frequency);
+      lfo.start(t0); lfo.stop(t0 + dur);
+    }
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(vol, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(a.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.05);
+  }
+
+  // A burst of hiss (for splats, whooshes, crowds, drums and thunder)
+  function hiss(start, dur, { vol = 0.2, freq = 1000, q = 1, type = "lowpass", flutter = 0, swell = false } = {}) {
+    const a = audioCtx();
+    if (!a) return;
+    const t0 = a.currentTime + start;
+    const buffer = a.createBuffer(1, Math.ceil(a.sampleRate * dur), a.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = a.createBufferSource();
+    src.buffer = buffer;
+    const filter = a.createBiquadFilter();
+    filter.type = type; filter.frequency.value = freq; filter.Q.value = q;
+    const gain = a.createGain();
+    if (swell) {
+      gain.gain.setValueAtTime(0.01, t0);
+      gain.gain.linearRampToValueAtTime(vol, t0 + dur * 0.85);
+      gain.gain.linearRampToValueAtTime(0.0001, t0 + dur);
+    } else {
+      gain.gain.setValueAtTime(vol, t0);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    }
+    let out = gain;
+    if (flutter) { // a fast on-off pattern, like a drumroll
+      const trem = a.createGain(), lfo = a.createOscillator(), depth = a.createGain();
+      lfo.type = "square"; lfo.frequency.value = flutter; depth.gain.value = 0.5; trem.gain.value = 0.5;
+      lfo.connect(depth).connect(trem.gain);
+      lfo.start(t0); lfo.stop(t0 + dur);
+      gain.connect(trem);
+      out = trem;
+    }
+    src.connect(filter).connect(gain);
+    out.connect(a.destination);
+    src.start(t0); src.stop(t0 + dur);
+  }
+
+  const SFX = {
+    right:    () => { tone(660, 0, 0.12); tone(990, 0.08, 0.15); },
+    wrong:    () => tone(170, 0, 0.25, { type: "triangle", vol: 0.3, to: 70 }),
+    boo:      () => [150, 158, 142].forEach((f) => tone(f, 0, 0.8, { type: "sawtooth", vol: 0.04, to: f * 0.8 })),
+    moo:      () => tone(150, 0, 0.9, { type: "sawtooth", vol: 0.07, to: 105, vibrato: 4 }),
+    pop:      () => tone(400, 0, 0.1, { vol: 0.12, to: 900 }),
+    toot:     () => { tone(523, 0, 0.12, { type: "square", vol: 0.06 }); tone(784, 0.13, 0.22, { type: "square", vol: 0.06 }); },
+    splat:    () => hiss(0, 0.18, { vol: 0.35, freq: 700 }),
+    whoosh:   () => hiss(0, 0.6, { vol: 0.15, freq: 1500, type: "bandpass", q: 2 }),
+    cheer:    () => hiss(0, 1.5, { vol: 0.12, freq: 1800, type: "bandpass", q: 0.7, swell: true }),
+    fanfare:  () => [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.12, i === 3 ? 0.5 : 0.15, { type: "square", vol: 0.06 })),
+    trombone: () => {
+      [392, 370, 349].forEach((f, i) => tone(f, i * 0.4, 0.35, { type: "sawtooth", vol: 0.07 }));
+      tone(330, 1.2, 1.1, { type: "sawtooth", vol: 0.07, vibrato: 6 });
+    },
+    drumroll: () => hiss(0, 1.7, { vol: 0.3, freq: 500, flutter: 24, swell: true }),
+    thunder:  () => hiss(0.05, 1.8, { vol: 0.45, freq: 180 }),
+    gallop:   () => { for (let i = 0; i < 10; i++) tone(i % 2 ? 900 : 650, i * 0.14, 0.05, { type: "square", vol: 0.05 }); },
+    chomp:    () => { for (let i = 0; i < 4; i++) hiss(i * 0.18, 0.08, { vol: 0.25, freq: 2500 }); },
+    whee:     () => { tone(400, 0, 0.5, { type: "triangle", vol: 0.12, to: 900 }); tone(900, 0.5, 0.6, { type: "triangle", vol: 0.12, to: 350 }); },
+    fart:     () => tone(110, 0, 0.45, { type: "sawtooth", vol: 0.1, to: 55, vibrato: 30 }),
+    plop:     () => tone(500, 0, 0.12, { vol: 0.15, to: 140 }),
+    hic:      () => tone(650, 0, 0.09, { type: "triangle", vol: 0.14, to: 1100 }),
+    thud:     () => tone(120, 0, 0.25, { type: "triangle", vol: 0.3, to: 55 }),
+    snore:    () => hiss(0, 1.1, { vol: 0.08, freq: 300, flutter: 4, swell: true }),
+    tweet:    () => { tone(2100, 0, 0.07, { vol: 0.07, to: 2700 }); tone(2300, 0.1, 0.07, { vol: 0.07, to: 2900 }); },
+    balloonpop: () => hiss(0, 0.15, { vol: 0.45, freq: 3000 }),
+    boing:    () => tone(260, 0, 0.5, { type: "triangle", vol: 0.15, to: 620, vibrato: 40 }),
+    rain:     () => hiss(0, 7, { vol: 0.05, freq: 3500, type: "bandpass", q: 0.4 }),
+    rip:      () => hiss(0, 0.25, { vol: 0.25, freq: 2000, type: "bandpass" })
+  };
+
+  // Read words and clues out loud (great for kids who can't read yet). Uses the phone's built-in voice.
+  function speak(text) {
+    if (muted || !("speechSynthesis" in window) || !text) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.9;
+      u.pitch = 1.1;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  function play(name) { try { SFX[name](); } catch (e) {} }
+
+  function updateMuteButton() { $("muteBtn").textContent = muted ? "🔇" : "🔊"; }
+  $("muteBtn").addEventListener("click", () => {
+    muted = !muted;
+    try { localStorage.setItem("hangman-muted", muted ? "1" : "0"); } catch (e) {}
+    updateMuteButton();
+    play("pop");
+  });
+  updateMuteButton();
+
+  // ---------- A smarter crowd ----------
+  const LETTER_LINES = {
+    q: { right: ["A Q?! Who DOES that?!"], wrong: ["Q?! Bold move.", "Q. Interesting choice. Wrong, but interesting."] },
+    z: { right: ["Z?! Fancy!"], wrong: ["Z? Zzzzz... wrong."] },
+    x: { right: ["X marks ze spot!"], wrong: ["X marks... nothing."] },
+    j: { right: ["J! Jazzy!"], wrong: ["J? Just... no."] },
+    e: { right: ["E. Of course it's E."], wrong: ["No E?! Ze horror!"] }
+  };
+  const FIRST_VOWEL = ["Starting with a vowel. Playing it safe!", "Ooh, a vowel. How original."];
+  const STREAK_LINES = {
+    hot:  ["They're on a roll...", "Someone stop them!", "This is getting uncomfortable."],
+    cold: ["HAT TRICK! Three in a row!", "Three wrong! Ze rope is ready!", "Ja! Three in a row! *toot*"]
+  };
+  // Little two-line conversations between the peasants
+  const CHATS = [
+    [["pip", "Is the cow allowed to watch?"], ["margot", "Everyone's allowed, dear."]],
+    [["gerard", "Klaus, are you writing all zis down?"], ["klaus", "Every. Single. Letter."]],
+    [["pip", "Why does Klaus have a trumpet?"], ["klaus", "It is a BUGLE."]],
+    [["margot", "Gerard, you dropped your baguette."], ["gerard", "It is not dropped. It is resting."]],
+    [["pip", "Can we get a puppy after this?"], ["margot", "We'll see."]],
+    [["klaus", "Silence in ze crowd!"], ["pip", "...okay."]],
+    [["gerard", "I have seen better guessing from a snail."], ["pip", "Olivia IS very smart."]],
+    [["margot", "Did anyone bring snacks?"], ["gerard", "I have... one baguette."]]
+  ];
+
+  function chat() {
+    const [first, second] = pick(CHATS);
+    say(first[0], first[1]);
+    const g = game;
+    setTimeout(() => { if (game === g && !game.over) say(second[0], second[1]); }, 1900);
+  }
+
+  // What the crowd says after an ordinary guess
+  function reactToGuess(letter, correct) {
+    const kind = correct ? "right" : "wrong";
+    if (game.streak === 3) return doWave(); // three in a row: the crowd does the wave
+    if (game.mode.kid) {
+      if (game.streak === 5) { say(pick(PEASANTS), "Five in a row! Amazing!"); throwFlower(); return; }
+      if (Math.random() < 0.12) return chat();
+      return heckle(kind);
+    }
+    if (game.streak === 5) {
+      say(pick(PEASANTS), pick(STREAK_LINES.hot));
+      throwFlower();
+      return;
+    }
+    if (game.streak === -3) return say("klaus", pick(STREAK_LINES.cold));
+    if (LETTER_LINES[letter] && Math.random() < 0.75) return say(pick(PEASANTS), pick(LETTER_LINES[letter][kind]));
+    if (game.history.length === 1 && "aeiou".includes(letter) && Math.random() < 0.6) return say(pick(PEASANTS), pick(FIRST_VOWEL));
+    if (Math.random() < 0.12) return chat();
+    heckle(kind);
+  }
+
+  // Throw something along an arc; call onLand when it gets there
+  function throwThing(art, from, to, onLand, ms = 650, arc = 70) {
+    const el = document.createElementNS(SVG_NS, "g");
+    el.innerHTML = art;
+    $("lettuceLayer").appendChild(el);
+    const t0 = performance.now();
+    (function step(now) {
+      const p = Math.min(1, (now - t0) / ms);
+      const x = from[0] + (to[0] - from[0]) * p;
+      const y = from[1] + (to[1] - from[1]) * p - arc * 4 * p * (1 - p);
+      el.setAttribute("transform", `translate(${x} ${y}) rotate(${p * 540})`);
+      if (p < 1) return requestAnimationFrame(step);
+      el.remove();
+      if (onLand) onLand();
+    })(t0);
+  }
+
+  // Leave a mark (a splat, a flower) that fades away
+  function leaveMark(art, [x, y]) {
+    const el = document.createElementNS(SVG_NS, "g");
+    el.innerHTML = art;
+    el.setAttribute("transform", `translate(${x} ${y})`);
+    el.setAttribute("class", "fade-away");
+    $("lettuceLayer").appendChild(el);
+    setTimeout(() => el.remove(), 1500);
+  }
+
+  const TOMATO = '<circle r="6" fill="#e63946"/><path d="M-3 -6 l3 2 l3 -2" stroke="#2d6a4f" stroke-width="2"/>';
+  const SPLAT = '<path d="M-8 0 q2 -6 6 -3 q3 -6 6 0 q6 -1 3 4 q4 5 -3 5 q-2 5 -6 1 q-6 3 -5 -3 q-6 -2 -1 -4 Z" fill="#e63946" opacity=".85" stroke="none"/>';
+  const FLOWER = '<circle cx="0" cy="-4" r="3" fill="#ffafcc"/><circle cx="4" cy="0" r="3" fill="#ffafcc"/><circle cx="0" cy="4" r="3" fill="#ffafcc"/><circle cx="-4" cy="0" r="3" fill="#ffafcc"/><circle r="2.2" fill="#ffd166"/>';
+
+  // Wrong guesses sometimes earn a tomato to the face (once there's a face to hit)
+  function throwTomato() {
+    if (!document.querySelector('#scene [data-piece="head"].on')) return;
+    const who = pick(PEASANTS);
+    replay($(who), "hop");
+    const target = [126 + Math.random() * 6, 70 + Math.random() * 6];
+    throwThing(TOMATO, THROWERS[who], target, () => { play("splat"); leaveMark(SPLAT, target); });
+  }
+
+  // A great streak earns a grudging flower from Pip
+  function throwFlower() {
+    replay($("pip"), "hop");
+    throwThing(FLOWER, THROWERS.pip, [128, 140], () => { play("pop"); leaveMark(FLOWER, [128, 140]); }, 800, 60);
+  }
+
+  // ---------- Sky and last-chance drama ----------
+  function lastChance() {
+    $("scene").classList.add("lastchance");
+    play("drumroll");
+    replay($("stamp"), "show");
+    if (game.mode.kid) return say("klaus", "Last try! You can do it!");
+    say("klaus", "*raises bugle* ...Ze FINAL guess.");
+  }
+
+  function lightning() {
+    const bolt = $("bolt");
+    bolt.style.display = "";
+    replay($("flash"), "on");
+    play("thunder");
+    setTimeout(() => (bolt.style.display = "none"), 400);
+  }
+
+  // ---------- Endings ----------
+  function sayTauntLater(kind, delay) {
+    const text = game.taunts[kind];
+    if (!text) return;
+    const g = game;
+    setTimeout(() => {
+      if (game === g) say(pick(PEASANTS), `${escapeHtml(game.from)} says:<br>"${escapeHtml(text)}"`, true);
+    }, delay);
+  }
+
+  // The rope snaps, they drop to the ground, and they dance
+  function dropAndDance() {
+    game.ropeCut = true;
+    render();
+    const lift = $("hangeeLift");
+    lift.style.transition = "transform .45s cubic-bezier(.5, 0, 1, 1)";
+    lift.style.transform = "translateY(52px)";
+    setTimeout(() => $("hangee").classList.add("dance"), 480);
+  }
+
+  function klausRipsNotes() {
+    // Grown-ups get a furious Klaus; little kids get a happy Klaus throwing confetti
+    const kid = game.mode.kid;
+    say("klaus", kid ? "Wunderbar! *toot toot*" : "*rips up notes* NEIN!");
+    for (let i = 0; i < (kid ? 16 : 10); i++) {
+      const to = [176 + (Math.random() - 0.5) * 140, 150 + Math.random() * 60];
+      const color = kid ? pick(["#ffd166", "#ff8fab", "#4d7cff", "#52b788", "#c77dff"]) : "#fff";
+      throwThing(`<rect x="-3" y="-4" width="6" height="8" fill="${color}" stroke-width="1"/>`, [178, 160], to, null, 700 + Math.random() * 500, 60);
+    }
+  }
+
+  // Little kids never see anything scary: a big "Wheee!" on the swing instead
+  function kidLoseEnding() {
+    play("whee");
+    heckle("lose");
+    setTimeout(() => $("swing").setAttribute("dur", "0.6s"), 50);
+    setTimeout(() => $("swing").setAttribute("dur", "3s"), 2600);
+    setTimeout(() => spectators.forEach((s) => replay(s.querySelector(".bob"), "hop")), 400);
+    sayTauntLater("lose", 2800);
+  }
+
+  function winEnding() {
+    play("fanfare");
+    heckle("win");
+    setTimeout(dropAndDance, 500);
+    setTimeout(() => spectators.forEach((s) => sendAway(s)), 1500); // show's over
+    setTimeout(klausRipsNotes, 2400);
+    sayTauntLater("win", 4600);
+  }
+
+  function loseEnding() {
+    if (game.mode.kid) return kidLoseEnding();
+    play("trombone");
+    setTimeout(() => play("cheer"), 300);
+    heckle("lose");
+    celebrateLoss();
+    lightning();
+    setTimeout(() => { $("ghost").style.display = ""; replay($("ghost"), "rise"); }, 1400);
+    sayTauntLater("lose", 2800);
+    // The crowd goes home; the cows stay to graze
+    setTimeout(() => spectators.filter((s) => s.dataset.type !== "cow").forEach((s) => sendAway(s)), 5000);
+  }
+
+  // ---------- Rare last-second rescues ----------
+  const RESCUE_CHANCE = 0.1;
+  const RESCUES = {
+    pardon: { result: "📜 A royal pardon! You live... somehow.", outrage: ["A PARDON?! From ze king?!", "Boooo! Rigged!", "Zut alors! Paperwork!"] },
+    gary:   { result: "🦅 Gary swooped in and saved you!", outrage: ["GARY! Bring them back!", "Not again, Gary!"] },
+    olivia: { result: "🐌 Olivia chewed through the rope!", outrage: ["OLIVIA?! Traitor!", "Ze snail?! Unbelievable!"] }
+  };
+
+  function pickRescue() {
+    // Gary and Olivia can only help if they're not busy with each other
+    return pick(olivia.state === "crawl" ? ["pardon", "gary", "olivia"] : ["pardon"]);
+  }
+
+  function runRescue(kind) {
+    setTimeout(() => {
+      if (kind === "pardon") pardonRescue();
+      else if (kind === "gary") garyRescue();
+      else oliviaRescue();
+      setTimeout(() => say(pick(PEASANTS), pick(RESCUES[kind].outrage), true), 1800);
+      setTimeout(() => spectators.forEach((s) => sendAway(s)), 3000);
+    }, 600);
+    sayTauntLater("win", 5600);
+  }
+
+  function pardonRescue() {
+    const m = $("messenger");
+    m.style.transition = "none";
+    m.style.transform = "translateX(-130px)";
+    m.style.display = "";
+    $("pardonScroll").style.display = "none";
+    m.getBoundingClientRect();
+    m.style.transition = "transform 1.6s ease-out";
+    m.style.transform = "translateX(55px)";
+    play("gallop");
+    setTimeout(() => { $("pardonScroll").style.display = ""; play("toot"); }, 1700);
+    setTimeout(dropAndDance, 2300);
+    setTimeout(() => {
+      $("pardonScroll").style.display = "none";
+      m.style.transition = "transform 1.6s ease-in";
+      m.style.transform = "translateX(-130px)";
+      play("gallop");
+    }, 4300);
+  }
+
+  function garyRescue() {
+    const eagle = $("eagle"), lift = $("hangeeLift");
+    eagle.style.display = "";
+    play("whoosh");
+    const t0 = performance.now(), gx = 128, gy = 47;
+    (function step(now) {
+      const t = now - t0;
+      if (t < 1200) {
+        const p = ease(t / 1200);
+        eagle.setAttribute("transform", `translate(${420 + (gx - 420) * p} ${-90 + (gy + 90) * p}) scale(1.1)`);
+      } else if (t < 3400) {
+        const p = ((t - 1200) / 2200) ** 2, dx = -230 * p, dy = -220 * p;
+        eagle.setAttribute("transform", `translate(${gx + dx} ${gy + dy}) scale(1.1)`);
+        lift.style.transition = "none";
+        lift.style.transform = `translate(${dx}px, ${dy}px)`;
+      } else {
+        eagle.style.display = "none";
+        lift.style.display = "none";
+        return;
+      }
+      requestAnimationFrame(step);
+    })(t0);
+  }
+
+  function oliviaRescue() {
+    // Olivia appears on the beam right where the rope is tied...
+    olivia.state = "rescue";
+    olivia.progress = (115 + 110) / 530;
+    olivia.dx = 0;
+    olivia.dy = -221.6;
+    $("olivia").style.display = "";
+    play("chomp");
+    const t = document.createElementNS(SVG_NS, "text");
+    t.setAttribute("class", "dot spectator-say");
+    t.setAttribute("x", "150"); t.setAttribute("y", "6");
+    t.textContent = "chomp chomp";
+    $("lettuceLayer").appendChild(t);
+    setTimeout(() => t.remove(), 2000);
+    // ...chews through it, then parachutes back down to the grass
+    setTimeout(dropAndDance, 1500);
+    setTimeout(() => {
+      olivia.landing = false;
+      olivia.start = performance.now() - 9000; // skip straight to the parachute part of her snatch routine
+      olivia.state = "snatch";
+    }, 3000);
+  }
+
+  // ---------- Bribing Klaus ----------
+  function canBribe() {
+    if (!game || game.over || game.mode.bribes === false || game.bribed) return false;
+    if (game.mode.lives - game.wrong < 2) return false; // his fee would be fatal
+    return [...game.word].some((ch) => /[a-z]/.test(ch) && !game.guessed.has(ch));
+  }
+
+  $("bribeBtn").addEventListener("click", () => {
+    if (!canBribe()) return;
+    stopEntrance();
+    const hidden = [...new Set(game.word.replace(/[^a-z]/g, ""))].filter((l) => !game.guessed.has(l));
+    const letter = pick(hidden);
+    game.bribed = true;
+    game.guessed.add(letter);
+    game.wrong++; // Klaus's fee: one more piece gets drawn
+    game.history.push("bribe");
+    play("toot");
+    say("klaus", `*pockets coin* Psst... try "${letter.toUpperCase()}".`);
+    finishTurn(letter, true, true);
+  });
+
+  // ---------- Scoreboard between friends ----------
+  function loadScores() { try { return JSON.parse(localStorage.getItem("hangman-scores")) || {}; } catch (e) { return {}; } }
+  function saveScores(scores) { try { localStorage.setItem("hangman-scores", JSON.stringify(scores)); } catch (e) {} }
+  const scoreKey = (name) => name.trim().toLowerCase();
+
+  function showScore() {
+    if (!game.opponent) return $("scoreText").classList.add("hidden");
+    const s = loadScores()[scoreKey(game.opponent)] || { me: 0, them: 0 };
+    $("scoreText").textContent = `🏆 ${game.opponent} ${s.them} – ${s.me} You`;
+    $("scoreText").classList.remove("hidden");
+  }
+
+  function updateScore(won) {
+    if (!game.opponent) return;
+    const scores = loadScores();
+    const s = scores[scoreKey(game.opponent)] || { me: 0, them: 0 };
+    if (won) s.me++; else s.them++;
+    scores[scoreKey(game.opponent)] = s;
+    saveScores(scores);
+    showScore();
+  }
+
+  // ---------- Sharing your result ----------
+  function resultSummary() {
+    const left = game.mode.lives - game.wrong;
+    const how = game.rescue ? "got rescued at the last second"
+      : game.won ? `survived with ${left} wrong guess${left === 1 ? "" : "es"} to spare`
+      : "got hanged 💀";
+    const squares = game.history.map((h) => (h === "bribe" ? "💰" : h ? "🟩" : "🟥")).join("");
+    let text = `🪢 Hangman: I ${how} as ${game.character.name}${game.from ? ` in ${game.from}'s puzzle` : ""}! ${squares}`;
+    const s = game.opponent && loadScores()[scoreKey(game.opponent)];
+    if (s) text += `\n🏆 ${game.opponent} ${s.them} – ${s.me} Me`;
+    return text;
+  }
+
+  $("shareResultBtn").addEventListener("click", async () => {
+    const text = resultSummary();
+    try {
+      if (navigator.share) await navigator.share({ text });
+      else { await navigator.clipboard.writeText(text); $("shareNote").textContent = "Copied! Paste it into your chat."; }
+    } catch (e) { /* closed the share sheet */ }
+  });
+
+  // ---------- Word cards (what the word means, revealed at the end) ----------
+  function showWordCard() {
+    const info = game.info;
+    if (!info.def && !info.pic) return $("wordCard").classList.add("hidden");
+    $("wcPic").textContent = info.pic || "";
+    $("wcWord").textContent = game.word;
+    $("wcPos").textContent = info.pos || "";
+    $("wcDef").textContent = info.def || "";
+    $("wcExtra").textContent = info.ex ? `"${info.ex}"` : info.origin ? `Origin: ${info.origin}` : "";
+    $("wordCard").classList.remove("hidden");
+    // Little kids hear the word and what it means
+    if (game.mode.kid) {
+      const g = game;
+      setTimeout(() => { if (game === g) speakWordCard(); }, 1600);
+    }
+  }
+
+  function speakWordCard() {
+    const info = game.info;
+    speak(`${game.word}. ${info.def || ""} ${info.ex || ""}`);
+  }
+  $("wcSpeak").addEventListener("click", speakWordCard);
+  $("hearBtn").addEventListener("click", () => speak(game.spokenHint));
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  }
+
   // ---------- Home screen: picking a difficulty ----------
   let currentLink = "";
   $("nameInput").value = loadName();
+  try { $("friendInput").value = localStorage.getItem("hangman-friend") || ""; } catch (e) {}
 
   let selectedMode = MODES[loadMode()] ? loadMode() : "regular";
+
+  const HINT_LABELS = {
+    easy:    ["Clue for a little one (they can hear it read aloud)", "e.g. It says moo!"],
+    regular: ["Hint (optional)", "e.g. A spiky fruit"],
+    prison:  ["Crossword-style clue (optional)", "e.g. Hot air from the south of France?"]
+  };
+  const HINT_PREFIX = { easy: "", regular: "Hint: ", prison: "Clue: " };
 
   function selectMode(mode) {
     selectedMode = mode;
     saveMode(mode);
     document.querySelectorAll(".mode").forEach((btn) => btn.classList.toggle("selected", btn.dataset.mode === mode));
-    $("hintField").classList.toggle("hidden", !MODES[mode].hints); // no hints in Prison Mode
+    // The clue box changes its wording to suit the mode
+    const [label, placeholder] = HINT_LABELS[mode];
+    $("hintLabel").textContent = label;
+    $("hintInput").placeholder = placeholder;
   }
   document.querySelectorAll(".mode").forEach((btn) => btn.addEventListener("click", () => selectMode(btn.dataset.mode)));
   selectMode(selectedMode);
+
+  // ---------- Home screen: picking who's on the rope ----------
+  let selectedChar = "blob";
+  try { if (CHARACTERS[localStorage.getItem("hangman-char")]) selectedChar = localStorage.getItem("hangman-char"); } catch (e) {}
+
+  // A copy of the character drawing, for the picker buttons and the dress-up preview
+  function characterArt() {
+    const art = $("hangee").cloneNode(true);
+    art.removeAttribute("id");
+    art.querySelectorAll("animateTransform").forEach((a) => a.remove());
+    art.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "84 18 92 140");
+    svg.setAttribute("stroke-width", "2.5");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+    svg.innerHTML = '<g filter="url(#wobble)"></g>';
+    svg.firstChild.appendChild(art);
+    return svg;
+  }
+
+  for (const [key, character] of Object.entries(CHARACTERS)) {
+    const btn = document.createElement("button");
+    btn.className = "charbtn";
+    btn.dataset.pick = key;
+    btn.innerHTML = `
+      <div class="scene thumb" data-char="${key}" data-mood="calm" data-face="normal" data-extras="" data-gender="male"></div>
+      <span>${character.name.replace("The ", "")}</span>`;
+    btn.querySelector(".thumb").appendChild(characterArt());
+    btn.addEventListener("click", () => selectChar(key));
+    $("chars").appendChild(btn);
+  }
+  $("preview").appendChild(characterArt());
+
+  function selectChar(key) {
+    selectedChar = key;
+    try { localStorage.setItem("hangman-char", key); } catch (e) {}
+    document.querySelectorAll(".charbtn").forEach((btn) => btn.classList.toggle("selected", btn.dataset.pick === key));
+    updatePreview();
+  }
+
+  // The picker buttons show everyone as the chosen gender (with the right names)
+  function updateThumbs() {
+    const gender = selectedLook.gender === "f" ? "female" : "male";
+    document.querySelectorAll(".charbtn").forEach((btn) => {
+      btn.querySelector(".thumb").dataset.gender = gender;
+      btn.querySelector("span").textContent = charInfo(btn.dataset.pick, selectedLook.gender).name.replace("The ", "");
+    });
+    document.querySelectorAll("#genderChips .chip").forEach((c) => c.classList.toggle("on", c.dataset.gender === selectedLook.gender));
+  }
+
+  // ---------- Home screen: dressing them up ----------
+  const FACES = {
+    normal: "😐 Normal", confused: "🤨 Confused", concerned: "😟 Concerned", smug: "😏 Smug",
+    sleepy: "😴 Sleepy", goofy: "🤪 Goofy", angry: "😠 Angry", shocked: "😲 Shocked",
+    nervous: "😬 Nervous", starstruck: "🤩 Starstruck", wink: "😉 Wink", pouty: "😗 Pouty"
+  };
+  const EXTRAS = {
+    glasses: "👓 Glasses", shades: "🕶️ Shades", eyepatch: "🏴‍☠️ Eye patch", mustache: "🥸 Mustache",
+    clownnose: "🔴 Clown nose", cowboy: "🤠 Cowboy hat", partyhat: "🥳 Party hat", crown: "👑 Crown",
+    flower: "🌼 Flower", chain: "📿 Gold chain", scarf: "🧣 Scarf", pants: "👖 Pants"
+  };
+  // Extras that can't be worn together (only one thing on the eyes, one thing on top of the head)
+  const CLASHES = [["glasses", "shades", "eyepatch"], ["cowboy", "partyhat", "crown"]];
+  const SHIRTS = ["#e63946", "#ff9f1c", "#ffd166", "#2a9d8f", "#4d7cff", "#c77dff", "#3d3d3d"];
+  const SKINS = ["#ffe0bd", "#f1c27d", "#e0ac69", "#c68642", "#a0663e", "#8d5524"];
+  const HAIRS = ["#2b1d14", "#4a3728", "#8b5a2b", "#b5523b", "#e07a3f", "#f6d365", "#b8b8b8", "#f1f1f1", "#ff8fab", "#4d7cff"];
+  const BODIES = { slim: "Slim", regular: "Regular", round: "Round", yoked: "💪 Yoked" };
+
+  const plainLook = (gender = "m") => ({ gender, face: "normal", extras: [], shirt: "", skin: "", hair: "", body: "regular" });
+  let selectedLook = plainLook();
+  try { selectedLook = cleanLook(JSON.parse(localStorage.getItem("hangman-look"))); } catch (e) {}
+
+  // Only keep options we know about (looks also arrive in links, so don't trust them blindly)
+  function cleanLook(look) {
+    const out = plainLook();
+    if (!look || typeof look !== "object") return out;
+    if (FACES[look.face]) out.face = look.face;
+    if (Array.isArray(look.extras)) out.extras = look.extras.filter((x) => EXTRAS[x]);
+    if (SHIRTS.includes(look.shirt)) out.shirt = look.shirt;
+    if (SKINS.includes(look.skin)) out.skin = look.skin;
+    if (HAIRS.includes(look.hair)) out.hair = look.hair;
+    if (BODIES[look.body]) out.body = look.body;
+    if (look.gender === "f") out.gender = "f";
+    return out;
+  }
+
+  // Put a character + look onto a drawing (the game scene or the preview)
+  function applyLook(el, charKey, look) {
+    el.dataset.char = charKey;
+    el.dataset.face = look.face;
+    el.dataset.extras = look.extras.join(" ");
+    el.dataset.body = look.body;
+    el.dataset.gender = look.gender === "f" ? "female" : "male";
+    for (const [prop, value] of [["--shirt", look.shirt], ["--skin", look.skin], ["--hair", look.hair]]) {
+      if (value) el.style.setProperty(prop, value);
+      else el.style.removeProperty(prop);
+    }
+  }
+
+  function makeChip(label, onClick, extraClass = "") {
+    const chip = document.createElement("button");
+    chip.className = "chip " + extraClass;
+    chip.innerHTML = label;
+    chip.addEventListener("click", onClick);
+    return chip;
+  }
+
+  for (const [key, label] of [["m", "👨 Male"], ["f", "👩 Female"]]) {
+    const chip = makeChip(label, () => { selectedLook.gender = key; updatePreview(); });
+    chip.dataset.gender = key;
+    $("genderChips").appendChild(chip);
+  }
+  const plainHair = makeChip("↺", () => { selectedLook.hair = ""; updatePreview(); }, "swatch");
+  plainHair.title = "Their usual hair color";
+  plainHair.dataset.hair = "";
+  $("hairChips").appendChild(plainHair);
+  for (const color of HAIRS) {
+    const swatch = makeChip("", () => { selectedLook.hair = color; updatePreview(); }, "swatch");
+    swatch.style.background = color;
+    swatch.dataset.hair = color;
+    $("hairChips").appendChild(swatch);
+  }
+  for (const [key, label] of Object.entries(FACES)) {
+    const chip = makeChip(label, () => { selectedLook.face = key; updatePreview(); });
+    chip.dataset.face = key;
+    $("faceChips").appendChild(chip);
+  }
+  for (const [key, label] of Object.entries(BODIES)) {
+    const chip = makeChip(label, () => { selectedLook.body = key; updatePreview(); });
+    chip.dataset.body = key;
+    $("bodyChips").appendChild(chip);
+  }
+  const plainSkin = makeChip("↺", () => { selectedLook.skin = ""; updatePreview(); }, "swatch");
+  plainSkin.title = "Their usual skin tone";
+  plainSkin.dataset.skin = "";
+  $("skinChips").appendChild(plainSkin);
+  for (const tone of SKINS) {
+    const swatch = makeChip("", () => { selectedLook.skin = tone; updatePreview(); }, "swatch");
+    swatch.style.background = tone;
+    swatch.dataset.skin = tone;
+    $("skinChips").appendChild(swatch);
+  }
+  for (const [key, label] of Object.entries(EXTRAS)) {
+    const chip = makeChip(label, () => toggleExtra(key));
+    chip.dataset.extra = key;
+    $("extraChips").appendChild(chip);
+  }
+  const plainSwatch = makeChip("↺", () => { selectedLook.shirt = ""; updatePreview(); }, "swatch");
+  plainSwatch.title = "Their usual shirt";
+  plainSwatch.dataset.shirt = "";
+  $("shirtChips").appendChild(plainSwatch);
+  for (const color of SHIRTS) {
+    const swatch = makeChip("", () => { selectedLook.shirt = color; updatePreview(); }, "swatch");
+    swatch.style.background = color;
+    swatch.dataset.shirt = color;
+    $("shirtChips").appendChild(swatch);
+  }
+
+  function toggleExtra(key) {
+    const extras = new Set(selectedLook.extras);
+    if (extras.has(key)) {
+      extras.delete(key);
+    } else {
+      for (const group of CLASHES) if (group.includes(key)) group.forEach((x) => extras.delete(x));
+      extras.add(key);
+    }
+    selectedLook.extras = [...extras];
+    updatePreview();
+  }
+
+  function updatePreview() {
+    applyLook($("preview"), selectedChar, selectedLook);
+    try { localStorage.setItem("hangman-look", JSON.stringify(selectedLook)); } catch (e) {}
+    document.querySelectorAll("#faceChips .chip").forEach((c) => c.classList.toggle("on", c.dataset.face === selectedLook.face));
+    document.querySelectorAll("#extraChips .chip").forEach((c) => c.classList.toggle("on", selectedLook.extras.includes(c.dataset.extra)));
+    document.querySelectorAll("#shirtChips .chip").forEach((c) => c.classList.toggle("on", c.dataset.shirt === selectedLook.shirt));
+    document.querySelectorAll("#skinChips .chip").forEach((c) => c.classList.toggle("on", c.dataset.skin === selectedLook.skin));
+    document.querySelectorAll("#bodyChips .chip").forEach((c) => c.classList.toggle("on", c.dataset.body === selectedLook.body));
+    document.querySelectorAll("#hairChips .chip").forEach((c) => c.classList.toggle("on", c.dataset.hair === selectedLook.hair));
+    updateThumbs();
+  }
+
+  $("surpriseBtn").addEventListener("click", () => {
+    const look = plainLook(selectedLook.gender); // keep the gender they picked
+    look.hair = Math.random() < 0.5 ? pick(HAIRS) : "";
+    look.face = pick(Object.keys(FACES));
+    for (const key of Object.keys(EXTRAS)) if (Math.random() < 0.3) look.extras.push(key);
+    for (const group of CLASHES) {
+      const worn = look.extras.filter((x) => group.includes(x));
+      if (worn.length > 1) look.extras = look.extras.filter((x) => x === worn[0] || !group.includes(x));
+    }
+    look.shirt = Math.random() < 0.7 ? pick(SHIRTS) : "";
+    look.skin = Math.random() < 0.5 ? pick(SKINS) : "";
+    look.body = pick(Object.keys(BODIES));
+    selectedLook = look;
+    updatePreview();
+  });
+  $("resetLookBtn").addEventListener("click", () => { selectedLook = plainLook(selectedLook.gender); updatePreview(); });
+
+  selectChar(selectedChar);
 
   // ---------- Home screen: making a link ----------
   $("makeBtn").addEventListener("click", () => {
@@ -848,13 +3148,26 @@
 
     showError("");
     saveName(name);
-    currentLink = location.href.split("#")[0] + "#g=" + encodePuzzle({ w: word, h: hint, f: name, m: selectedMode });
+
+    // The scoreboard between you and this friend travels with the link
+    const friend = $("friendInput").value.trim();
+    const s = friend ? loadScores()[scoreKey(friend)] || { me: 0, them: 0 } : null;
+    try { localStorage.setItem("hangman-friend", friend); } catch (e) {}
+
+    currentLink = location.href.split("#")[0] + "#g=" + encodePuzzle({
+      w: word, h: hint, f: name, m: selectedMode, c: selectedChar, o: selectedLook,
+      t: $("loseTaunt").value.trim(), q: $("winTaunt").value.trim(), d: $("meaningInput").value.trim(),
+      sc: s ? [s.me, s.them] : undefined
+    });
+    $("loseTaunt").value = "";
+    $("winTaunt").value = "";
 
     $("linkBox").textContent = currentLink;
     $("localNote").classList.toggle("hidden", location.protocol !== "file:");
     $("shareBtn").classList.toggle("hidden", !navigator.share);
     $("wordInput").value = "";
     $("hintInput").value = "";
+    $("meaningInput").value = "";
     showScreen("created");
   });
 
@@ -883,6 +3196,7 @@
   $("againBtn").addEventListener("click", startSolo);
 
   function goHome() {
+    stopEntrance();
     history.replaceState(null, "", location.pathname + location.search);
     showScreen("home");
   }
@@ -891,29 +3205,83 @@
   let game = null; // { word, mode, guessed: Set, wrong, over }
 
   function startSolo() {
-    const list = SOLO_WORDS[selectedMode];
-    const [word, category] = list[Math.floor(Math.random() * list.length)];
+    const entry = pick(SOLO_WORDS[selectedMode]);
+    let word, hint, info = {};
+    if (selectedMode === "regular") {
+      [word] = entry;
+      hint = "Category: " + entry[1];
+    } else if (selectedMode === "easy") {
+      word = entry.w;
+      hint = entry.clue;
+      info = { pic: entry.pic, def: entry.def, ex: entry.ex };
+    } else {
+      word = entry.w;
+      hint = "Clue: " + entry.clue;
+      info = { pos: entry.pos, def: entry.def, origin: entry.origin };
+    }
     history.replaceState(null, "", location.pathname + location.search);
-    startGame(word, category ? "Category: " + category : "", "", selectedMode);
+    startGame(word, hint, "", selectedMode, selectedChar, selectedLook, { info });
   }
 
-  function startGame(word, hint, from, modeKey) {
+  // extra = { taunts: { win, lose }, opponent } for puzzles that came from a friend's link
+  function startGame(word, hint, from, modeKey, charKey, look, extra = {}) {
     const mode = MODES[modeKey];
-    game = { word, mode, guessed: new Set(), wrong: 0, over: false };
+    const character = charInfo(charKey, look.gender);
+    game = {
+      word, mode, character, from, guessed: new Set(), wrong: 0, over: false, won: false,
+      history: [], streak: 0, bribed: false, ropeCut: false, rescue: null,
+      taunts: extra.taunts || {}, opponent: extra.opponent || "",
+      info: extra.info || {}, spokenHint: hint.replace(/^(Clue|Hint|Category): /, "")
+    };
 
-    // Still in Diapers: give away the first letter for free
+    // Read-aloud button and the mode's wording (the picture clue stays hidden until halfway; see render)
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    $("hearBtn").classList.toggle("hidden", !(mode.kid && hint));
+    $("wordCard").classList.add("hidden");
+    $("stamp").textContent = mode.kid ? "LAST TRY!" : "LAST CHANCE!";
+    $("bribeBtn").innerHTML = mode.kid
+      ? "🎺 Ask Klaus for a letter <small>(he draws one more piece)</small>"
+      : "💰 Bribe Klaus for a letter <small>(costs you a body part)</small>";
+    $("wordBox").classList.toggle("long", word.length > 9);
+
+    // Reset everything the last game's ending may have changed
+    const lift = $("hangeeLift");
+    lift.style.transition = "none";
+    lift.style.transform = "";
+    lift.style.display = "";
+    $("hangee").classList.remove("dance");
+    $("ghost").style.display = "none";
+    $("ghost").classList.remove("rise");
+    $("messenger").style.display = "none";
+    $("scene").classList.remove("lastchance");
+    $("lettuceLayer").replaceChildren();
+    $("shareNote").textContent = "";
+    showScore();
+
+    // A fresh (empty) audience, who will arrive in a random order; the bird puts back what it stole
+    clearSpectators();
+    resetBird();
+    resetCrowd();
+    game.birdUsed = new Set();
+    game.audience = shuffle(["cow", "pig", "sheep", "chicken", "dog", "popcorn", "parasol", "knight", "kid"]);
+
+    // Big Kid Words: give away the first letter for free
     if (mode.freeLetter) game.guessed.add(word.match(/[a-z]/)[0]);
 
-    $("fromText").textContent = from ? from + " sent you a puzzle!" : "";
+    $("fromText").textContent = from ? `${from} sent you a puzzle... and made you ${character.name}!` : "";
     $("modeText").textContent = mode.emoji + " " + mode.name;
     $("hintText").textContent = mode.hints ? hint : "";
-    $("scene").dataset.mode = modeKey;   // costumes: diaper, cap or prison stripes
+    $("scene").dataset.mode = modeKey;   // prison bars and stripes in Prison Mode
+    applyLook($("scene"), charKey, look); // who's on the rope, and how they're dressed
     $("scene").dataset.crowd = "neutral";
     $("endBox").classList.add("hidden");
     $("bubble").classList.remove("show");
     buildKeyboard();
     render();
     showScreen("game");
+
+    // Here they come!
+    startEntrance(character);
   }
 
   function buildKeyboard() {
@@ -931,35 +3299,75 @@
 
   function guess(letter) {
     if (!game || game.over || game.guessed.has(letter)) return;
+    stopEntrance(); // guessing right away skips the entrance
     game.guessed.add(letter);
     const correct = game.word.includes(letter);
     if (!correct) game.wrong++;
+    game.history.push(correct);
+    game.streak = correct ? Math.max(0, game.streak) + 1 : Math.min(0, game.streak) - 1;
+    play(correct ? "right" : "wrong");
+    if (correct && Math.random() < 0.4) play("boo"); // the crowd hates it when you're right
+    finishTurn(letter, correct, false);
+  }
 
+  // Everything that happens after a guess (or a bribe)
+  function finishTurn(letter, correct, bribe) {
     const solved = [...game.word].every((ch) => !/[a-z]/.test(ch) || game.guessed.has(ch));
-    if (solved || game.wrong >= game.mode.lives) {
-      game.over = true;
-      $("resultText").textContent = solved ? game.mode.win : game.mode.lose;
-      $("resultText").className = "result " + (solved ? "win" : "lose");
-      $("endBox").classList.remove("hidden");
-    }
+    let lost = !solved && game.wrong >= game.mode.lives;
+    let rescue = null;
+    if (lost && !game.mode.kid && Math.random() < RESCUE_CHANCE) { rescue = pickRescue(); lost = false; }
+    if (solved || lost || rescue) endGame(solved, rescue);
 
     // The crowd cheers when you're wrong and sulks when you're right
-    $("scene").dataset.crowd = (game.over ? !solved : !correct) ? "happy" : "grumpy";
+    $("scene").dataset.crowd = (game.over ? lost : !correct) ? "happy" : "grumpy";
     render();
 
-    // Someone shouts, and sometimes a cow shows up
-    if (game.over && solved) {
-      heckle("win");
-      launchCow(300);
-    } else if (game.over) {
-      heckle("lose");
-      launchCow(300); launchCow(900); launchCow(1500); // stampede!
-    } else {
-      heckle(correct ? "right" : "wrong");
-      if (Math.random() < 0.3) launchCow(400);
-      if (Math.random() < 0.12) setTimeout(snatchOlivia, 800);
+    // Every wrong guess draws a bigger audience (and sometimes a tomato)
+    if (!correct) {
+      updateAudience();
+      if (!game.over && !game.mode.kid && Math.random() < 0.5) throwTomato();
     }
+    if (game.over) return;
+
+    if ((!correct || bribe) && game.mode.lives - game.wrong === 1) return lastChance();
+    if (bribe) return;
+    if (game.info.pic && !correct && game.wrong === PICTURE_AFTER) {
+      play("pop");
+      return say("pip", "Psst! Here's a picture to help!");
+    }
+    reactToGuess(letter, correct);
+    if (game.mode.kid) {
+      // A cow wanders up now and then (always early in the game, and it usually poops)
+      if (game.history.length === 2 || Math.random() < 0.35) cowVisit();
+    } else {
+      // Grown-up modes: Pierre the drunk staggers through, and the bird gets up to mischief
+      if (Math.random() < 0.2) drunkVisit();
+      if (Math.random() < 0.18) setTimeout(birdMischief, 600);
+      if (!game.streaked && game.history.length > 2 && Math.random() < 0.1) { game.streaked = true; setTimeout(streak, 900); }
+      if (!game.executed && game.history.length > 2 && Math.random() < 0.1) { game.executed = true; setTimeout(executionerVisit, 900); }
+    }
+    // Any mode: the ice cream truck comes by (once a game at most)
+    if (!game.iceCream && game.history.length > 3 && Math.random() < 0.08) { game.iceCream = true; setTimeout(iceCreamTruck, 900); }
+    else if (!game.rained && game.history.length > 2 && Math.random() < 0.07) { game.rained = true; setTimeout(rainShower, 900); }
+    if (Math.random() < 0.12) setTimeout(snatchOlivia, 800);
   }
+
+  function endGame(solved, rescue) {
+    game.over = true;
+    game.won = solved || !!rescue;
+    game.rescue = rescue;
+    $("scene").classList.remove("lastchance");
+    $("resultText").textContent = rescue ? RESCUES[rescue].result : solved ? game.mode.win : game.mode.lose;
+    $("resultText").className = "result " + (game.won ? "win" : game.mode.kid ? "kidlose" : "lose");
+    $("endBox").classList.remove("hidden");
+    updateScore(game.won);
+    showWordCard();
+    if (rescue) runRescue(rescue);
+    else if (solved) winEnding();
+    else loseEnding();
+  }
+
+  const PICTURE_AFTER = 5; // wrong guesses before a little kid's picture clue appears
 
   // How the blob (and the sun) feel, and how hard the blob swings
   const SWING_SPEED = { calm: "3s", worried: "2s", scared: "0.9s", happy: "3s", dizzy: "4s" };
@@ -978,20 +3386,31 @@
       box.appendChild(slot);
     }
 
-    // The blob: spread its 6 body parts across however many lives this mode has,
-    // so it's always complete exactly on the last wrong guess
-    // (when you win, the whole blob appears so you can see it celebrate)
-    const won = game.over && game.wrong < game.mode.lives;
-    const partsShown = won ? 6 : Math.round((game.wrong * 6) / game.mode.lives);
-    document.querySelectorAll(".scene .part").forEach((part) => {
-      part.classList.toggle("on", Number(part.dataset.part) <= partsShown);
+    // The drawing: one stage per wrong guess
+    // (when you win, everything appears so you can see your character celebrate)
+    const won = game.over && game.won;
+    const shown = new Set(game.mode.built);
+    game.mode.stages.slice(0, won ? game.mode.lives : game.wrong).forEach((stage) => stage.forEach((p) => shown.add(p)));
+    if (game.ropeCut) shown.delete("rope");
+    document.querySelectorAll("#scene .piece").forEach((piece) => {
+      piece.classList.toggle("on", shown.has(piece.dataset.piece));
     });
 
-    // Mood
+    // Mood, and the sky to match
     const danger = game.wrong / game.mode.lives;
+    const left = game.mode.lives - game.wrong;
     let mood = danger < 0.34 ? "calm" : danger < 0.67 ? "worried" : "scared";
-    if (game.over) mood = game.wrong < game.mode.lives ? "happy" : "dizzy";
+    if (game.over) mood = game.won ? "happy" : "dizzy";
     $("scene").dataset.mood = mood;
+    let sky = { calm: "sunny", worried: "cloudy", scared: "stormy", happy: "sunny", dizzy: "stormy" }[mood];
+    if (!game.over && left === 1) sky = "sunset";
+    if (game.mode.kid) sky = sky === "sunny" ? "sunny" : "cloudy"; // no storms for little kids
+    $("scene").dataset.sky = sky;
+    $("bribeBtn").classList.toggle("hidden", !canBribe());
+
+    // Picture clue (little kids' words): a helping hand once they're halfway through their guesses
+    const showPic = game.info.pic && (game.over || game.wrong >= PICTURE_AFTER);
+    $("picHint").textContent = showPic ? game.info.pic : "";
     const swing = $("swing");
     if (swing.getAttribute("dur") !== SWING_SPEED[mood]) swing.setAttribute("dur", SWING_SPEED[mood]);
 
@@ -1004,7 +3423,6 @@
       btn.disabled = used || game.over;
     });
 
-    const left = game.mode.lives - game.wrong;
     $("livesText").textContent = game.over ? "" : left + (left === 1 ? " wrong guess left" : " wrong guesses left");
   }
 
@@ -1022,7 +3440,26 @@
     try {
       const p = decodePuzzle(match[1]);
       if (typeof p.w !== "string" || !/^[a-z' -]+$/.test(p.w)) throw new Error("bad word");
-      startGame(p.w, p.h ? "Hint: " + p.h : "", p.f || "A friend", MODES[p.m] ? p.m : "regular");
+      const text = (v) => (typeof v === "string" ? v.slice(0, 60) : "");
+      const from = text(p.f).slice(0, 20);
+
+      // Pick up the scoreboard the sender sent along (their wins, your wins)
+      if (from && Array.isArray(p.sc) && p.sc.length === 2 && p.sc.every((n) => Number.isInteger(n) && n >= 0 && n < 10000)) {
+        const scores = loadScores();
+        scores[scoreKey(from)] = { me: p.sc[1], them: p.sc[0] };
+        saveScores(scores);
+      }
+      if (from) {
+        try { localStorage.setItem("hangman-friend", from); } catch (e) {}
+        $("friendInput").value = from; // so sending a word back keeps score with the same person
+      }
+
+      const modeKey = MODES[p.m] ? p.m : "regular";
+      const clue = typeof p.h === "string" ? p.h.slice(0, 80) : "";
+      const meaning = typeof p.d === "string" ? p.d.slice(0, 120) : "";
+      startGame(p.w, clue ? HINT_PREFIX[modeKey] + clue : "", from || "A friend", modeKey,
+                CHARACTERS[p.c] ? p.c : "blob", cleanLook(p.o),
+                { taunts: { lose: text(p.t), win: text(p.q) }, opponent: from, info: { def: meaning } });
     } catch (e) {
       showScreen("home");
       showError("That puzzle link looks broken. Ask your friend to send it again.");
