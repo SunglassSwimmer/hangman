@@ -1634,9 +1634,13 @@
     $("oliviaGrow").setAttribute("transform", `translate(13 212) scale(${oliviaSize()}) translate(-13 -212)`);
   }
 
+  const MAX_SNATCHES = 2; // Gary goes after Olivia at most this many times per game
+
   function snatchOlivia() {
     const x = oliviaX();
     if (olivia.state !== "crawl" || x < 10 || x > 320) return; // only while she's on screen
+    if (!game || game.snatches >= MAX_SNATCHES) return;       // so it stays special
+    game.snatches = (game.snatches || 0) + 1;
     olivia.state = "snatch";
     olivia.start = performance.now();
     play("whoosh");
