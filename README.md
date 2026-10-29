@@ -32,10 +32,30 @@ Everything lives in one file: `index.html`.
 - **Random words**: `SOLO_WORDS`. Words in Big Kid Words have a picture, a clue, a kid-friendly
   meaning and a sentence; Prison Mode words have a crossword-style clue, a definition and an origin.
 - **Kind crowd lines for little kids**: `KIND_LINES`, `KID_GREETINGS`, `KID_ENTRANCE`
-- **Gags**: the pooping cow (Big Kid Words) is `cowPoop`; Pierre the drunk is `drunkVisit`; Bernard the streaker is `streak`;
-  the bird's stunts (balloon, beret, baguette, Klaus's spike) are `birdMischief`; Pierre's wife is
+- **Gags**: the pooping cow (Big Kid Words) is `cowPoop`; Pierre the drunk is `drunkVisit`;  the bird's stunts (balloon, beret, baguette, Klaus's spike) are `birdMischief`; Pierre's wife is
   `wifeFetchesPierre`; Olivia making Gary crash is `updateMiss`; the late executioner is `executionerVisit`;
-  the wave is `doWave`; the ice cream truck is `iceCreamTruck`; the rain shower is `rainShower`
+  the wave is `doWave`; the ice cream truck is `iceCreamTruck`; the rain shower is `rainShower`;
+  Henri the painter is `painterVisit`; the acorn-throwing squirrel is `squirrelVisit`;
+  Brigitte napping (and Pierre fetching her) is `pierreFetchesBrigitte`; the flying saucer is `ufoVisit`;
+  the golden cow is in `addSpectator`; Klaus getting zapped is in `loseEnding`
+
+## Things that keep you coming back
+
+All of this lives in the "The story so far" section of the `<script>`, and is remembered in each
+player's own browser.
+
+- **Daily puzzle** (three words a day, the same for everyone, with a winning streak): `dailyEntry`,
+  `startDaily`, `recordDaily`, `renderDaily`. Daily #1 is October 28, 2026 (`DAILY_START`).
+- **Sticker book** (every gag is a sticker; rare ones glow gold): `STICKERS`, `discover`. Gags you
+  haven't seen yet turn up a bit more often: `odds`.
+- **Unlockable extras** (Viking helmet, Wizard hat, Hero mask, unlocked by winning): `UNLOCKS`
+- **Rivalries** (your history with each friend, and their best taunt): `logRival`, `renderRivals`
+- **A world that remembers** (`world`, `applyWorld`, `pickCallback`): Klaus wears a bandage for a few
+  games after the squirrel, the bird keeps its trophies in its nest (and Gerard and Pip get a new beret
+  and balloon), a sign keeps score between Gary and Olivia, Henri's paintings hang in a gallery on the
+  home screen, Klaus gets his umbrella fixed, the executioner's excuses get worse, and the crowd brings
+  up what happened last time.
+- **Quick mode** (the ⏩ button skips the cart entrance): `quickMode`
 
 ## Working on it together
 

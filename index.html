@@ -191,7 +191,8 @@
   [data-extras~="clownnose"] .opt-clownnose, [data-extras~="pants"] .opt-pants,
   [data-extras~="crown"] .opt-crown, [data-extras~="cowboy"] .opt-cowboy,
   [data-extras~="partyhat"] .opt-partyhat, [data-extras~="flower"] .opt-flower,
-  [data-extras~="chain"] .opt-chain, [data-extras~="scarf"] .opt-scarf { display: inline; }
+  [data-extras~="chain"] .opt-chain, [data-extras~="scarf"] .opt-scarf,
+  [data-extras~="viking"] .opt-viking, [data-extras~="wizard"] .opt-wizard, [data-extras~="heromask"] .opt-heromask { display: inline; }
 
   /* The Yoked body type swaps in a V-shaped torso and beefs up the arms */
   .yoked-only { display: none; }
@@ -297,11 +298,14 @@
   .bob.crowdwave { animation: crowdwave .55s ease-out; }
   @keyframes crowdwave { 40% { transform: translateY(-18px); } }
 
-  /* Bernard the streaker: jiggles as he runs, waves his arms */
-  .spectator.streaker.walking .waddle { animation: jiggle .17s ease-in-out infinite alternate; }
-  @keyframes jiggle { from { transform: rotate(-7deg) translateY(0); } to { transform: rotate(7deg) translateY(-4px); } }
-  .spectator.streaker .arms { transform-box: fill-box; transform-origin: 50% 100%; animation: wave .22s ease-in-out infinite alternate; }
-  @keyframes wave { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+  /* Henri the painter: the canvas fills in stage by stage while his brush dabs away */
+  .spectator .stage1, .spectator .stage2, .spectator .stage3 { display: none; }
+  .spectator.s1 .stage1, .spectator.s2 .stage2, .spectator.s3 .stage3 { display: inline; }
+  .spectator .brush { transform-box: fill-box; transform-origin: 100% 100%; }
+  .spectator.painting .brush { animation: dab .25s ease-in-out infinite alternate; }
+  @keyframes dab { to { transform: rotate(-14deg); } }
+  /* The squirrel: once it throws, the acorn is no longer in its paws */
+  .spectator.thrown .heldacorn { display: none; }
 
   /* Pierre the drunk: staggers, keels over, snores */
   .spectator.drunk.walking .waddle { animation: stagger .8s ease-in-out infinite alternate; }
@@ -351,6 +355,50 @@
 
   /* In Big Kid Words mode the rope is a swing (no noose), and there's no halo */
   .scene[data-mode="easy"] .noose, .scene[data-mode="easy"] .halo { display: none; }
+
+  /* ---------- Daily puzzle, sticker book, rivalries, gallery, toasts ---------- */
+  .dailybtns { display: grid; gap: 8px; }
+  .dailybtn { margin-top: 0; text-align: left; font-size: 1.15rem; }
+  .dailybtn small { display: block; font-size: .9rem; color: var(--muted); }
+  .dailybtn.done { opacity: .75; }
+  .stickers { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+  .sticker {
+    text-align: center; padding: 6px 4px; border: 2px dashed var(--line); border-color: var(--muted);
+    border-radius: 14px; opacity: .55; font-size: .85rem; line-height: 1.1;
+  }
+  .sticker.seen { opacity: 1; border-style: solid; border-color: var(--ink); background: var(--paper); }
+  .sticker.rare.seen { border-color: #e9b949; box-shadow: 0 0 0 2px #ffd166; }
+  .sticker .semoji { display: block; font-size: 1.7rem; }
+  .rival { margin-bottom: 12px; }
+  .rival h3 { margin: 0 0 4px; font-family: "Gochi Hand", cursive; font-weight: 400; font-size: 1.35rem; }
+  .rival ul { margin: 0; padding-left: 18px; }
+  .rival li { font-size: 1rem; }
+  .rival .taunt { margin: 4px 0 0; font-style: italic; }
+  .gallery { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+  .frame { margin: 0; flex: 0 0 auto; width: 96px; text-align: center; font-size: .85rem; }
+  .frame svg { display: block; width: 96px; border: 5px solid #c49a6c; border-radius: 3px; box-shadow: 2px 2px 0 var(--ink); background: #fff; }
+  .toast {
+    position: fixed; top: 12px; left: 50%; z-index: 100; max-width: 90vw; padding: 8px 16px; text-align: center;
+    background: var(--card); color: var(--ink); border: 2.5px solid var(--ink); border-radius: 18px 22px 16px 24px;
+    box-shadow: 3px 3px 0 var(--ink); font-size: 1.1rem; transform: translate(-50%, -160%); transition: transform .35s ease;
+  }
+  .toast.show { transform: translate(-50%, 0); }
+  .chip.locked { opacity: .55; cursor: default; }
+  .quickbtn { opacity: .4; }
+  .quickbtn.on { opacity: 1; }
+
+  /* ---------- A world that remembers ---------- */
+  .bandage, .trophy, .smoke { display: none; }
+  .scene.bandaged .bandage { display: inline; }
+  .scene.nest-beret .t-beret, .scene.nest-baguette .t-baguette, .scene.nest-balloon .t-balloon { display: inline; }
+  .scene.nest-beret #beret ellipse { fill: #4d7cff; }                 /* Gerard's new beret */
+  .scene.nest-balloon #balloon ellipse, .scene.nest-balloon #balloon path[fill] { fill: #ffd166; }   /* Pip's new balloon */
+  .scene.fixedbrella .umbrella .tear, .scene.fixedbrella .umbrella .drip { display: none; }      /* Klaus fixed his umbrella */
+  .scene.zapped #klaus { filter: url(#charred); }
+  .scene.zapped .smoke { display: inline; }
+  .smoke { animation: smoke 1.6s ease-out infinite; }
+  @keyframes smoke { from { transform: translateY(0); opacity: .8; } to { transform: translateY(-14px); opacity: 0; } }
+  .spectator.golden .waddle { filter: url(#gold); }
 
   /* ---------- Game bar, scoreboard, bribe, taunts ---------- */
   .gamebar { display: flex; justify-content: space-between; align-items: center; }
@@ -417,6 +465,8 @@
 </head>
 <body>
 
+<div class="toast" id="toast"></div>
+
 <!-- Shared drawing tools: the wobbly "hand-drawn" filter and prison stripes -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
@@ -424,6 +474,9 @@
       <feTurbulence id="wobbleNoise" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1" result="noise"/>
       <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5"/>
     </filter>
+    <!-- the golden cow, and Klaus after the lightning -->
+    <filter id="gold"><feColorMatrix type="matrix" values="1 0 0 0 0  .82 0 0 0 0  .3 0 0 0 0  0 0 0 1 0"/></filter>
+    <filter id="charred"><feColorMatrix type="matrix" values=".38 0 0 0 0  0 .36 0 0 0  0 0 .36 0 0  0 0 0 1 0"/></filter>
     <pattern id="stripes" width="10" height="10" patternUnits="userSpaceOnUse">
       <rect width="10" height="10" fill="#fff"/>
       <rect width="10" height="5" fill="#2b2d42"/>
@@ -438,6 +491,12 @@
     <h1>Hangman</h1>
     <p class="sub">A game of words, peasants &amp; suspicious cows</p>
     <div class="title-cow" id="titleCow"></div>
+
+    <div class="card" id="dailyCard">
+      <h2>🗓️ Daily Puzzle <span id="dailyNum"></span></h2>
+      <p id="dailyStreak"></p>
+      <div class="dailybtns" id="dailyBtns"></div>
+    </div>
 
     <div class="card">
       <h2>Pick your difficulty</h2>
@@ -467,7 +526,7 @@
         <div class="optrow"><b>Skin tone</b><div class="chips" id="skinChips"></div></div>
         <div class="optrow"><b>Hair color</b><div class="chips" id="hairChips"></div></div>
         <div class="optrow"><b>Body</b><div class="chips" id="bodyChips"></div></div>
-        <div class="optrow"><b>Extras</b><div class="chips" id="extraChips"></div></div>
+        <div class="optrow"><b>Extras</b><div class="chips" id="extraChips"></div><p class="note" id="unlockNote"></p></div>
         <div class="optrow"><b>Shirt</b><div class="chips" id="shirtChips"></div></div>
         <div class="dressup-actions">
           <button class="btn" id="surpriseBtn">🎲 Surprise me</button>
@@ -507,6 +566,23 @@
       <p>Guess a random word that the game picks.</p>
       <button class="btn secondary" id="soloBtn">Play a random word</button>
     </div>
+
+    <div class="card hidden" id="rivalCard">
+      <h2>🏆 Rivalries</h2>
+      <div id="rivals"></div>
+    </div>
+
+    <div class="card" id="stickerCard">
+      <h2>📒 Sticker Book</h2>
+      <p id="stickerCount"></p>
+      <div class="stickers" id="stickers"></div>
+    </div>
+
+    <div class="card hidden" id="galleryCard">
+      <h2>🖼️ Henri's Gallery</h2>
+      <p>Every masterpiece Henri has painted at your hangings.</p>
+      <div class="gallery" id="gallery"></div>
+    </div>
   </section>
 
   <!-- ===== LINK CREATED SCREEN ===== -->
@@ -529,7 +605,10 @@
   <section id="game" class="hidden">
     <div class="gamebar">
       <button class="toplink" id="homeBtn">&larr; Start over</button>
-      <button class="mutebtn" id="muteBtn" title="Sound on/off">🔊</button>
+      <span>
+        <button class="mutebtn quickbtn" id="quickBtn" title="Skip the cart entrance">⏩</button>
+        <button class="mutebtn" id="muteBtn" title="Sound on/off">🔊</button>
+      </span>
     </div>
     <p class="from" id="fromText"></p>
     <span class="badge" id="modeText"></span>
@@ -583,6 +662,14 @@
         <circle cx="155" cy="188" r="4" fill="#ffafcc"/><circle cx="160" cy="189" r="3" fill="#ffd166"/>
       </g>
       <use href="#flower" transform="translate(196 4) scale(.8) translate(40 50)"/>
+
+      <!-- the running score between Gary and Olivia (appears after their first encounter) -->
+      <g id="tallySign" style="display:none">
+        <rect class="wood" x="23" y="182" width="5" height="25" stroke-width="1.5"/>
+        <rect class="wood" x="2" y="150" width="48" height="34" rx="3" stroke-width="1.8"/>
+        <text id="tallyGary" x="26" y="164" text-anchor="middle" class="dot" style="font: 12px 'Gochi Hand', cursive">🦅 0</text>
+        <text id="tallyOlivia" x="26" y="179" text-anchor="middle" class="dot" style="font: 12px 'Gochi Hand', cursive">🐌 0</text>
+      </g>
 
       <!-- the gallows, in pieces (in Big Kid Words mode it gets built one wrong guess at a time) -->
       <rect class="piece wood" data-piece="base" x="12" y="198" width="112" height="13" rx="6"/>
@@ -918,6 +1005,20 @@
             <circle cx="129" cy="46" r="1.8" fill="#52b788" stroke="none"/>
             <circle cx="128" cy="21" r="3.5" fill="#ffd166" stroke-width="1.5"/>
           </g>
+          <!-- unlockable extras (earned by winning) -->
+          <g class="opt opt-viking">
+            <path d="M110 54 q-12 -2 -13 -16 q6 7 14 8 Z M146 54 q12 -2 13 -16 q-6 7 -14 8 Z" fill="#f4f1de"/>
+            <path d="M107 58 Q107 39 128 39 Q149 39 149 58 Z" fill="#adb5bd"/>
+            <path d="M107 56 h42" stroke="#6c757d" stroke-width="3"/>
+            <path d="M128 40 v15" stroke="#6c757d" stroke-width="2"/>
+          </g>
+          <g class="opt opt-wizard">
+            <path d="M113 51 L131 9 L143 51 Z" fill="#4d3c9e"/>
+            <path d="M128 30 l1.4 2.8 3 .4 -2.2 2.1 .5 3 -2.7 -1.4 -2.7 1.4 .5 -3 -2.2 -2.1 3 -.4 Z" fill="#ffd166" stroke-width="1"/>
+            <ellipse cx="128" cy="51" rx="23" ry="4.5" fill="#4d3c9e"/>
+          </g>
+          <path class="opt opt-heromask" fill-rule="evenodd" fill="#e63946" stroke-width="1.8"
+                d="M107 64 q21 -7 42 0 v9 q-21 7 -42 0 Z M116 68.5 a4 3 0 1 0 8 0 a4 3 0 1 0 -8 0 Z M132 68.5 a4 3 0 1 0 8 0 a4 3 0 1 0 -8 0 Z"/>
           <g class="opt opt-crown">
             <path d="M112 53 l3 -15 l7 8 l6 -13 l6 13 l7 -8 l3 15 Z" fill="#ffd166"/>
             <circle cx="128" cy="47" r="2.2" fill="#e63946" stroke="none"/>
@@ -1007,6 +1108,10 @@
       </g>
         <path d="M63 11 Q80 22 97 11 Q90 6 80 7 Q70 6 63 11 Z" fill="#a47148"/>
         <path d="M67 12 l6 -3 M75 14 l6 -4 M84 13 l6 -3" stroke="#6b4423" stroke-width="1.5"/>
+        <!-- trophies: everything the bird has ever stolen piles up in its nest -->
+        <g class="trophy t-beret"><ellipse cx="96" cy="9" rx="6.5" ry="2.4" fill="#e63946" stroke-width="1.5"/></g>
+        <g class="trophy t-baguette"><rect x="50" y="4" width="18" height="5" rx="2.5" fill="#e9c46a" stroke-width="1.5" transform="rotate(-18 59 6.5)"/></g>
+        <g class="trophy t-balloon"><path d="M85 9 q3 -6 7 -2 q-2 4 -7 2 Z" fill="#ff6b6b" stroke-width="1.2"/></g>
       </g>
 
       <!-- Sergeant Klaus: spiked helmet, monocle, upturned mustache, bugle -->
@@ -1035,12 +1140,20 @@
         <path d="M-14 135.5 h28" stroke-width="3"/>
         <path d="M-3 119 L0 104 L3 119 Z" fill="#c0c0c0" stroke-width="1.5"/>
         <circle cx="0" cy="127" r="3" fill="#ffd166" stroke-width="1"/>
+        <!-- a bandage (for a few games after the squirrel), and smoke (after the lightning) -->
+        <g class="bandage" stroke-width="1.2">
+          <rect x="-13" y="139" width="12" height="5" rx="1.5" fill="#fff3d6" transform="rotate(35 -7 141.5)"/>
+          <rect x="-13" y="139" width="12" height="5" rx="1.5" fill="#fff3d6" transform="rotate(-35 -7 141.5)"/>
+        </g>
+        <g class="smoke" stroke="#8d99ae" stroke-width="2">
+          <path d="M-4 100 q-3 -4 0 -8 q3 -4 0 -8"/><path d="M4 102 q-3 -4 0 -8 q3 -4 0 -8" style="animation-delay: .6s"/>
+        </g>
         <!-- his umbrella... which his spike goes straight through -->
         <g class="umbrella">
           <path d="M8 119 L18 165" stroke="#5e3a24" stroke-width="2"/>
           <path d="M-16 120 Q8 98 32 120 Q26 116 20 120 Q14 116 8 120 Q2 116 -4 120 Q-10 116 -16 120 Z" fill="#2b2d42"/>
           <path d="M-3 115 L0 100 L3 115 Z" fill="#c0c0c0" stroke-width="1.5"/>
-          <path d="M-5 112 l-3 -2 M5 112 l3 -2 M-5 115 l-4 1 M5 115 l4 1" stroke="#fff" stroke-width="1.2"/>
+          <path class="tear" d="M-5 112 l-3 -2 M5 112 l3 -2 M-5 115 l-4 1 M5 115 l4 1" stroke="#fff" stroke-width="1.2"/>
           <path class="drip" d="M-1 122 q-1.5 3 0 4 q1.5 -1 0 -4 Z" fill="#7aa5d6" stroke="none"/>
           <path class="drip" d="M2 122 q-1.5 3 0 4 q1.5 -1 0 -4 Z" fill="#7aa5d6" stroke="none" style="animation-delay: .35s"/>
         </g>
@@ -1530,7 +1643,7 @@
     olivia.grab = shellTop();
     olivia.eagleSize = Math.max(1, oliviaSize() * 0.75);
     olivia.miss = Math.random() < 0.3; // sometimes Olivia ducks and Gary hits the gallows instead
-    olivia.crashed = false;
+    olivia.crashed = olivia.scored = false;
     $("eagle").style.display = "";
     setTimeout(() => {
       const who = Math.random() < 0.25 && birdIsHome() ? "bird" : pick(PEASANTS);
@@ -1565,6 +1678,7 @@
         olivia.crashed = true;
         play("thud");
         play("cheer");
+        world.olivia++; saveWorld(); updateTally(); discover("miss");
         $("garyDizzy").style.display = "";
         for (let i = 0; i < 6; i++) {
           throwThing(FEATHER, [66, 150], [40 + Math.random() * 60, 205], null, 900 + Math.random() * 600, 15);
@@ -1604,6 +1718,7 @@
       updateMiss(t, g, eagle);
     } else if (t < 1700) {
       // Grab!
+      if (!olivia.scored) { olivia.scored = true; world.gary++; saveWorld(); updateTally(); discover("snatch"); }
       $("oliviaEek").style.display = "";
       eagle.setAttribute("transform", `translate(${g.x} ${g.y}) scale(${olivia.eagleSize})`);
     } else if (t < 3700) {
@@ -1721,24 +1836,36 @@
       <path d="M-11 -48 l6 12 l6 -12 Z" fill="#e9c46a" stroke-width="1.5"/><circle cx="-5" cy="-50" r="6" fill="#ff8fab" stroke-width="1.5"/>
       <circle cx="-34" cy="-6" r="6" fill="#2b2d42"/><circle cx="12" cy="-6" r="6" fill="#2b2d42"/>
       <circle cx="-34" cy="-6" r="2" fill="#adb5bd" stroke="none"/><circle cx="12" cy="-6" r="2" fill="#adb5bd" stroke="none"/>` },
-    // Bernard the streaker (Regular Joe and Prison Mode only): nothing on but socks and a censor bar
-    streaker: { sound: () => "WOOOO!", sfx: "pop", art: (skin) => `
-      <path d="M-6 -12 L-9 -2 M6 -12 L9 -2" stroke-width="3.5"/>
-      <path d="M-11 -6 h5 M6 -6 h5" stroke="#e63946" stroke-width="2"/>
-      <ellipse cx="-10" cy="-1" rx="5" ry="2.5" fill="#fff"/><ellipse cx="10" cy="-1" rx="5" ry="2.5" fill="#fff"/>
-      <g class="arms">
-        <path d="M-14 -32 Q-25 -42 -21 -54 M14 -32 Q25 -42 21 -54" stroke-width="3.5"/>
-        <circle cx="-21" cy="-56" r="3.5" fill="${skin}"/><circle cx="21" cy="-56" r="3.5" fill="${skin}"/>
-      </g>
-      <ellipse cx="0" cy="-26" rx="17" ry="16" fill="${skin}"/>
-      <path d="M-6 -35 q2 -2 4 0 M2 -35 q2 -2 4 0" stroke-width="1"/>
-      <circle class="dot" cx="0" cy="-23" r="1"/>
-      <rect x="-13" y="-17" width="26" height="8" rx="1" fill="#1f2a6b" stroke="none"/>
-      <text x="0" y="-11" text-anchor="middle" fill="#fff" stroke="none" style="font: bold 5.5px sans-serif">CENSORED</text>
-      <circle cx="0" cy="-49" r="9" fill="${skin}"/>
-      <circle class="dot" cx="-3.5" cy="-51" r="1.5"/><circle class="dot" cx="3.5" cy="-51" r="1.5"/>
-      <path class="dot" d="M-4 -46 Q0 -40 4 -46 Z"/>
-      <ellipse cx="-6" cy="-47" rx="2.5" ry="1.5" fill="#ff8fab" stroke="none"/><ellipse cx="6" cy="-47" rx="2.5" ry="1.5" fill="#ff8fab" stroke="none"/>` },
+    // Henri the painter, who sets up an easel and paints the scene (the canvas fills in, stage by stage)
+    painter: { sound: () => "*sets up easel*", sfx: "pop", art: (skin) => `
+      <path d="M-28 -60 L-39 0 M-28 -60 L-17 0 M-28 -60 L-28 -4" stroke="#8b5a2b" stroke-width="2.5"/>
+      <rect x="-43" y="-64" width="30" height="24" rx="1" fill="#fffdf6" stroke-width="2"/>
+      <path d="M-44 -39 h32" stroke="#8b5a2b" stroke-width="3"/>
+      <g class="stage1"><rect x="-41" y="-62" width="26" height="12" fill="#cfe8ff" stroke="none"/><path d="M-41 -45 h26" stroke="#7bb661" stroke-width="3"/></g>
+      <g class="stage2"><path d="M-37 -44 v-15 h11 v4" stroke="#8b5a2b" stroke-width="1.8"/></g>
+      <g class="stage3"><circle cx="-26" cy="-52" r="2" fill="#ffe3b3" stroke-width="1"/><path d="M-26 -50 v4 M-28 -48 h4" stroke-width="1"/></g>
+      <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
+      <path d="M0 -31 Q-14 -30 -14 -2 Q0 2 14 -2 Q14 -30 0 -31 Z" fill="#f4f4f0"/>
+      <circle cx="-5" cy="-16" r="2.2" fill="#e63946" stroke="none"/><circle cx="4" cy="-22" r="2" fill="#4d7cff" stroke="none"/>
+      <circle cx="6" cy="-10" r="2.2" fill="#ffd166" stroke="none"/><circle cx="-2" cy="-7" r="1.6" fill="#52b788" stroke="none"/>
+      <ellipse cx="17" cy="-18" rx="8" ry="5" fill="#e0aa72" stroke-width="1.5"/>
+      <circle cx="14" cy="-19" r="1.4" fill="#e63946" stroke="none"/><circle cx="18" cy="-21" r="1.4" fill="#4d7cff" stroke="none"/><circle cx="20" cy="-17" r="1.4" fill="#ffd166" stroke="none"/>
+      <g class="brush"><path d="M-10 -24 L-14 -40" stroke-width="2.5"/><path d="M-14 -40 l-2 -4" stroke="#e63946" stroke-width="3"/></g>
+      <circle cx="0" cy="-40" r="9.5" fill="${skin}"/>
+      <path d="M-11 -46 Q-2 -54 10 -48 Q2 -46 -11 -46 Z" fill="#2b2d42"/>
+      <circle class="dot" cx="-4" cy="-41" r="1.4"/><circle class="dot" cx="3" cy="-41" r="1.4"/>
+      <path d="M0 -36 q-3 -2 -6 0 q-2 1 -3 -1 M0 -36 q3 -2 6 0 q2 1 3 -1" stroke-width="1.5"/>` },
+    // A squirrel with an acorn, and a grudge against Klaus
+    squirrel: { sound: () => "*nom nom*", sfx: "chomp", art: () => `
+      <path d="M6 -6 Q22 -6 20 -22 Q18 -36 8 -32 Q16 -26 10 -18 Q6 -12 2 -12 Z" fill="#a0522d"/>
+      <ellipse cx="0" cy="-9" rx="7" ry="9" fill="#c47a3a"/>
+      <ellipse cx="-2" cy="-7" rx="3.5" ry="5" fill="#f1d3b3" stroke="none"/>
+      <path d="M-4 -26 l-1 -5 l4 3 Z" fill="#c47a3a"/>
+      <circle cx="-5" cy="-20" r="6" fill="#c47a3a"/>
+      <circle class="dot" cx="-7" cy="-21" r="1.2"/>
+      <circle class="dot" cx="-11" cy="-19" r=".9"/>
+      <ellipse class="dot" cx="-3" cy="0" rx="3" ry="1.5"/><ellipse class="dot" cx="4" cy="0" rx="3" ry="1.5"/>
+      <g class="heldacorn"><ellipse cx="-11" cy="-11" rx="3" ry="3.6" fill="#b5835a" stroke-width="1.2"/><path d="M-14 -13 q3 -3 6 0 Z" fill="#6b4423" stroke-width="1"/></g>` },
     // Pierre, the town drunk (Regular Joe and Prison Mode only)
     drunk: { sound: () => "*hic*", sfx: "hic", art: () => `
       <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
@@ -1840,11 +1967,15 @@
   }
 
   // Someone walks in from the nearest side, stops at their spot, turns to watch, and says something
-  function addSpectator(type, [x, y], size = 0.75, speed = 1) {
+  // line: what they say when they arrive (leave it out for their usual line)
+  function addSpectator(type, [x, y], size = 0.75, speed = 1, line) {
     const kind = SPECTATORS[type];
+    // Very rarely, a cow is made of solid gold
+    const golden = type === "cow" && Math.random() < odds("goldencow", 0.05);
+    if (golden) line = pick(["Moo-lah! ✨", "*shimmers*", "Moo. (in gold)"]);
     const startX = x < 180 ? -40 : 400;
     const g = document.createElementNS(SVG_NS, "g");
-    g.setAttribute("class", "spectator walking");
+    g.setAttribute("class", "spectator walking" + (golden ? " golden" : ""));
     g.innerHTML = `<g class="bob"><g class="flip"><g class="waddle">${kind.art(pick(SKINS), pick(SHIRTS))}</g></g></g>`;
     Object.assign(g.dataset, { x, y, size, type });
     const flip = g.querySelector(".flip");
@@ -1860,8 +1991,9 @@
       if (!g.isConnected || g.dataset.leaving) return;
       g.classList.remove("walking");
       flip.style.transform = `scaleX(${x < 128 ? -1 : 1})`; // turn to watch the gallows
-      sayFromSpectator(g, kind.sound());
+      sayFromSpectator(g, line || kind.sound());
       play(kind.sfx || (type === "cow" ? "moo" : "pop"));
+      if (golden) { play("fanfare"); discover("goldencow"); }
     }, seconds * 1000 + 50);
     return g;
   }
@@ -1952,7 +2084,9 @@
   function drunkVisit() {
     if (drunk || !game || game.over) return;
     const x = pick([150, 230, 300]);
-    const me = (drunk = addSpectator("drunk", [x, 266], 1, 0.55));
+    // Once Brigitte has fetched Pierre, she sometimes turns up tipsy herself... and Pierre has to fetch HER
+    const swap = world.pierreFetched > 0 && Math.random() < odds("swap", 0.3);
+    const me = (drunk = swap ? addSpectator("wife", [x, 266], 1, 0.55, "*hic* Just one glass...") : addSpectator("drunk", [x, 266], 1, 0.55));
     me.classList.add("drunk");
     const walkSeconds = Math.abs(x - (x < 180 ? -40 : 400)) / 90 / 0.55;
     const g = game;
@@ -1962,7 +2096,8 @@
       me.classList.add("collapsed");
       play("thud");
       const who = pick(PEASANTS);
-      say(who, pick(DRUNK_LINES[who]));
+      say(who, pick((swap ? SWAP_LINES : DRUNK_LINES)[who]));
+      if (!swap) discover("drunk");
       const zzz = document.createElementNS(SVG_NS, "text");
       zzz.setAttribute("class", "dot snore");
       zzz.setAttribute("x", x < 128 ? "20" : "-30");
@@ -1974,6 +2109,7 @@
     // ...and eventually either staggers off, none the wiser, or his wife comes to fetch him
     setTimeout(() => {
       if (!me.isConnected || game !== g) { clearInterval(me.snoring); if (drunk === me) drunk = null; return; }
+      if (swap) return pierreFetchesBrigitte(me, x);
       if (Math.random() < 0.5) return wifeFetchesPierre(me, x);
       clearInterval(me.snoring);
       me.querySelectorAll(".snore").forEach((t) => t.remove());
@@ -2015,6 +2151,45 @@
       sendAway(pierre);
       if (drunk === pierre) drunk = null;
     }, arrive * 1000 + 2700);
+    world.pierreFetched++;
+    saveWorld();
+    discover("wife");
+  }
+
+  // ---------- The tables turn: Brigitte naps, and a sober Pierre comes to fetch her ----------
+  const SWAP_LINES = {
+    margot: ["BRIGITTE?!", "Well, I never!"],
+    gerard: ["Ze tables, zey have turned!", "Brigitte! On a Tuesday!"],
+    pip:    ["Is Pierre's wife napping too?", "Shhh, she's sleeping!"],
+    klaus:  ["Unbelievable. *takes notes*", "Two of zem now?!"]
+  };
+
+  function pierreFetchesBrigitte(brigitte, x) {
+    const px = x < 180 ? x - 30 : x + 30;
+    const pierre = addSpectator("drunk", [px, 266], 1, 1.2, "BRIGITTE!!");
+    const arrive = Math.abs(px - (px < 180 ? -40 : 400)) / 90 / 1.2;
+    setTimeout(() => {
+      if (!brigitte.isConnected) return;
+      say("gerard", "Pierre! Sober! On a Tuesday!");
+    }, arrive * 1000 + 300);
+    setTimeout(() => {
+      clearInterval(brigitte.snoring);
+      if (!brigitte.isConnected) return;
+      brigitte.querySelectorAll(".snore, .spectator-say").forEach((t) => t.remove());
+      pierre.querySelectorAll(".spectator-say").forEach((t) => t.remove());
+      brigitte.classList.remove("collapsed");
+      play("boing");
+      sayFromSpectator(brigitte, "Not. One. Word.");
+    }, arrive * 1000 + 1300);
+    setTimeout(() => {
+      if (pierre.isConnected) sayFromSpectator(pierre, "Yes, dear...");
+    }, arrive * 1000 + 2900);
+    setTimeout(() => {
+      sendAway(brigitte);
+      sendAway(pierre);
+      if (drunk === brigitte) drunk = null;
+    }, arrive * 1000 + 3900);
+    discover("swap");
   }
 
   // ---------- The late executioner (Regular Joe and Prison Mode, once a game at most) ----------
@@ -2037,8 +2212,18 @@
       me.querySelectorAll(".spectator-say").forEach((t) => t.remove());
       sayFromSpectator(me, text);
     }, arrive * 1000 + at);
-    line("Did I miss it?", 1900);
-    line("I was told 3 o'clock...", 3700);
+    // He's late every time, and his excuses get worse
+    world.executioner++;
+    saveWorld();
+    discover("executioner");
+    const excuses = [
+      ["Did I miss it?", "I was told 3 o'clock..."],
+      ["Did I miss it AGAIN?", "My sundial was cloudy."],
+      ["Not again...", "My boss is going to kill me. Ha. Kill."],
+      ["Okay, in my defense...", "...the sandwich line was very long."]
+    ][Math.min(world.executioner, 4) - 1];
+    line(excuses[0], 1900);
+    line(excuses[1], 3700);
     setTimeout(() => {
       if (!me.isConnected || game !== g) return;
       const who = pick(PEASANTS);
@@ -2057,6 +2242,7 @@
       setTimeout(() => replay(s.querySelector(".bob"), "crowdwave"), 80 * i);
     });
     play("cheer");
+    discover("wave");
     setTimeout(() => say("klaus", "Wait... are we doing ze wave?"), 1400);
   }
 
@@ -2092,6 +2278,7 @@
       if (game !== g) return;
       crowdAway = false;
       say("gerard", "...we were never gone.");
+      discover("icecream");
     }, 6400);
     setTimeout(() => { if (game === g && !game.over) say("klaus", "*licks ice cream* Carry on."); }, 8800);
   }
@@ -2120,15 +2307,30 @@
     $("scene").classList.add("raining");
     play("rain");
     setTimeout(() => { if (game === g) { $("scene").classList.add("umbrellas"); play("pop"); } }, 900);
+    // Klaus's umbrella rips on his spike. He gets it fixed... and next time it may or may not hold.
+    const holds = world.umbrellaFixed && Math.random() < 0.6;
     setTimeout(() => {
       if (game !== g) return;
+      discover("rain");
+      if (holds) return say("klaus", pick(["Ha! I had it fixed! Reinforced canvas!", "Not zis time, rain!"]));
+      $("scene").classList.remove("fixedbrella");
       play("rip");
-      say("klaus", pick(["Ach! Zis happens EVERY time!", "*drip* ...I hate umbrellas."]));
+      say("klaus", world.umbrellaFixed
+        ? "I JUST had zis fixed!"
+        : pick(["Ach! Zis happens EVERY time!", "*drip* ...I hate umbrellas."]));
+      world.umbrellaFixed = false;
+      saveWorld();
     }, 1500);
+    setTimeout(() => {
+      if (game !== g || holds) return;
+      say("klaus", "Zat's it. I'm getting it fixed.");
+      world.umbrellaFixed = true;
+      saveWorld();
+    }, 6600);
     setTimeout(() => {
       if (game !== g) return;
       const who = pick(["gerard", "margot", "pip"]);
-      say(who, pick(UMBRELLA_LINES[who]));
+      say(who, holds ? "Ooh, Klaus got a new umbrella!" : pick(UMBRELLA_LINES[who]));
     }, 4200);
     setTimeout(() => { if (game === g) stopRain(); }, 7500);
   }
@@ -2145,41 +2347,70 @@
     document.querySelectorAll("#scene .icecream").forEach((c) => (c.style.display = "none"));
   }
 
-  // ---------- Bernard the streaker (Regular Joe and Prison Mode, rare, once a game at most) ----------
-  const STREAKER_LINES = {
-    margot: ["Pip, cover your eyes!", "Put some clothes on, Bernard!"],
-    gerard: ["Mon dieu! Bernard again!", "Such... confidence."],
-    klaus:  ["HALT! *frantic bugle*", "Achtung! Indecent exposure!"],
-    pip:    ["Why is that man naked?", "He forgot his pants!"]
+  // ---------- Henri the painter (any mode, once a game at most) ----------
+  const PAINTING_LINES = {
+    gerard: ["Magnifique, Henri!", "Put it in ze Louvre!"],
+    margot: ["That looks nothing like them.", "Is that supposed to be the gallows?"],
+    pip:    ["Can you paint me next?", "I could do that!"],
+    klaus:  ["Make my helmet bigger.", "Where am I? I demand to be in it!"]
   };
 
-  function streak() {
-    if (!game || game.over || game.mode.kid) return;
-    // He sprints in from one side, strikes a pose in the middle...
-    const midX = pick([170, 215]); // (he comes in from whichever side is nearest)
-    const me = addSpectator("streaker", [midX, 266], 1, 2.2);
-    me.classList.add("streaker");
-    const runIn = Math.abs(midX - (midX < 180 ? -40 : 400)) / 90 / 2.2;
+  function painterVisit() {
+    if (!game || game.over) return;
+    const x = 152; // just right of the gallows, facing it, with the easel in between
+    const me = addSpectator("painter", [x, 268], 1.15, 0.7);
+    const arrive = Math.abs(x + 40) / 90 / 0.7;
     const g = game;
-    setTimeout(() => {
-      if (!me.isConnected || game !== g) return;
-      play("cheer");
-      play("toot");
-      const who = pick(PEASANTS);
-      say(who, pick(STREAKER_LINES[who]));
-    }, runIn * 1000 + 100);
-    // ...then keeps right on running, off the other side
-    setTimeout(() => {
-      if (!me.isConnected) return;
-      const endX = midX < 180 ? 400 : -40;
-      me.dataset.leaving = "yes";
-      me.classList.add("walking");
-      me.querySelector(".flip").style.transform = `scaleX(${endX > midX ? -1 : 1})`;
-      const seconds = Math.abs(endX - midX) / 90 / 2.2;
-      me.style.transition = `transform ${seconds}s linear`;
-      me.style.transform = `translate(${endX}px, 266px) scale(1)`;
-      setTimeout(() => me.remove(), seconds * 1000 + 100);
-    }, runIn * 1000 + 1700);
+    const at = (ms, fn) => setTimeout(() => { if (me.isConnected && game === g) fn(); }, arrive * 1000 + ms);
+    at(900, () => me.classList.add("painting"));
+    at(1500, () => { me.classList.add("s1"); play("pop"); });
+    at(2700, () => { me.classList.add("s2"); play("pop"); });
+    at(3900, () => { me.classList.add("s3"); play("pop"); });
+    at(4700, () => {
+      me.classList.remove("painting");
+      me.querySelectorAll(".spectator-say").forEach((t) => t.remove());
+      sayFromSpectator(me, "Voilà! A masterpiece!");
+      savePainting(); // it goes in the gallery on the home screen
+      discover("painter");
+    });
+    at(5600, () => { const who = pick(PEASANTS); say(who, pick(PAINTING_LINES[who])); });
+    at(8200, () => sendAway(me));
+  }
+
+  // ---------- The squirrel who throws an acorn at Klaus (any mode, once a game at most) ----------
+  const ACORN = '<ellipse rx="3.4" ry="4" fill="#b5835a" stroke-width="1.2"/><path d="M-3.5 -2.5 q3.5 -3.5 7 0 Z" fill="#6b4423" stroke-width="1"/>';
+
+  function squirrelVisit() {
+    if (!game || game.over || crowdAway) return;
+    const x = 222, y = 268, size = 1.1;
+    const me = addSpectator("squirrel", [x, y], size, 1.3);
+    const arrive = Math.abs(400 - x) / 90 / 1.3;
+    const g = game;
+    const at = (ms, fn) => setTimeout(() => { if (me.isConnected && game === g) fn(); }, arrive * 1000 + ms);
+    // It munches... stops... stares at Klaus...
+    at(1500, () => { me.querySelectorAll(".spectator-say").forEach((t) => t.remove()); sayFromSpectator(me, "..."); });
+    // ...and lets fly
+    at(2500, () => {
+      if (crowdAway) return;
+      me.classList.add("thrown");
+      play("whoosh");
+      throwThing(ACORN, [x - 11 * size, y - 12 * size], [176, 122], () => {
+        play("clank");
+        replay($("klaus"), "hop");
+        leaveMark('<text class="dot" text-anchor="middle" style="font: 14px \'Gochi Hand\', cursive">BONK!</text>', [176, 108]);
+        say("klaus", pick(["OW! Who threw zat?!", "Achtung! Incoming acorn!", "Zat squirrel is a menace!"]));
+        // Klaus wears a bandage for the next few games
+        $("scene").classList.add("bandaged");
+        world.klausBandage = 3;
+        saveWorld();
+        discover("squirrel");
+      }, 700, 45);
+    });
+    at(3600, () => {
+      me.querySelectorAll(".spectator-say").forEach((t) => t.remove());
+      sayFromSpectator(me, "*chitter chitter*");
+    });
+    at(4300, () => sendAway(me));
   }
 
   // ---------- The mischievous bird (Regular Joe and Prison Mode) ----------
@@ -2235,6 +2466,8 @@
       flyBird([244, 110], 1300, 50, () => {
         $("balloon").style.display = "none";
         play("balloonpop");
+        discover("balloon");
+        addNestTrophy("balloon"); // a scrap of it goes in the nest for good (Pip gets a new one)
         leaveMark('<text class="dot" text-anchor="middle" style="font: 18px \'Gochi Hand\', cursive">POP!</text>', [340, 112]);
         say("pip", "MY BALLOON! 😭");
         goHome(700);
@@ -2245,6 +2478,8 @@
         $("beret").style.display = "none";
         $("birdBeret").style.display = "";
         say("gerard", pick(["Mon béret! Come back here!", "Zut alors! My beret!"]));
+        discover("beret");
+        addNestTrophy("beret");
         goHome(600); // and it keeps wearing the beret in its nest
       });
     } else if (stunt === "baguette") {
@@ -2253,6 +2488,8 @@
         $("baguette").style.display = "none";
         $("birdBaguette").style.display = "";
         say("gerard", pick(["MY BAGUETTE! Zut alors!", "Thief! Zat was my lunch!"]));
+        discover("baguette");
+        addNestTrophy("baguette");
         goHome(600);
       });
     } else {
@@ -2261,6 +2498,7 @@
         play("boing");
         $("bird").classList.add("stuck");
         $("birdDizzy").style.display = "";
+        discover("spike");
         say("klaus", pick(["Ach! Not again!", "Get off my helmet, you feathered fool!"]));
         // It struggles for a bit, then gives up. It stays stuck up there for the rest of the game
         // (birdBusy stays true, so no more stunts), and Klaus just has to live with it.
@@ -2294,6 +2532,7 @@
     const facing = x < 128 ? -1 : 1; // the cow is drawn facing left, and flipped when it stands left of the gallows
     cow.classList.add("pooping");
     play("fart");
+    discover("cowpoop");
     setTimeout(() => {
       const poop = document.createElementNS(SVG_NS, "g");
       poop.setAttribute("class", "poop");
@@ -2309,6 +2548,58 @@
       say(who, pick(POOP_LINES[who]));
     }, 1000);
     setTimeout(() => cow.classList.remove("looking"), 3400);
+  }
+
+  // ---------- Ultra rare: a flying saucer beams up a cow ----------
+  const UFO_LINES = {
+    gerard: ["Did zat just happen?", "Nobody will believe us."],
+    margot: ["That was my favorite cow!", "Well, THAT'S new."],
+    pip:    ["BYE COW!", "Can I go next?!"],
+    klaus:  ["*writes very fast*", "Zis is not in ze rulebook!"]
+  };
+  const UFO_ART = `
+    <path class="beam" d="M-10 8 L-38 128 L38 128 L10 8 Z" fill="#fff59d" stroke="none" opacity=".55"/>
+    <ellipse cx="0" cy="0" rx="34" ry="9" fill="#adb5bd"/>
+    <path d="M-15 -3 q15 -22 30 0 Z" fill="#a8dadc"/>
+    <circle cx="-20" cy="2" r="2.2" fill="#ffd166"/><circle cx="0" cy="4" r="2.2" fill="#ff8fab"/><circle cx="20" cy="2" r="2.2" fill="#52b788"/>`;
+
+  function ufoVisit() {
+    if (!game || game.over) return;
+    const g = game;
+    // Beam up a cow from the audience, or bring one along for the purpose
+    const cow = spectators.find((s) => s.dataset.type === "cow" && !s.dataset.leaving) || addSpectator("cow", [250, 268], 0.75, 2);
+    const x = Number(cow.dataset.x), y = Number(cow.dataset.y), size = Number(cow.dataset.size);
+    const ufo = document.createElementNS(SVG_NS, "g");
+    ufo.setAttribute("class", "ufo");
+    ufo.innerHTML = UFO_ART;
+    const beam = ufo.querySelector(".beam");
+    beam.style.display = "none";
+    ufo.style.transform = `translate(${x - 300}px, -60px)`;
+    $("spectators").appendChild(ufo);
+    ufo.getBoundingClientRect();
+    ufo.style.transition = "transform 1.4s ease-out";
+    ufo.style.transform = `translate(${x}px, ${y - 130}px)`;
+    play("ufo");
+    const at = (ms, fn) => setTimeout(() => { if (game === g) fn(); }, ms);
+    at(1600, () => { beam.style.display = ""; cow.dataset.leaving = "yes"; });
+    at(1900, () => {
+      cow.style.transition = "transform 1.8s ease-in";
+      cow.style.transform = `translate(${x}px, ${y - 125}px) scale(${size * 0.3})`;
+      sayFromSpectator(cow, "Moooo?!");
+      play("moo");
+    });
+    at(3800, () => {
+      cow.remove();
+      spectators = spectators.filter((s) => s !== cow);
+      if (visitor === cow) visitor = null;
+      beam.style.display = "none";
+      ufo.style.transition = "transform .8s ease-in";
+      ufo.style.transform = `translate(${x + 360}px, -120px)`;
+      play("whoosh");
+    });
+    at(4400, () => { const who = pick(PEASANTS); say(who, pick(UFO_LINES[who])); });
+    setTimeout(() => ufo.remove(), 5000);
+    discover("ufo");
   }
 
   // When you lose, the audience jumps for joy and a couple more cows come running
@@ -2382,8 +2673,9 @@
     }
     if (t > IN + 1600 && !entrance.said[1]) {
       entrance.said[1] = true;
-      const who = pick(PEASANTS);
-      say(who, pick(game.mode.kid ? KID_ENTRANCE : ENTRANCE_LINES[who]));
+      // Sometimes someone brings up what happened last time
+      if (game.callback) sayCallback(game.callback);
+      else { const who = pick(PEASANTS); say(who, pick(game.mode.kid ? KID_ENTRANCE : ENTRANCE_LINES[who])); }
     }
 
     // Throw lettuce
@@ -2522,7 +2814,9 @@
     balloonpop: () => hiss(0, 0.15, { vol: 0.45, freq: 3000 }),
     boing:    () => tone(260, 0, 0.5, { type: "triangle", vol: 0.15, to: 620, vibrato: 40 }),
     rain:     () => hiss(0, 7, { vol: 0.05, freq: 3500, type: "bandpass", q: 0.4 }),
-    rip:      () => hiss(0, 0.25, { vol: 0.25, freq: 2000, type: "bandpass" })
+    rip:      () => hiss(0, 0.25, { vol: 0.25, freq: 2000, type: "bandpass" }),
+    clank:    () => { tone(1300, 0, 0.18, { type: "square", vol: 0.07, to: 900 }); tone(1900, 0.02, 0.25, { vol: 0.08, to: 1500 }); },
+    ufo:      () => { tone(300, 0, 2.6, { type: "sine", vol: 0.08, to: 900, vibrato: 60 }); tone(450, 0.2, 2.4, { type: "triangle", vol: 0.04, to: 1300, vibrato: 90 }); }
   };
 
   // Read words and clues out loud (great for kids who can't read yet). Uses the phone's built-in voice.
@@ -2720,6 +3014,13 @@
     heckle("lose");
     celebrateLoss();
     lightning();
+    // Rarely, the lightning finds the tallest metal object around: Klaus's spike
+    if (Math.random() < odds("zap", 0.08)) {
+      const g = game;
+      setTimeout(() => { if (game === g) { $("scene").classList.add("zapped"); play("thunder"); } }, 250);
+      setTimeout(() => { if (game === g) say("klaus", pick(["*cough* ...I'm fine.", "*smoking* Zis is fine.", "...I need a rubber helmet."]), true); }, 1100);
+      discover("zap");
+    }
     setTimeout(() => { $("ghost").style.display = ""; replay($("ghost"), "rise"); }, 1400);
     sayTauntLater("lose", 2800);
     // The crowd goes home; the cows stay to graze
@@ -2740,6 +3041,7 @@
   }
 
   function runRescue(kind) {
+    discover({ pardon: "pardon", gary: "garysave", olivia: "oliviasave" }[kind]);
     setTimeout(() => {
       if (kind === "pardon") pardonRescue();
       else if (kind === "gary") garyRescue();
@@ -2867,7 +3169,9 @@
       : game.won ? `survived with ${left} wrong guess${left === 1 ? "" : "es"} to spare`
       : "got hanged 💀";
     const squares = game.history.map((h) => (h === "bribe" ? "💰" : h ? "🟩" : "🟥")).join("");
-    let text = `🪢 Hangman: I ${how} as ${game.character.name}${game.from ? ` in ${game.from}'s puzzle` : ""}! ${squares}`;
+    let text = game.daily
+      ? `🪢 Hangman Daily #${dailyNumber()} ${game.mode.emoji}: I ${how}! ${squares}${liveStreak() > 1 ? `\n🔥 ${liveStreak()}-day streak` : ""}`
+      : `🪢 Hangman: I ${how} as ${game.character.name}${game.from ? ` in ${game.from}'s puzzle` : ""}! ${squares}`;
     const s = game.opponent && loadScores()[scoreKey(game.opponent)];
     if (s) text += `\n🏆 ${game.opponent} ${s.them} – ${s.me} Me`;
     return text;
@@ -2908,6 +3212,341 @@
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   }
+
+  // =====================================================================================
+  // ---------- The story so far: daily puzzle, sticker book, unlocks, rivalries, and a world that remembers ----------
+  // Everything here is remembered on this phone/computer (in the browser's storage).
+  // =====================================================================================
+  function loadJSON(key, fallback) { try { const v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; } catch (e) { return fallback; } }
+  function saveJSON(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} }
+  const localDateKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const yesterdayKey = () => localDateKey(new Date(Date.now() - 86400000));
+  const shortDate = (key) => { const [y, m, d] = key.split("-").map(Number); return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: "short", day: "numeric" }); };
+
+  // ---- Little banners at the top of the screen (new stickers, unlocks) ----
+  const toastQueue = [];
+  let toastBusy = false;
+  function showToast(text) { toastQueue.push(text); if (!toastBusy) nextToast(); }
+  function nextToast() {
+    const text = toastQueue.shift();
+    if (!text) { toastBusy = false; return; }
+    toastBusy = true;
+    $("toast").textContent = text;
+    $("toast").classList.add("show");
+    setTimeout(() => { $("toast").classList.remove("show"); setTimeout(nextToast, 400); }, 2600);
+  }
+
+  // ---- The sticker book: every gag is a sticker to collect ----
+  const GROWN = "Regular Joe & Prison Mode";
+  const STICKERS = [
+    { id: "wave", emoji: "🙌", name: "The wave" },
+    { id: "icecream", emoji: "🍦", name: "Ice cream run" },
+    { id: "rain", emoji: "☔", name: "Klaus's umbrella" },
+    { id: "painter", emoji: "🎨", name: "Henri paints" },
+    { id: "squirrel", emoji: "🐿️", name: "Acorn attack" },
+    { id: "snatch", emoji: "🦅", name: "Gary snatches Olivia" },
+    { id: "miss", emoji: "🐌", name: "Olivia's revenge" },
+    { id: "cowpoop", emoji: "💩", name: "The cow's business", where: "Big Kid Words" },
+    { id: "drunk", emoji: "🍺", name: "Pierre's nap", where: GROWN },
+    { id: "wife", emoji: "👵", name: "Brigitte fetches Pierre", where: GROWN },
+    { id: "swap", emoji: "🔄", name: "Brigitte's nap", where: GROWN },
+    { id: "balloon", emoji: "🎈", name: "Balloon popped", where: GROWN },
+    { id: "beret", emoji: "🐦", name: "Beret thief", where: GROWN },
+    { id: "baguette", emoji: "🥖", name: "Baguette heist", where: GROWN },
+    { id: "spike", emoji: "🪖", name: "Bird on a spike", where: GROWN },
+    { id: "executioner", emoji: "🪓", name: "The late executioner", where: GROWN },
+    { id: "pardon", emoji: "📜", name: "Royal pardon", where: GROWN },
+    { id: "garysave", emoji: "🦸", name: "Saved by Gary", where: GROWN },
+    { id: "oliviasave", emoji: "✂️", name: "Saved by Olivia", where: GROWN },
+    { id: "goldencow", emoji: "🌟", name: "The golden cow", rare: true },
+    { id: "ufo", emoji: "🛸", name: "Close encounter", rare: true },
+    { id: "zap", emoji: "⚡", name: "Klaus gets zapped", rare: true, where: GROWN }
+  ];
+  const stickersSeen = new Set(loadJSON("hangman-stickers", []));
+
+  function discover(id) {
+    if (stickersSeen.has(id)) return;
+    const s = STICKERS.find((x) => x.id === id);
+    if (!s) return;
+    stickersSeen.add(id);
+    saveJSON("hangman-stickers", [...stickersSeen]);
+    showToast(`New sticker! ${s.emoji} ${s.name} (${stickersSeen.size}/${STICKERS.length})`);
+  }
+  // Surprises you haven't seen yet turn up a bit more often; ones you've seen, a bit less
+  const odds = (id, base) => base * (stickersSeen.has(id) ? 0.7 : 1.3);
+
+  // ---- Wins, and the extras they unlock ----
+  const UNLOCKS = [{ extra: "viking", wins: 3 }, { extra: "wizard", wins: 6 }, { extra: "heromask", wins: 10 }];
+  const stats = loadJSON("hangman-stats", { games: 0, wins: 0 });
+  const isLocked = (extra) => { const u = UNLOCKS.find((x) => x.extra === extra); return !!u && stats.wins < u.wins; };
+
+  function recordStats(won) {
+    const before = stats.wins;
+    stats.games++;
+    if (won) stats.wins++;
+    saveJSON("hangman-stats", stats);
+    for (const u of UNLOCKS) {
+      if (before < u.wins && stats.wins >= u.wins) showToast(`🔓 Unlocked: ${EXTRAS[u.extra]}! Find it in "Dress them up".`);
+    }
+  }
+
+  function refreshExtraChips() {
+    document.querySelectorAll("#extraChips .chip").forEach((chip) => {
+      const locked = isLocked(chip.dataset.extra);
+      chip.classList.toggle("locked", locked);
+      chip.textContent = locked ? `🔒 ${chip.dataset.label}` : chip.dataset.label;
+    });
+    const next = UNLOCKS.find((u) => stats.wins < u.wins);
+    $("unlockNote").textContent = next
+      ? `Win ${next.wins - stats.wins} more game${next.wins - stats.wins === 1 ? "" : "s"} to unlock the ${EXTRAS[next.extra]}.`
+      : "You've unlocked every extra. Show-off.";
+  }
+
+  // ---- The daily puzzle: three words a day (one per mode), the same for everyone ----
+  const DAILY_START = Date.UTC(2026, 9, 28); // Daily #1
+  function dailyNumber() {
+    const n = new Date();
+    return Math.floor((Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) - DAILY_START) / 86400000) + 1;
+  }
+  // A number from 0 to 1 that's always the same for the same seed (so everyone gets the same word)
+  function seeded(n) {
+    let t = (n + 0x6d2b79f5) | 0;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  function dailyEntry(mode) {
+    const list = SOLO_WORDS[mode];
+    return list[Math.floor(seeded(dailyNumber() * 7 + { easy: 1, regular: 2, prison: 3 }[mode]) * list.length)];
+  }
+  const daily = loadJSON("hangman-daily", { streak: 0, best: 0, lastWin: "", results: {} });
+  const liveStreak = () => (daily.lastWin === localDateKey() || daily.lastWin === yesterdayKey() ? daily.streak : 0);
+
+  function startDaily(mode) {
+    const key = localDateKey();
+    if (daily.results[key + "|" + mode]) return showToast("You've done today's puzzle in this mode. Come back tomorrow!");
+    const { word, hint, info } = entryToGame(mode, dailyEntry(mode));
+    history.replaceState(null, "", location.pathname + location.search);
+    startGame(word, hint, "", mode, selectedChar, selectedLook, { info, daily: { key, mode } });
+  }
+
+  function recordDaily(won) {
+    const { key, mode } = game.daily;
+    daily.results[key + "|" + mode] = { won, squares: game.history.map((h) => (h === "bribe" ? "💰" : h ? "🟩" : "🟥")).join("") };
+    // Win at least one daily puzzle each day to keep the streak going
+    if (won && daily.lastWin !== key) {
+      daily.streak = daily.lastWin === yesterdayKey() ? daily.streak + 1 : 1;
+      daily.lastWin = key;
+    } else if (!won && daily.lastWin !== key) {
+      daily.streak = 0;
+    }
+    daily.best = Math.max(daily.best, daily.streak);
+    const keys = Object.keys(daily.results).sort();
+    while (keys.length > 180) delete daily.results[keys.shift()];
+    saveJSON("hangman-daily", daily);
+  }
+
+  function renderDaily() {
+    $("dailyNum").textContent = "#" + dailyNumber();
+    const streak = liveStreak();
+    $("dailyStreak").textContent = streak
+      ? `🔥 ${streak}-day winning streak (best ${daily.best}). Same words as everyone else today!`
+      : `Three new words every day, the same for everyone. Win one a day to build a streak!${daily.best ? ` (Best: ${daily.best})` : ""}`;
+    const box = $("dailyBtns");
+    box.replaceChildren();
+    for (const mode of ["easy", "regular", "prison"]) {
+      const r = daily.results[localDateKey() + "|" + mode];
+      const btn = document.createElement("button");
+      btn.className = "btn secondary dailybtn" + (r ? " done" : "");
+      btn.innerHTML = `${MODES[mode].emoji} ${MODES[mode].name}<small></small>`;
+      btn.querySelector("small").textContent = r ? `${r.won ? "Solved ✅" : "Missed 💀"} ${r.squares}` : "Play today's word";
+      btn.addEventListener("click", () => startDaily(mode));
+      box.appendChild(btn);
+    }
+  }
+
+  // ---- Rivalries: a running history with each friend ----
+  const rivals = loadJSON("hangman-rivals", {});
+  function rivalFor(name) {
+    const k = scoreKey(name);
+    return rivals[k] || (rivals[k] = { name, log: [], taunts: [] });
+  }
+  function logRival(name, entry) {
+    if (!name) return;
+    const r = rivalFor(name);
+    r.name = name;
+    r.last = Date.now();
+    r.log.unshift({ d: localDateKey(), ...entry });
+    r.log = r.log.slice(0, 30);
+    saveJSON("hangman-rivals", rivals);
+  }
+  function logTaunt(name, text) {
+    if (!name || !text) return;
+    const r = rivalFor(name);
+    r.taunts = [text, ...r.taunts.filter((t) => t !== text)].slice(0, 10);
+    saveJSON("hangman-rivals", rivals);
+  }
+  function renderRivals() {
+    const list = Object.values(rivals).filter((r) => r.log.length).sort((a, b) => (b.last || 0) - (a.last || 0)).slice(0, 3);
+    $("rivalCard").classList.toggle("hidden", !list.length);
+    const box = $("rivals");
+    box.replaceChildren();
+    for (const r of list) {
+      const s = loadScores()[scoreKey(r.name)] || { me: 0, them: 0 };
+      const div = document.createElement("div");
+      div.className = "rival";
+      const h = document.createElement("h3");
+      h.textContent = `${r.name} ${s.them} – ${s.me} You`;
+      div.appendChild(h);
+      const ul = document.createElement("ul");
+      for (const e of r.log.slice(0, 5)) {
+        const li = document.createElement("li");
+        const W = e.w.toUpperCase(), em = MODES[e.m] ? MODES[e.m].emoji : "";
+        const what = { sent: `You sent ${W}`, won: `You guessed ${W} ✅`, lost: `${W} got you 💀`, rescued: `Rescued on ${W} 📜` }[e.r] || W;
+        li.textContent = `${shortDate(e.d)} · ${what} ${em}`;
+        ul.appendChild(li);
+      }
+      div.appendChild(ul);
+      if (r.taunts.length) {
+        const q = document.createElement("p");
+        q.className = "taunt";
+        q.textContent = `Best taunt: "${pick(r.taunts)}"`;
+        div.appendChild(q);
+      }
+      box.appendChild(div);
+    }
+  }
+
+  // ---- A world that remembers ----
+  const world = Object.assign(
+    { klausBandage: 0, gary: 0, olivia: 0, pierreFetched: 0, paintings: [], nest: [], umbrellaFixed: false, executioner: 0 },
+    loadJSON("hangman-world", {})
+  );
+  const saveWorld = () => saveJSON("hangman-world", world);
+
+  // Show the lasting effects of past games in the scene
+  function applyWorld() {
+    const sc = $("scene");
+    game.hadBandage = world.klausBandage > 0;
+    sc.classList.toggle("bandaged", game.hadBandage);
+    for (const t of ["beret", "baguette", "balloon"]) sc.classList.toggle("nest-" + t, world.nest.includes(t));
+    sc.classList.toggle("fixedbrella", world.umbrellaFixed);
+    sc.classList.remove("zapped");
+    updateTally();
+    game.callback = pickCallback();
+  }
+
+  // At the end of a game: the bandage wears off a little
+  function endWorld() {
+    if (game.hadBandage) {
+      world.klausBandage = Math.max(0, world.klausBandage - 1);
+      saveWorld();
+    }
+  }
+
+  function updateTally() {
+    $("tallySign").style.display = world.gary + world.olivia ? "" : "none";
+    $("tallyGary").textContent = "🦅 " + world.gary;
+    $("tallyOlivia").textContent = "🐌 " + world.olivia;
+  }
+
+  function addNestTrophy(t) {
+    if (!world.nest.includes(t)) { world.nest.push(t); saveWorld(); }
+  }
+
+  // A line (or a little exchange) at the start of a game that remembers what happened before
+  function pickCallback() {
+    const options = [];
+    if (world.klausBandage > 0) options.push([["gerard", "Klaus, how's ze head?"], ["klaus", "Do not. Mention. Ze squirrel."]]);
+    if (world.nest.includes("beret")) options.push([["gerard", "New beret. Don't even think about it, bird."]]);
+    if (world.nest.includes("balloon")) options.push([["pip", "New balloon! I'm watching you, bird."]]);
+    if (world.nest.includes("baguette")) options.push([["gerard", "I keep my baguettes under lock and key now."]]);
+    if (world.pierreFetched > 0) options.push([["margot", "Has anyone seen Pierre? Brigitte's looking for him."]]);
+    if (world.gary + world.olivia > 0) {
+      options.push([["pip", `Gary ${world.gary}, Olivia ${world.olivia}! ${world.olivia >= world.gary ? "Go Olivia!" : "Come on, Olivia!"}`]]);
+    }
+    if (world.paintings.length) options.push([["gerard", `Henri's painting of ${world.paintings[0].c} sold for three baguettes!`]]);
+    if (world.executioner > 0) options.push([["klaus", "If ze executioner is late again, I am filing a complaint."]]);
+    if (world.umbrellaFixed) options.push([["klaus", "I had my umbrella fixed. Let it rain!"]]);
+    if (liveStreak() > 1) options.push([["klaus", `A ${liveStreak()}-day streak! Impressive. *takes notes*`]]);
+    return options.length && Math.random() < 0.75 ? pick(options) : null;
+  }
+
+  function sayCallback(lines) {
+    say(lines[0][0], lines[0][1]);
+    if (lines[1]) {
+      const g = game;
+      setTimeout(() => { if (game === g && !game.over) say(lines[1][0], lines[1][1]); }, 2000);
+    }
+  }
+
+  // ---- Henri's gallery ----
+  function savePainting() {
+    let shirt = getComputedStyle($("scene")).getPropertyValue("--shirt").trim();
+    if (!/^#[0-9a-f]{3,8}$/i.test(shirt)) shirt = "#ffb5a7";
+    world.paintings.unshift({ d: localDateKey(), c: game.character.name, shirt });
+    world.paintings = world.paintings.slice(0, 12);
+    saveWorld();
+  }
+  function renderGallery() {
+    $("galleryCard").classList.toggle("hidden", !world.paintings.length);
+    const box = $("gallery");
+    box.replaceChildren();
+    for (const p of world.paintings) {
+      const shirt = /^#[0-9a-f]{3,8}$/i.test(p.shirt) ? p.shirt : "#ffb5a7";
+      const fig = document.createElement("figure");
+      fig.className = "frame";
+      fig.innerHTML = `
+        <svg viewBox="0 0 60 46">
+          <rect width="60" height="31" fill="#cfe8ff"/><rect y="31" width="60" height="15" fill="#c7eab4"/>
+          <path d="M14 36 V9 H37 V15" stroke="#8b5a2b" stroke-width="3" fill="none"/>
+          <path d="M37 26 V32" stroke="${shirt}" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="37" cy="20" r="4" fill="#ffe3b3" stroke="#1f2a6b" stroke-width="1"/>
+        </svg><figcaption></figcaption>`;
+      fig.querySelector("figcaption").textContent = `${p.c.replace("The ", "")} · ${shortDate(p.d)}`;
+      box.appendChild(fig);
+    }
+  }
+
+  // ---- The sticker book on the home screen ----
+  function renderStickers() {
+    $("stickerCount").textContent =
+      `${stickersSeen.size} of ${STICKERS.length} found (rare ones glow gold). Your record: ${stats.wins} win${stats.wins === 1 ? "" : "s"} in ${stats.games} game${stats.games === 1 ? "" : "s"}.`;
+    const box = $("stickers");
+    box.replaceChildren();
+    for (const s of STICKERS) {
+      const seen = stickersSeen.has(s.id);
+      const div = document.createElement("div");
+      div.className = "sticker" + (seen ? " seen" : "") + (s.rare ? " rare" : "");
+      div.innerHTML = '<span class="semoji"></span><span class="sname"></span>';
+      div.querySelector(".semoji").textContent = seen ? s.emoji : s.rare ? "✨" : "❓";
+      div.querySelector(".sname").textContent = seen ? s.name : s.where ? `??? (${s.where})` : "???";
+      box.appendChild(div);
+    }
+  }
+
+  function renderHome() {
+    renderDaily();
+    renderStickers();
+    renderRivals();
+    renderGallery();
+    refreshExtraChips();
+  }
+
+  // ---- Quick mode: skip the cart entrance ----
+  let quickMode = loadJSON("hangman-quick", false);
+  function updateQuickButton() {
+    $("quickBtn").classList.toggle("on", quickMode);
+    $("quickBtn").title = quickMode ? "Cart entrance is off (tap to turn it back on)" : "Skip the cart entrance";
+  }
+  $("quickBtn").addEventListener("click", () => {
+    quickMode = !quickMode;
+    saveJSON("hangman-quick", quickMode);
+    updateQuickButton();
+    if (quickMode) stopEntrance();
+    showToast(quickMode ? "⏩ Cart entrance off" : "🛒 Cart entrance on");
+  });
+  updateQuickButton();
 
   // ---------- Home screen: picking a difficulty ----------
   let currentLink = "";
@@ -2994,10 +3633,12 @@
   const EXTRAS = {
     glasses: "👓 Glasses", shades: "🕶️ Shades", eyepatch: "🏴‍☠️ Eye patch", mustache: "🥸 Mustache",
     clownnose: "🔴 Clown nose", cowboy: "🤠 Cowboy hat", partyhat: "🥳 Party hat", crown: "👑 Crown",
-    flower: "🌼 Flower", chain: "📿 Gold chain", scarf: "🧣 Scarf", pants: "👖 Pants"
+    flower: "🌼 Flower", chain: "📿 Gold chain", scarf: "🧣 Scarf", pants: "👖 Pants",
+    // these three are earned by winning games (see UNLOCKS)
+    viking: "🪓 Viking helmet", wizard: "🧙 Wizard hat", heromask: "🦸 Hero mask"
   };
   // Extras that can't be worn together (only one thing on the eyes, one thing on top of the head)
-  const CLASHES = [["glasses", "shades", "eyepatch"], ["cowboy", "partyhat", "crown"]];
+  const CLASHES = [["glasses", "shades", "eyepatch", "heromask"], ["cowboy", "partyhat", "crown", "viking", "wizard"]];
   const SHIRTS = ["#e63946", "#ff9f1c", "#ffd166", "#2a9d8f", "#4d7cff", "#c77dff", "#3d3d3d"];
   const SKINS = ["#ffe0bd", "#f1c27d", "#e0ac69", "#c68642", "#a0663e", "#8d5524"];
   const HAIRS = ["#2b1d14", "#4a3728", "#8b5a2b", "#b5523b", "#e07a3f", "#f6d365", "#b8b8b8", "#f1f1f1", "#ff8fab", "#4d7cff"];
@@ -3080,6 +3721,7 @@
   for (const [key, label] of Object.entries(EXTRAS)) {
     const chip = makeChip(label, () => toggleExtra(key));
     chip.dataset.extra = key;
+    chip.dataset.label = label;
     $("extraChips").appendChild(chip);
   }
   const plainSwatch = makeChip("↺", () => { selectedLook.shirt = ""; updatePreview(); }, "swatch");
@@ -3094,6 +3736,7 @@
   }
 
   function toggleExtra(key) {
+    if (isLocked(key)) return showToast(`🔒 Win ${UNLOCKS.find((u) => u.extra === key).wins} games to unlock this.`);
     const extras = new Set(selectedLook.extras);
     if (extras.has(key)) {
       extras.delete(key);
@@ -3121,7 +3764,7 @@
     const look = plainLook(selectedLook.gender); // keep the gender they picked
     look.hair = Math.random() < 0.5 ? pick(HAIRS) : "";
     look.face = pick(Object.keys(FACES));
-    for (const key of Object.keys(EXTRAS)) if (Math.random() < 0.3) look.extras.push(key);
+    for (const key of Object.keys(EXTRAS)) if (!isLocked(key) && Math.random() < 0.3) look.extras.push(key);
     for (const group of CLASHES) {
       const worn = look.extras.filter((x) => group.includes(x));
       if (worn.length > 1) look.extras = look.extras.filter((x) => x === worn[0] || !group.includes(x));
@@ -3161,6 +3804,7 @@
     });
     $("loseTaunt").value = "";
     $("winTaunt").value = "";
+    logRival(friend, { w: word, m: selectedMode, r: "sent" });
 
     $("linkBox").textContent = currentLink;
     $("localNote").classList.toggle("hidden", location.protocol !== "file:");
@@ -3198,27 +3842,22 @@
   function goHome() {
     stopEntrance();
     history.replaceState(null, "", location.pathname + location.search);
+    renderHome();
     showScreen("home");
   }
 
   // ---------- The game ----------
   let game = null; // { word, mode, guessed: Set, wrong, over }
 
+  // Turn an entry from one of the word lists into a word, a hint and word-card info
+  function entryToGame(mode, entry) {
+    if (mode === "regular") return { word: entry[0], hint: "Category: " + entry[1], info: {} };
+    if (mode === "easy") return { word: entry.w, hint: entry.clue, info: { pic: entry.pic, def: entry.def, ex: entry.ex } };
+    return { word: entry.w, hint: "Clue: " + entry.clue, info: { pos: entry.pos, def: entry.def, origin: entry.origin } };
+  }
+
   function startSolo() {
-    const entry = pick(SOLO_WORDS[selectedMode]);
-    let word, hint, info = {};
-    if (selectedMode === "regular") {
-      [word] = entry;
-      hint = "Category: " + entry[1];
-    } else if (selectedMode === "easy") {
-      word = entry.w;
-      hint = entry.clue;
-      info = { pic: entry.pic, def: entry.def, ex: entry.ex };
-    } else {
-      word = entry.w;
-      hint = "Clue: " + entry.clue;
-      info = { pos: entry.pos, def: entry.def, origin: entry.origin };
-    }
+    const { word, hint, info } = entryToGame(selectedMode, pick(SOLO_WORDS[selectedMode]));
     history.replaceState(null, "", location.pathname + location.search);
     startGame(word, hint, "", selectedMode, selectedChar, selectedLook, { info });
   }
@@ -3230,7 +3869,7 @@
     game = {
       word, mode, character, from, guessed: new Set(), wrong: 0, over: false, won: false,
       history: [], streak: 0, bribed: false, ropeCut: false, rescue: null,
-      taunts: extra.taunts || {}, opponent: extra.opponent || "",
+      taunts: extra.taunts || {}, opponent: extra.opponent || "", modeKey, daily: extra.daily || null,
       info: extra.info || {}, spokenHint: hint.replace(/^(Clue|Hint|Category): /, "")
     };
 
@@ -3262,6 +3901,7 @@
     clearSpectators();
     resetBird();
     resetCrowd();
+    applyWorld(); // bandages, nest trophies, the tally sign... whatever happened in earlier games
     game.birdUsed = new Set();
     game.audience = shuffle(["cow", "pig", "sheep", "chicken", "dog", "popcorn", "parasol", "knight", "kid"]);
 
@@ -3269,7 +3909,7 @@
     if (mode.freeLetter) game.guessed.add(word.match(/[a-z]/)[0]);
 
     $("fromText").textContent = from ? `${from} sent you a puzzle... and made you ${character.name}!` : "";
-    $("modeText").textContent = mode.emoji + " " + mode.name;
+    $("modeText").textContent = mode.emoji + " " + mode.name + (game.daily ? ` · 📅 Daily #${dailyNumber()}` : "");
     $("hintText").textContent = mode.hints ? hint : "";
     $("scene").dataset.mode = modeKey;   // prison bars and stripes in Prison Mode
     applyLook($("scene"), charKey, look); // who's on the rope, and how they're dressed
@@ -3280,8 +3920,14 @@
     render();
     showScreen("game");
 
-    // Here they come!
-    startEntrance(character);
+    // Here they come! (Unless quick mode is on: then the crowd just says hello)
+    if (!quickMode) return startEntrance(character);
+    const g = game;
+    setTimeout(() => {
+      if (game !== g || game.history.length) return;
+      if (game.callback) sayCallback(game.callback);
+      else say(pick(PEASANTS), pick(mode.kid ? KID_GREETINGS : character.tease));
+    }, 600);
   }
 
   function buildKeyboard() {
@@ -3343,13 +3989,17 @@
       // Grown-up modes: Pierre the drunk staggers through, and the bird gets up to mischief
       if (Math.random() < 0.2) drunkVisit();
       if (Math.random() < 0.18) setTimeout(birdMischief, 600);
-      if (!game.streaked && game.history.length > 2 && Math.random() < 0.1) { game.streaked = true; setTimeout(streak, 900); }
       if (!game.executed && game.history.length > 2 && Math.random() < 0.1) { game.executed = true; setTimeout(executionerVisit, 900); }
     }
     // Any mode: the ice cream truck comes by (once a game at most)
     if (!game.iceCream && game.history.length > 3 && Math.random() < 0.08) { game.iceCream = true; setTimeout(iceCreamTruck, 900); }
     else if (!game.rained && game.history.length > 2 && Math.random() < 0.07) { game.rained = true; setTimeout(rainShower, 900); }
+    // Any mode: Henri comes to paint, and the squirrel comes for Klaus (once a game each at most)
+    if (!game.painted && game.history.length > 2 && Math.random() < 0.08) { game.painted = true; setTimeout(painterVisit, 900); }
+    if (!game.squirreled && game.history.length > 1 && Math.random() < 0.09) { game.squirreled = true; setTimeout(squirrelVisit, 1100); }
     if (Math.random() < 0.12) setTimeout(snatchOlivia, 800);
+    // Ultra rare: a flying saucer
+    if (!game.ufo && game.history.length > 3 && Math.random() < odds("ufo", 0.012)) { game.ufo = true; setTimeout(ufoVisit, 1200); }
   }
 
   function endGame(solved, rescue) {
@@ -3361,6 +4011,10 @@
     $("resultText").className = "result " + (game.won ? "win" : game.mode.kid ? "kidlose" : "lose");
     $("endBox").classList.remove("hidden");
     updateScore(game.won);
+    recordStats(game.won);
+    if (game.daily) recordDaily(game.won);
+    logRival(game.opponent, { w: game.word, m: game.modeKey, r: rescue ? "rescued" : solved ? "won" : "lost" });
+    endWorld();
     showWordCard();
     if (rescue) runRescue(rescue);
     else if (solved) winEnding();
@@ -3450,6 +4104,8 @@
         saveScores(scores);
       }
       if (from) {
+        logTaunt(from, text(p.t));
+        logTaunt(from, text(p.q));
         try { localStorage.setItem("hangman-friend", from); } catch (e) {}
         $("friendInput").value = from; // so sending a word back keeps score with the same person
       }
@@ -3466,6 +4122,7 @@
     }
   }
   window.addEventListener("hashchange", route);
+  renderHome();
   route();
 </script>
 </body>
