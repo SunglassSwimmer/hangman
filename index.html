@@ -427,7 +427,7 @@
 
   /* Settings: a faded backdrop behind the cast, so it doesn't compete with them */
   .backdrop { display: none; opacity: .6; }
-  .scene[data-setting="castle"] .backdrop-castle { display: inline; }
+  .scene[data-setting="castle"] .backdrop-castle, .scene[data-setting="town"] .backdrop-town { display: inline; }
 
   /* Klaus's Mutti: he bends down for a face-scrubbing, and the lipstick stays for the rest of the game */
   #klaus.bent { transform: rotate(-10deg); }
@@ -771,6 +771,30 @@
         <path d="M268 156 V140 q6 -8 12 0 V156 Z" fill="#c8bfae"/>
         <path d="M234 108 v7 M312 116 v7 M270 96 v7 M278 96 v7" stroke-width="1.6"/>
         <path d="M150 208 Q205 136 285 148 Q335 156 372 196 V208 Z" fill="#d6ebc6" stroke="none"/>
+      </g>
+
+      <g class="backdrop backdrop-town" stroke="#7f88a8" stroke-width="1.2">
+        <!-- crooked houses behind the gallows -->
+        <path d="M-10 212 V150 L14 128 L40 151 V212 Z" fill="#efe4d0"/>
+        <path d="M60 212 L62 152 L86 130 L108 150 L108 212 Z" fill="#e9dfd2"/>
+        <path d="M108 212 V158 L128 138 L150 158 V212 Z" fill="#efe9dc"/>
+        <!-- the church -->
+        <path d="M282 212 V90 H316 V212 Z" fill="#e6e1d6"/>
+        <path d="M280 90 L299 40 L318 90 Z" fill="#c9b8d8"/>
+        <path d="M299 40 V28 M295 33 h8" stroke-width="1.6"/>
+        <circle cx="299" cy="108" r="7" fill="#fff8e7"/><path d="M299 108 v-5 M299 108 l4 2"/>
+        <path d="M292 212 V184 q7 -10 14 0 V212 Z" fill="#c8bfae"/>
+        <!-- crooked houses behind the crowd -->
+        <path d="M150 212 L152 132 L174 106 L196 131 L194 212 Z" fill="#f0dfcb"/>
+        <path d="M194 212 V148 L213 126 L234 148 V212 Z" fill="#e4e5d8"/>
+        <path d="M232 212 L234 126 L256 98 L280 124 L278 212 Z" fill="#efe4d0"/>
+        <path d="M318 212 V142 L345 116 L372 142 V212 Z" fill="#e9dfd2"/>
+        <!-- timbers and windows -->
+        <path d="M-10 170 H40 M15 150 V212 M62 170 H108 M85 150 V212 M152 150 H195 M173 132 V212 M234 146 H279 M256 126 V212 M318 164 H372 M345 142 V212" stroke-width="1"/>
+        <rect x="160" y="156" width="8" height="10" fill="#cfe0ee"/><rect x="179" y="156" width="8" height="10" fill="#cfe0ee"/>
+        <rect x="205" y="156" width="8" height="10" fill="#cfe0ee"/><rect x="241" y="154" width="8" height="10" fill="#cfe0ee"/>
+        <rect x="263" y="154" width="8" height="10" fill="#cfe0ee"/><rect x="329" y="172" width="8" height="10" fill="#cfe0ee"/>
+        <rect x="352" y="172" width="8" height="10" fill="#cfe0ee"/>
       </g>
 
       <!-- the ground, grass and flowers -->
@@ -4213,7 +4237,7 @@
   const saveWorld = () => saveJSON("hangman-world", world);
 
   // Where a game takes place. To add one: draw a "backdrop-..." group in the scene, and show it in the CSS.
-  const SETTINGS = ["green", "castle"];
+  const SETTINGS = ["green", "castle", "town"];
 
   // Show the lasting effects of past games in the scene
   function applyWorld() {
