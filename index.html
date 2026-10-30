@@ -397,6 +397,22 @@
   .word.long .slot { width: 17px; height: 34px; line-height: 36px; font-size: 1.35rem; }
   .word.long .slot.gap { width: 8px; }
 
+  .balloonskin { transition: fill .7s; } /* Pip's balloon changes color now and then */
+
+  /* The sleepy shepherd, and Pip's bubbles (they float up and pop when tapped) */
+  .spectator .asleep { display: none; }
+  .spectator.dozing .asleep { display: inline; }
+  .spectator.dozing .awake { display: none; }
+  .spectator.dozing .waddle { transform: rotate(-8deg); transition: transform .5s; }
+  .kbubble { animation: floatbubble 5s ease-out forwards; cursor: pointer; }
+  @keyframes floatbubble {
+    0% { transform: scale(.2); } 12% { transform: scale(1); }
+    50% { transform: translate(calc(var(--dx) * .4 + 12px), calc(var(--dy) * .5)); }
+    100% { transform: translate(var(--dx), var(--dy)); }
+  }
+  .bpop { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .15s, opacity .15s; }
+  .bpop.popping { transform: scale(1.6); opacity: 0; }
+
   /* Margot's riot: the pitchfork pumps up and down, and Pierre wobbles in her place, sipping */
   #margot .fork.riot { animation: forkpump .28s ease-in-out infinite alternate; }
   @keyframes forkpump { from { transform: translateY(4px); } to { transform: translateY(-20px); } }
@@ -1304,8 +1320,8 @@
         <g id="balloon">
           <animateTransform attributeName="transform" type="translate" values="0 0; 0 -4; 0 0" dur="2.4s" repeatCount="indefinite"/>
           <path d="M11 186 Q24 160 20 132"/>
-          <ellipse cx="20" cy="119" rx="11" ry="13" fill="#ff6b6b"/>
-          <path d="M17 132 l3 4 l3 -4 Z" fill="#ff6b6b"/>
+          <ellipse class="balloonskin" cx="20" cy="119" rx="11" ry="13" fill="#ff6b6b"/>
+          <path class="balloonskin" d="M17 132 l3 4 l3 -4 Z" fill="#ff6b6b"/>
           <path d="M14 114 q2 -5 6 -6" stroke="#fff"/>
         </g>
         <ellipse class="dot" cx="-6" cy="206" rx="6" ry="3.5"/><ellipse class="dot" cx="6" cy="206" rx="6" ry="3.5"/>
@@ -2060,6 +2076,22 @@
       <path d="M-8 -45 q4 -3 8 0 q4 -3 8 0" stroke-width="2.5"/>
       <path d="M-12 -56 Q-12 -68 0 -68 Q12 -68 12 -56 Z" fill="#2b2d42"/>
       <path d="M-4 -68 L0 -98 L4 -68 Z" fill="#adb5bd" stroke-width="1.5"/>` },
+    // A very sleepy shepherd, leaning on his crook (Big Kid Words)
+    shepherd: { sound: () => "Stay put, sheep. *yawn*", art: (skin) => `
+      <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
+      <path d="M-20 0 V-56 q0 -9 7 -9 q7 0 6 7" stroke="#8b5a2b" stroke-width="3"/>
+      <path d="M0 -31 Q-14 -30 -14 -2 Q0 2 14 -2 Q14 -30 0 -31 Z" fill="#a98467"/>
+      <path d="M-13 -14 H13" stroke="#e9c46a" stroke-width="2.5"/>
+      <path d="M-10 -24 L-19 -29" stroke-width="3"/>
+      <circle cx="0" cy="-40" r="9.5" fill="${skin}"/>
+      <g class="awake"><circle class="dot" cx="-3.5" cy="-41" r="1.4"/><circle class="dot" cx="3.5" cy="-41" r="1.4"/></g>
+      <g class="asleep"><path d="M-6 -41 h5 M1 -41 h5" stroke-width="1.8"/></g>
+      <path d="M-7 -36 Q0 -28 7 -36 Q0 -33 -7 -36 Z" fill="#fff"/>
+      <ellipse cx="0" cy="-48" rx="15" ry="3" fill="#e9c46a"/>
+      <path d="M-8 -49 Q-8 -58 0 -58 Q8 -58 8 -49 Z" fill="#e9c46a"/>` },
+    // A mother duck and her ducklings (Big Kid Words)
+    duck: { sound: () => "Quack!", sfx: "quack", art: () => duckArt("#fff") },
+    duckling: { sound: () => "Peep!", sfx: "quack", art: () => duckArt("#ffd166") },
     // A princess with a magic wand (Big Kid Words)
     princess: { sound: () => "Hello, everyone!", sfx: "twinkle", art: (skin) => `
       <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
@@ -2150,8 +2182,7 @@
     flip.style.transform = `scaleX(${startX < x ? -1 : 1})`; // face the way they're walking
     g.style.transform = `translate(${startX}px, ${y}px) scale(${size})`;
     // Like real life: whoever stands closer (lower down on the grass) is drawn in front
-    const behind = [...$("spectators").children].find((o) => Number(o.dataset.y) > y);
-    $("spectators").insertBefore(g, behind || null);
+    placeByDepth(g, y);
 
     const seconds = Math.abs(x - startX) / 90 / speed;
     g.getBoundingClientRect(); // let the browser notice the starting spot before moving
@@ -2161,10 +2192,33 @@
       if (!g.isConnected || g.dataset.leaving) return;
       g.classList.remove("walking");
       flip.style.transform = `scaleX(${x < 128 ? -1 : 1})`; // turn to watch the gallows
-      sayFromSpectator(g, line || kind.sound());
-      play(kind.sfx || (type === "cow" ? "moo" : "pop"));
+      if (line !== null) { // null: arrive without a word (a flock of sheep shouldn't all talk at once)
+        sayFromSpectator(g, line || kind.sound());
+        play(kind.sfx || (type === "cow" ? "moo" : "pop"));
+      }
       if (golden) { play("fanfare"); discover("goldencow"); }
     }, seconds * 1000 + 50);
+    return g;
+  }
+
+  function placeByDepth(g, y) {
+    const behind = [...$("spectators").children].find((o) => Number(o.dataset.y) > y);
+    $("spectators").insertBefore(g, behind || null);
+  }
+
+  // Someone who walks straight across the scene without stopping, then disappears
+  function walkAcross(type, fromX, toX, y, size, seconds) {
+    const g = document.createElementNS(SVG_NS, "g");
+    g.setAttribute("class", "spectator walking");
+    g.innerHTML = `<g class="bob"><g class="flip"><g class="waddle">${SPECTATORS[type].art(pick(SKINS), pick(SHIRTS))}</g></g></g>`;
+    Object.assign(g.dataset, { x: toX, y, size, type });
+    g.querySelector(".flip").style.transform = `scaleX(${toX > fromX ? -1 : 1})`;
+    g.style.transform = `translate(${fromX}px, ${y}px) scale(${size})`;
+    placeByDepth(g, y);
+    g.getBoundingClientRect(); // let the browser notice the starting spot before moving
+    g.style.transition = `transform ${seconds}s linear`;
+    g.style.transform = `translate(${toX}px, ${y}px) scale(${size})`;
+    setTimeout(() => g.remove(), seconds * 1000 + 100);
     return g;
   }
 
@@ -2375,6 +2429,138 @@
       say("pip", pick(["Good boy, Biscuit!", "Who's a good boy? YOU are!"]));
     });
     at(6300, () => { sendAway(me); if (visitor === me) visitor = null; });
+  }
+
+  // ---------- The sheep stampede (Big Kid Words, once a game at most) ----------
+  // Rows of sheep, bottom to top, so they pile up over the crowd until only Klaus's spike pokes out
+  const SHEEP_ROWS = [268, 240, 212, 184, 158];
+  const SHEEP_COLUMNS = [190, 242, 294, 346];
+
+  function sheepStampede() {
+    if (!game || game.over || visitor || crowdAway) return;
+    const x = 70;
+    const me = (visitor = addSpectator("shepherd", [x, 262], 1.1));
+    const arrive = (x + 40) / 90;
+    const g = game;
+    const at = (ms, fn) => setTimeout(() => { if (me.isConnected && game === g) fn(); }, arrive * 1000 + ms);
+    // He nods off...
+    at(1800, () => {
+      hush(me);
+      me.classList.add("dozing");
+      const zzz = document.createElementNS(SVG_NS, "text");
+      zzz.setAttribute("class", "dot snore");
+      zzz.setAttribute("x", "12");
+      zzz.setAttribute("y", "-48");
+      zzz.textContent = "Zzz";
+      me.appendChild(zzz);
+      play("snore");
+    });
+    // ...and the sheep start drifting in, one at a time
+    const flock = [];
+    SHEEP_ROWS.forEach((y, row) => shuffle(SHEEP_COLUMNS).forEach((column, i) => {
+      at(2400 + (row * SHEEP_COLUMNS.length + i) * 240, () => {
+        flock.push(addSpectator("sheep", [column + Math.random() * 16 - 8, y], 1.45, 1.4, null));
+        if (i === 0) play("baa");
+      });
+    }));
+    at(3400, () => say("pip", pick(["Um... sheep?", "Mister? Your sheep?"])));
+    at(6400, () => say("gerard", pick(["Zut alors! Zere are so many!", "Who is counting zese?"])));
+    at(8000, () => {
+      say("klaus", pick(["Mmmph! I cannot see!", "Achtung! I am being fluffed!"]));
+      discover("sheep");
+    });
+    // He finally wakes up, and has no idea
+    at(10000, () => {
+      me.classList.remove("dozing");
+      me.querySelectorAll(".snore").forEach((t) => t.remove());
+      sayFromSpectator(me, "Has anyone seen my sheep?");
+    });
+    at(12000, () => { sayFromSpectator(me, "Oh! There you are!"); play("whistle"); });
+    at(12400, () => flock.forEach((s, i) => setTimeout(() => sendAway(s), i * 60)));
+    at(14600, () => { sendAway(me); if (visitor === me) visitor = null; });
+  }
+
+  // ---------- Pip's bubbles, which you can pop (Big Kid Words, once a game at most) ----------
+  const BUBBLES_BLOWN = 14;
+
+  function bubbleParty() {
+    if (!game || game.over || crowdAway) return;
+    const g = game;
+    let popped = 0;
+    replay($("pip"), "hop");
+    say("pip", pick(["Bubbles! Pop them!", "Look! Tap the bubbles!", "Pop! Pop! Pop them all!"]));
+    const blow = () => {
+      if (game !== g || game.over) return;
+      const r = 12 + Math.random() * 7, seconds = 4.5 + Math.random() * 2;
+      const b = document.createElementNS(SVG_NS, "g");
+      b.setAttribute("transform", `translate(${295 + Math.random() * 20} ${160 + Math.random() * 25})`);
+      b.innerHTML = `<g class="kbubble" style="--dx: ${-60 - Math.random() * 240}px; --dy: ${-90 - Math.random() * 90}px; animation-duration: ${seconds}s">
+        <g class="bpop">
+          <circle r="${r + 7}" fill="transparent" stroke="none"/>
+          <circle r="${r}" fill="#cfe8ff" fill-opacity=".45" stroke="#7aa5d6" stroke-width="1.8"/>
+          <path d="M${-r * 0.55} ${-r * 0.2} q${r * 0.1} ${-r * 0.4} ${r * 0.45} ${-r * 0.45}" stroke="#fff" stroke-width="2"/>
+        </g></g>`;
+      b.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        if (b.dataset.popped) return;
+        b.dataset.popped = "yes";
+        popped++;
+        play("pop");
+        discover("bubbles");
+        b.querySelector(".bpop").classList.add("popping");
+        setTimeout(() => b.remove(), 160);
+      });
+      $("lettuceLayer").appendChild(b);
+      setTimeout(() => b.remove(), seconds * 1000);
+    };
+    for (let i = 0; i < BUBBLES_BLOWN; i++) setTimeout(blow, 500 + i * 450);
+    // Pip keeps score
+    setTimeout(() => {
+      if (game !== g || game.over || !popped) return;
+      say("pip", popped >= 10 ? `WOW! You popped ${popped} bubbles!` : `You popped ${popped} ${popped === 1 ? "bubble" : "bubbles"}!`);
+    }, 500 + BUBBLES_BLOWN * 450 + 4000);
+  }
+
+  // ---------- The duck parade (Big Kid Words, once a game at most) ----------
+  function duckArt(color) {
+    return `
+      <path d="M-3 0 v-5 M3 0 v-5 M-6 0 h4 M0 0 h4" stroke="#ff9f1c" stroke-width="2"/>
+      <path d="M11 -15 l9 -6 l-2 9 Z" fill="${color}"/>
+      <ellipse cx="0" cy="-12" rx="13" ry="9" fill="${color}"/>
+      <path d="M-2 -13 q6 7 11 0" stroke-width="1.8"/>
+      <circle cx="-11" cy="-23" r="7" fill="${color}"/>
+      <path d="M-18 -24 l-7 1.5 l7 2.5 Z" fill="#ff9f1c"/>
+      <circle class="dot" cx="-12" cy="-25" r="1.3"/>`;
+  }
+
+  function duckParade() {
+    if (!game || game.over) return;
+    const g = game;
+    const later = (ms, fn) => setTimeout(() => { if (game === g) fn(); }, ms);
+    const y = 238;
+    const mother = walkAcross("duck", 400, -50, y, 1.25, 7);
+    play("quack");
+    setTimeout(() => sayFromSpectator(mother, "Quack! Keep up!"), 1400);
+    for (let i = 0; i < 4; i++) later(650 + i * 520, () => { walkAcross("duckling", 400, -50, y, 0.65, 7); play("quack"); });
+    discover("ducks");
+    // There's always one who falls behind...
+    if (Math.random() < 0.65) {
+      later(4200, () => {
+        const late = walkAcross("duckling", 400, -50, y, 0.65, 3.4);
+        play("quack");
+        setTimeout(() => sayFromSpectator(late, "Peep! Peep! PEEP!"), 900);
+        setTimeout(() => say("pip", pick(["Wait for your mama!", "Run, little duck!"])), 2200);
+      });
+      return;
+    }
+    // ...and sometimes it decides Klaus is its mother, and stays for the rest of the game
+    later(4600, () => {
+      const stray = addSpectator("duckling", [200, 214], 0.65, 0.9);
+      const hopTogether = () => { replay($("klaus"), "hop"); replay(stray.querySelector(".bob"), "hop"); };
+      later(3000, () => { hopTogether(); say("klaus", pick(["*looks down* ...Nein. Go avay.", "Shoo! I am on duty!"])); });
+      later(5000, () => say("pip", "It thinks you're its mama!"));
+      later(6800, () => { hopTogether(); say("klaus", "*sighs* ...Fine. Stay close."); });
+    });
   }
 
   // ---------- Sir Reginald, the useless hero (any mode, once a game at most) ----------
@@ -3282,6 +3468,9 @@
     boing:    () => tone(260, 0, 0.5, { type: "triangle", vol: 0.15, to: 620, vibrato: 40 }),
     rain:     () => hiss(0, 7, { vol: 0.05, freq: 3500, type: "bandpass", q: 0.4 }),
     rip:      () => hiss(0, 0.25, { vol: 0.25, freq: 2000, type: "bandpass" }),
+    baa:      () => tone(330, 0, 0.5, { type: "sawtooth", vol: 0.06, to: 280, vibrato: 14 }),
+    quack:    () => { tone(420, 0, 0.1, { type: "sawtooth", vol: 0.07, to: 260 }); tone(420, 0.16, 0.1, { type: "sawtooth", vol: 0.07, to: 260 }); },
+    whistle:  () => { tone(1500, 0, 0.18, { vol: 0.1, to: 2400 }); tone(1500, 0.24, 0.3, { vol: 0.1, to: 2600 }); },
     twinkle:  () => [1319, 1568, 1976, 2637].forEach((f, i) => tone(f, i * 0.07, 0.3, { type: "triangle", vol: 0.06 })),
     bark:     () => { tone(520, 0, 0.09, { type: "sawtooth", vol: 0.08, to: 300 }); tone(560, 0.16, 0.09, { type: "sawtooth", vol: 0.08, to: 320 }); },
     clank:    () => { tone(1300, 0, 0.18, { type: "square", vol: 0.07, to: 900 }); tone(1900, 0.02, 0.25, { vol: 0.08, to: 1500 }); },
@@ -3783,6 +3972,9 @@
     { id: "cowpoop", emoji: "💩", name: "The cow's business", where: "Big Kid Words" },
     { id: "charm", emoji: "👑", name: "The princess's charm", where: "Big Kid Words" },
     { id: "frisbee", emoji: "🥏", name: "Biscuit fetches", where: "Big Kid Words" },
+    { id: "sheep", emoji: "🐑", name: "Sheep everywhere", where: "Big Kid Words" },
+    { id: "bubbles", emoji: "🫧", name: "Bubble popper", where: "Big Kid Words" },
+    { id: "ducks", emoji: "🦆", name: "Duck parade", where: "Big Kid Words" },
     { id: "mud", emoji: "💦", name: "Mud bath", where: "Big Kid Words" },
     { id: "notmud", emoji: "🤢", name: "...Was that mud?", where: "Big Kid Words" },
     { id: "reginald", emoji: "⚔️", name: "Sir Reginald's charge" },
@@ -4450,6 +4642,8 @@
     lift.style.display = "";
     $("hangee").classList.remove("dance");
     $("scene").classList.remove("muddy");
+    setBalloonColor("");
+    game.balloonTurns = pickBalloonTurns();
     $("ghost").style.display = "none";
     $("ghost").classList.remove("rise");
     $("messenger").style.display = "none";
@@ -4517,6 +4711,23 @@
     finishTurn(letter, correct, false);
   }
 
+  // Pip's balloon starts red each game, then changes color once or twice along the way
+  const BALLOON_SHADES = ["#ffd166", "#4d7cff", "#52b788", "#c77dff", "#ff8fab", "#ff9f1c", "#4cc9f0"];
+  const setBalloonColor = (color) => document.querySelectorAll(".balloonskin").forEach((p) => (p.style.fill = color));
+
+  function pickBalloonTurns() {
+    const first = 2 + Math.floor(Math.random() * 2);  // early, so even a quick game sees it
+    const second = 5 + Math.floor(Math.random() * 3);
+    return Math.random() < 0.5 ? [first] : [first, second];
+  }
+
+  function changeBalloon() {
+    const now = document.querySelector(".balloonskin").style.fill;
+    const swatch = document.createElement("i");
+    setBalloonColor(pick(BALLOON_SHADES.filter((c) => { swatch.style.color = c; return swatch.style.color !== now; })));
+    replay($("pip"), "hop");
+  }
+
   // Everything that happens after a guess (or a bribe)
   function finishTurn(letter, correct, bribe) {
     const solved = [...game.word].every((ch) => !/[a-z]/.test(ch) || game.guessed.has(ch));
@@ -4536,6 +4747,7 @@
     }
     if (game.over) return;
 
+    if (game.balloonTurns.includes(game.history.length)) changeBalloon();
     if ((!correct || bribe) && game.mode.lives - game.wrong === 1) return lastChance();
     if (bribe) return;
     if (game.info.pic && !correct && game.wrong === PICTURE_AFTER) {
@@ -4549,6 +4761,10 @@
       // ...or a princess charms the swing (once it's up), or Pip throws a frisbee for Biscuit (once a game each)
       else if (!game.charmed && game.history.length > 2 && $("scene").querySelector('[data-piece="rope"].on') && Math.random() < odds("charm", 0.2)) { game.charmed = true; setTimeout(princessVisit, 900); }
       else if (!game.fetched && game.history.length > 1 && Math.random() < odds("frisbee", 0.2)) { game.fetched = true; setTimeout(frisbeeFetch, 900); }
+      // ...or the sheep, Pip's bubbles, or the duck parade (once a game each)
+      else if (!game.sheeped && game.history.length > 2 && Math.random() < odds("sheep", 0.15)) { game.sheeped = true; setTimeout(sheepStampede, 900); }
+      else if (!game.bubbled && game.history.length > 1 && Math.random() < odds("bubbles", 0.15)) { game.bubbled = true; setTimeout(bubbleParty, 900); }
+      else if (!game.ducked && game.history.length > 1 && Math.random() < odds("ducks", 0.15)) { game.ducked = true; setTimeout(duckParade, 900); }
     } else {
       // Grown-up modes: Pierre the drunk staggers through, and the bird gets up to mischief
       if (Math.random() < 0.2) drunkVisit();

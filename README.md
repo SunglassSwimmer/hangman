@@ -37,9 +37,10 @@ Everything lives in one file: `index.html`.
   floating away (`releaseBalloons`)
 - **Gags**: the pooping cow (Big Kid Words) is `cowPoop`; the princess who charms the swing with flowers
   (Big Kid Words) is `princessVisit` and `charmSwing`; Pip throwing a frisbee for Biscuit the dog (Big Kid Words)
-  is `frisbeeFetch`; Sir Reginald tripping over the gallows is `reginaldVisit` (and his rare success is `reginaldRescue`);
+  is `frisbeeFetch`; the sheep burying the crowd is `sheepStampede`; Pip's bubbles (tap them to pop) are `bubbleParty`;
+  the duck parade is `duckParade`; Sir Reginald tripping over the gallows is `reginaldVisit` (and his rare success is `reginaldRescue`);
   Klaus's performance review and Olivia's promotions are `reviewVisit` and `applyRank`;
-  Margot's riot (and Pierre filling in for her) is `riotVisit`; Pierre the drunk is `drunkVisit`;  the bird's stunts (balloon, beret, baguette, Klaus's spike) are `birdMischief`; Pierre's wife is
+  Margot's riot (and Pierre filling in for her) is `riotVisit`; Pip's color-changing balloon is `changeBalloon`; Pierre the drunk is `drunkVisit`;  the bird's stunts (balloon, beret, baguette, Klaus's spike) are `birdMischief`; Pierre's wife is
   `wifeFetchesPierre`; Olivia making Gary crash is `updateMiss`; the late executioner is `executionerVisit`;
   the wave is `doWave`; the ice cream truck is `iceCreamTruck`; the rain shower is `rainShower`;
   Henri the painter is `painterVisit`; the acorn-throwing squirrel is `squirrelVisit`;
