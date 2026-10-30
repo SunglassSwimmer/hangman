@@ -413,12 +413,19 @@
   .bpop { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .15s, opacity .15s; }
   .bpop.popping { transform: scale(1.6); opacity: 0; }
 
-  /* Margot's riot: the pitchfork pumps up and down, and Pierre wobbles in her place, sipping */
-  #margot .fork.riot { animation: forkpump .28s ease-in-out infinite alternate; }
-  @keyframes forkpump { from { transform: translateY(4px); } to { transform: translateY(-20px); } }
-  .spectator.wobbly .waddle { animation: stagger 1.1s ease-in-out infinite alternate; }
-  .spectator .bottle { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .35s; }
-  .spectator.sip .bottle { transform: translate(8px, -14px) rotate(60deg); }
+  /* Margot's pitchfork: it pokes holes for her flowers, and reaches over to scratch Klaus's back */
+  #margot .fork { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .6s ease-in-out; }
+  #margot .fork.poke { animation: forkpoke .4s ease-in-out; }
+  @keyframes forkpoke { 40% { transform: translate(-14px, 8px) rotate(-16deg); } }
+  #margot .fork.reach { transform: translate(-38px, -27px) rotate(-82deg); }
+  #margot .fork.reach.scratching { animation: forkscratch .16s ease-in-out infinite alternate; }
+  @keyframes forkscratch { from { transform: translate(-38px, -32px) rotate(-82deg); } to { transform: translate(-38px, -21px) rotate(-82deg); } }
+  #klaus.itchy { animation: itchy .22s ease-in-out infinite alternate; }
+  @keyframes itchy { from { transform: rotate(-2.5deg); } to { transform: rotate(2.5deg); } }
+  #klaus { transform-box: fill-box; transform-origin: 50% 100%; }
+  #klaus .kleg.thump { animation: legthump .14s ease-in-out infinite alternate; }
+  @keyframes legthump { to { transform: translateY(-6px); } }
+  .gardenflower .bloom { transform-box: fill-box; transform-origin: 50% 100%; animation: bloom .5s cubic-bezier(.3, 1.6, .5, 1) backwards; }
 
   /* Sir Reginald: he trips, and his helmet and tiny sword go flying */
   .spectator.crashed .waddle { transform: rotate(-88deg); transition: transform .25s ease-in; }
@@ -1223,8 +1230,9 @@
       <!-- Sergeant Klaus: spiked helmet, monocle, upturned mustache, bugle -->
       <g transform="translate(176 0)"><g class="bob" id="klaus">
         <g class="icecream" style="display:none"><path d="M-21 176 l4 10 l4 -10 Z" fill="#e9c46a" stroke-width="1.5"/><circle cx="-17" cy="173" r="4.5" fill="#ff8fab" stroke-width="1.5"/></g>
-        <path d="M-6 189 V203 M6 189 V203" stroke="#2b2d42" stroke-width="5"/>
-        <ellipse class="dot" cx="-7" cy="206" rx="7" ry="4"/><ellipse class="dot" cx="7" cy="206" rx="7" ry="4"/>
+        <path d="M-6 189 V203" stroke="#2b2d42" stroke-width="5"/>
+        <ellipse class="dot" cx="-7" cy="206" rx="7" ry="4"/>
+        <g class="kleg"><path d="M6 189 V203" stroke="#2b2d42" stroke-width="5"/><ellipse class="dot" cx="7" cy="206" rx="7" ry="4"/></g>
         <path d="M-13 158 L-15 180" stroke-width="3"/>
         <path d="M-14 192 C-17 168 -12 150 0 150 C12 150 17 168 14 192 Z" fill="#3a5ba0"/>
         <path d="M-15 178 H15" stroke="#fff" stroke-width="3"/>
@@ -1755,8 +1763,7 @@
 
   function say(who, text, stays) {
     if (crowdAway && who !== "bird") return; // they're off buying ice cream
-    if (who === "margot" && standIn) text = pick(STANDIN_LINES); // she's rioting; Pierre is covering for her
-    const bubble = $("bubble");
+   const bubble = $("bubble");
     bubble.classList.remove("show");
     bubble.innerHTML = text;
     bubble.dataset.who = who;
@@ -1802,7 +1809,8 @@
     $("oliviaGrow").setAttribute("transform", `translate(13 212) scale(${oliviaSize()}) translate(-13 -212)`);
   }
 
-  const MAX_SNATCHES = 2; // Gary goes after Olivia at most this many times per game
+  const MAX_SNATCHES = 1; // Gary goes after Olivia at most this many times per game
+  const SNATCH_CHANCE = 0.05; // chance per guess
 
   function snatchOlivia() {
     const x = oliviaX();
@@ -2044,10 +2052,8 @@
       <path d="M-11 -18 L-16 -12" stroke-width="3"/>
       <path d="M0 -30 C13 -30 14 -12 12 -5 C10 1 -10 1 -12 -5 C-14 -12 -13 -30 0 -30 Z" fill="#a98467"/>
       <rect x="3" y="-17" width="5" height="5" fill="#d4a373" stroke-width="1"/>
-      <g class="bottle">
-        <path d="M-21 -27 h4 v4 l2.5 3 v13 h-9 v-13 l2.5 -3 Z" fill="#52b788"/>
-        <rect x="-22" y="-17" width="7" height="4" fill="#fff8dc" stroke="none"/>
-      </g>
+      <path d="M-21 -27 h4 v4 l2.5 3 v13 h-9 v-13 l2.5 -3 Z" fill="#52b788"/>
+      <rect x="-22" y="-17" width="7" height="4" fill="#fff8dc" stroke="none"/>
       <circle cx="0" cy="-40" r="10" fill="#f1c27d"/>
       <path d="M-5 -49 q2 -6 4 -1 q2 -6 5 0"/>
       <path d="M-7 -42 h4 M2 -42 h4" stroke-width="2"/>
@@ -2733,44 +2739,72 @@
     $("oliviaHelmet").style.display = world.oliviaRank >= 2 ? "" : "none";
   }
 
-  // ---------- Margot starts a riot, and Pierre fills in for her (Regular Joe and Prison Mode, once a game at most) ----------
-  const STANDIN_LINES = ["*hic*", "Who, me? ...I'm Margot.", "*glug glug*", "I am a very nice lady. *hic*", "Is zis ze line for ze bar?"];
-  let standIn = null; // Pierre, for as long as he's standing in Margot's spot
+  // ---------- Margot's garden, one flower at a time (any mode, once a game at most) ----------
+  const GARDEN_SPOTS = [[246, 219], [264, 225], [282, 219], [300, 225]];
+  const GARDEN_LINES = ["There. Something nice, for once.", "Grow, little one. Ignore them.", "Finally, some peace and quiet."];
 
-  function riotVisit() {
-    if (!game || game.over || crowdAway || drunk || standIn) return;
-    game.pierreSeen = true;
-    const g = game;
-    const later = (ms, fn) => setTimeout(() => { if (game === g) fn(); }, ms);
+  function plantFlower() {
+    if (!game || game.over || crowdAway) return;
     const fork = document.querySelector("#margot .fork");
-    fork.classList.add("riot");
-    play("toot");
-    say("margot", "LET'S RIOT!");
-    world.riots++;
-    saveWorld();
-    discover("riot");
-    // She storms off, fully expecting everyone to follow. Nobody does.
-    later(1900, () => {
-      fork.classList.remove("riot");
-      $("margot").classList.add("away");
-      play("gallop");
+    replay(fork, "poke");
+    play("plop");
+    const garden = game.garden;
+    const [x, y] = GARDEN_SPOTS[garden.length];
+    const color = pick(["#ffafcc", "#cdb4db", "#ffd166", "#ff8fab"]);
+    const f = document.createElementNS(SVG_NS, "g");
+    f.setAttribute("class", "gardenflower");
+    f.setAttribute("transform", `translate(${x} ${y})`);
+    f.dataset.y = y;
+    f.innerHTML = `<g class="bloom"><path d="M0 0 V-10" stroke="#5a9e4b" stroke-width="2"/><g transform="translate(0 -14)">${FLOWER.replaceAll("#ffafcc", color)}</g></g>`;
+    placeByDepth(f, y);
+    garden.push(f);
+    if (garden.length === 1) say("margot", pick(GARDEN_LINES));
+  }
+
+  // The garden is finally finished, so of course the cow turns up
+  function cowEatsGarden() {
+    if (!game || game.over || visitor || crowdAway) return;
+    game.gardenEaten = true;
+    const x = 318, y = 232;
+    const me = (visitor = addSpectator("cow", [x, y], 0.8, 1, "Mmmoo?"));
+    const arrive = (400 - x) / 90;
+    const g = game;
+    const at = (ms, fn) => setTimeout(() => { if (me.isConnected && game === g) fn(); }, arrive * 1000 + ms);
+    // It works its way along the row...
+    [...game.garden].reverse().forEach((f, i) => at(900 + i * 650, () => { f.remove(); play("chomp"); }));
+    at(3700, () => { me.classList.add("looking"); say("margot", "..."); discover("garden"); });
+    // ...and the two of them just stare
+    at(5400, () => say("margot", pick(["My. Flowers.", "I saw that.", "Don't you look at me like that."])));
+    at(7400, () => { me.classList.remove("looking"); sendAway(me); if (visitor === me) visitor = null; });
+  }
+
+  // ---------- Margot scratches Klaus's back (any mode, once a game at most) ----------
+  function backScratch() {
+    if (!game || game.over || crowdAway) return;
+    const g = game;
+    const later = (ms, fn) => setTimeout(() => { if (game === g && !crowdAway) fn(); }, ms);
+    const klaus = $("klaus"), leg = klaus.querySelector(".kleg"), fork = document.querySelector("#margot .fork");
+    const finish = () => { klaus.classList.remove("itchy"); leg.classList.remove("thump"); fork.classList.remove("reach", "scratching"); };
+    klaus.classList.add("itchy");
+    say("klaus", pick(["Ach! Zat itch!", "Not now! I am on duty! *wriggles*"]));
+    later(2000, () => say("klaus", pick(["*tries to reach it with ze bugle*", "Mein Gott... just a little to ze left..."])));
+    later(4000, () => say("margot", "*sigh*"));
+    // The pitchfork reaches right past Gerard
+    later(4700, () => fork.classList.add("reach"));
+    later(5400, () => {
+      klaus.classList.remove("itchy");
+      fork.classList.add("scratching");
+      leg.classList.add("thump");
+      say("klaus", "Ohhh... ja... ja... right zere...");
+      for (let i = 0; i < 8; i++) setTimeout(() => play("thud"), i * 220);
     });
-    later(3000, () => say(pick(["gerard", "pip", "klaus"]), pick(["...Riot about what?", "Should we go with her?", "Nein. I have paperwork."])));
-    // Her spot doesn't stay empty for long
-    later(4200, () => {
-      if (crowdAway || drunk) return;
-      const me = (drunk = standIn = addSpectator("drunk", [266, 207], 1.25, 0.55));
-      me.classList.add("drunk");
-      const arrive = (400 - 266) / 90 / 0.55;
-      later(arrive * 1000 + 300, () => {
-        me.classList.add("wobbly"); // he stays on his feet... mostly
-        me.snoring = setInterval(() => {
-          if (!me.isConnected) return clearInterval(me.snoring);
-          me.classList.add("sip");
-          setTimeout(() => { me.classList.remove("sip"); play("hic"); }, 1000);
-        }, 3600);
-      });
+    later(7300, () => say("gerard", "Excusez-moi. Pardon me. Zis is my face."));
+    later(9000, () => {
+      finish();
+      discover("scratch");
+      say("klaus", "...Ahem. Carry on.");
     });
+    setTimeout(() => { if (game !== g || crowdAway) finish(); }, 9100); // if a new game started, put everything back
   }
 
   // ---------- Pierre, the town drunk (Regular Joe and Prison Mode, instead of the visiting cow) ----------
@@ -2975,7 +3009,7 @@
     setTimeout(() => {
       if (game !== g) return;
       document.querySelectorAll("#scene .icecream").forEach((c) => (c.style.display = ""));
-      ["pip", "margot", "gerard", "klaus"].forEach((who, i) => setTimeout(() => { if (!(who === "margot" && standIn)) $(who).classList.remove("away"); }, i * 150));
+      ["pip", "margot", "gerard", "klaus"].forEach((who, i) => setTimeout(() => $(who).classList.remove("away"), i * 150));
       sendAway(truck);
     }, 5200);
     setTimeout(() => {
@@ -3047,9 +3081,7 @@
   function resetCrowd() {
     stopRain();
     crowdAway = false;
-    standIn = null;
-    document.querySelector("#margot .fork").classList.remove("riot");
-    ["klaus", "gerard", "margot", "pip"].forEach((who) => $(who).classList.remove("away"));
+   ["klaus", "gerard", "margot", "pip"].forEach((who) => $(who).classList.remove("away"));
     document.querySelectorAll("#scene .icecream").forEach((c) => (c.style.display = "none"));
     document.querySelectorAll("#scene .charm").forEach((c) => c.remove()); // the princess's flowers
   }
@@ -4033,9 +4065,10 @@
     { id: "notmud", emoji: "🤢", name: "...Was that mud?", where: "Big Kid Words" },
     { id: "reginald", emoji: "⚔️", name: "Sir Reginald's charge" },
     { id: "review", emoji: "🎖️", name: "Olivia's promotion" },
+    { id: "garden", emoji: "🌷", name: "Margot's garden" },
+    { id: "scratch", emoji: "🔱", name: "Klaus's itch" },
     { id: "drunk", emoji: "🍺", name: "Pierre's nap", where: GROWN },
-    { id: "riot", emoji: "🔱", name: "Margot's riot", where: GROWN },
-    { id: "wife", emoji: "👵", name: "Brigitte fetches Pierre", where: GROWN },
+   { id: "wife", emoji: "👵", name: "Brigitte fetches Pierre", where: GROWN },
     { id: "swap", emoji: "🔄", name: "Brigitte's nap", where: GROWN },
     { id: "balloon", emoji: "🎈", name: "Balloon popped", where: GROWN },
     { id: "beret", emoji: "🐦", name: "Beret thief", where: GROWN },
@@ -4050,7 +4083,8 @@
     { id: "ufo", emoji: "🛸", name: "Close encounter", rare: true },
     { id: "zap", emoji: "⚡", name: "Klaus gets zapped", rare: true, where: GROWN }
   ];
-  const stickersSeen = new Set(loadJSON("hangman-stickers", []));
+  // (only stickers that still exist, in case a gag has been retired)
+  const stickersSeen = new Set(loadJSON("hangman-stickers", []).filter((id) => STICKERS.some((s) => s.id === id)));
 
   function discover(id) {
     if (stickersSeen.has(id)) return;
@@ -4222,7 +4256,7 @@
 
   // ---- A world that remembers ----
   const world = Object.assign(
-    { klausBandage: 0, gary: 0, olivia: 0, pierreFetched: 0, paintings: [], nest: [], umbrellaFixed: false, executioner: 0, reginald: 0, oliviaRank: 0, riots: 0, pierreRest: false },
+    { klausBandage: 0, gary: 0, olivia: 0, pierreFetched: 0, paintings: [], nest: [], umbrellaFixed: false, executioner: 0, reginald: 0, oliviaRank: 0, pierreRest: false },
     loadJSON("hangman-world", {})
   );
   const saveWorld = () => saveJSON("hangman-world", world);
@@ -4273,8 +4307,7 @@
     if (world.umbrellaFixed) options.push([["klaus", "I had my umbrella fixed. Let it rain!"]]);
     if (world.reginald > 0) options.push([["margot", "I hear Sir Reginald is out of the hospital."], ["gerard", "Again?"]]);
     if (world.oliviaRank > 0) options.push([["klaus", "*salutes Olivia* ...Nobody laugh."]]);
-    if (world.riots > 0) options.push([["gerard", "How was ze riot, Margot?"], ["margot", "Nobody came."]]);
-    if (liveStreak() > 1) options.push([["klaus", `A ${liveStreak()}-day streak! Impressive. *takes notes*`]]);
+   if (liveStreak() > 1) options.push([["klaus", `A ${liveStreak()}-day streak! Impressive. *takes notes*`]]);
     return options.length && Math.random() < 0.75 ? pick(options) : null;
   }
 
@@ -4835,11 +4868,10 @@
       else if (!game.ducked && game.history.length > 1 && Math.random() < odds("ducks", 0.15)) { game.ducked = true; setTimeout(duckParade, 900); }
     } else {
       // Grown-up modes: Pierre the drunk staggers through, and the bird gets up to mischief
-      // (Pierre is a treat: once a game at most, and never two games in a row. The riot counts, since he fills in for Margot.)
+      // (Pierre is a treat: once a game at most, and never two games in a row.)
       const pierreFree = !game.pierreSeen && !world.pierreRest;
       if (pierreFree && Math.random() < PIERRE_CHANCE) drunkVisit();
-      else if (pierreFree && !game.rioted && game.history.length > 2 && Math.random() < odds("riot", 0.03)) { game.rioted = true; setTimeout(riotVisit, 900); }
-      if (Math.random() < 0.18) setTimeout(birdMischief, 600);
+     if (Math.random() < 0.18) setTimeout(birdMischief, 600);
       if (!game.executed && game.history.length > 2 && Math.random() < 0.1) { game.executed = true; setTimeout(executionerVisit, 900); }
     }
     // Any mode: the ice cream truck comes by (once a game at most)
@@ -4848,10 +4880,18 @@
     // Any mode: Henri comes to paint, and the squirrel comes for Klaus (once a game each at most)
     if (!game.painted && game.history.length > 2 && Math.random() < 0.08) { game.painted = true; setTimeout(painterVisit, 900); }
     if (!game.squirreled && game.history.length > 1 && Math.random() < 0.09) { game.squirreled = true; setTimeout(squirrelVisit, 1100); }
+    // Any mode: Margot starts a garden, one flower at a time, until the cow finds it
+    if (!game.garden && game.history.length > 1 && Math.random() < odds("garden", 0.1)) { game.garden = []; setTimeout(plantFlower, 900); }
+    else if (game.garden && !game.gardenEaten) {
+      if (game.garden.length === GARDEN_SPOTS.length) setTimeout(cowEatsGarden, 900);
+      else if (Math.random() < 0.6) setTimeout(plantFlower, 900);
+    }
+    // Any mode: Klaus gets an itch (once a game at most)
+    if (!game.scratched && game.history.length > 2 && Math.random() < odds("scratch", 0.08)) { game.scratched = true; setTimeout(backScratch, 900); }
     // Any mode: Sir Reginald comes to the rescue, and the General inspects Klaus (once a game each at most)
     if (!game.reginald && game.history.length > 2 && document.querySelector('#scene [data-piece="head"].on') && Math.random() < odds("reginald", 0.12)) { game.reginald = true; setTimeout(reginaldVisit, 900); }
     else if (!game.reviewed && game.history.length > 3 && Math.random() < odds("review", 0.1)) { game.reviewed = true; setTimeout(reviewVisit, 900); }
-    if (Math.random() < 0.12) setTimeout(snatchOlivia, 800);
+    if (Math.random() < SNATCH_CHANCE) setTimeout(snatchOlivia, 800);
     // Ultra rare: a flying saucer
     if (!game.ufo && game.history.length > 3 && Math.random() < odds("ufo", 0.012)) { game.ufo = true; setTimeout(ufoVisit, 1200); }
   }
