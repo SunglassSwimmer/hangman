@@ -31,8 +31,13 @@ Everything lives in one file: `index.html`.
   `face-...` and `opt-...` groups in the drawing
 - **Random words**: `SOLO_WORDS`. Words in Big Kid Words have a picture, a clue, a kid-friendly
   meaning and a sentence; Prison Mode words have a crossword-style clue, a definition and an origin.
-- **Kind crowd lines for little kids**: `KIND_LINES`, `KID_GREETINGS`, `KID_ENTRANCE`
-- **Gags**: the pooping cow (Big Kid Words) is `cowPoop`; Pierre the drunk is `drunkVisit`;  the bird's stunts (balloon, beret, baguette, Klaus's spike) are `birdMischief`; Pierre's wife is
+- **Kind crowd lines for kids**: `KIND_LINES`, `KID_GREETINGS`, `KID_ENTRANCE`
+- **Big Kid Words balloons and mud**: one balloon pops per wrong guess and the puddle grows (`updateBalloons`,
+  `BALLOON_SPOTS`); losing is a SPLOOSH into the mud (`kidLoseEnding`), winning sends the balloons
+  floating away (`releaseBalloons`)
+- **Gags**: the pooping cow (Big Kid Words) is `cowPoop`; the princess who charms the swing with flowers
+  (Big Kid Words) is `princessVisit` and `charmSwing`; Pip throwing a frisbee for Biscuit the dog (Big Kid Words)
+  is `frisbeeFetch`; Pierre the drunk is `drunkVisit`;  the bird's stunts (balloon, beret, baguette, Klaus's spike) are `birdMischief`; Pierre's wife is
   `wifeFetchesPierre`; Olivia making Gary crash is `updateMiss`; the late executioner is `executionerVisit`;
   the wave is `doWave`; the ice cream truck is `iceCreamTruck`; the rain shower is `rainShower`;
   Henri the painter is `painterVisit`; the acorn-throwing squirrel is `squirrelVisit`;
