@@ -1849,13 +1849,22 @@
     $("oliviaGrow").setAttribute("transform", `translate(13 212) scale(${oliviaSize()}) translate(-13 -212)`);
   }
 
+  // A new game starts with a clear sky, even if Gary was still mid-swoop
+  function resetOlivia() {
+    if (olivia.state === "crawl") return;
+    Object.assign(olivia, { state: "crawl", dx: 0, dy: 0, landing: false, miss: false, crashed: false });
+    for (const id of ["eagle", "oliviaChute", "oliviaEek", "garyDizzy"]) $(id).style.display = "none";
+    $("oliviaEek").textContent = "Eek!";
+    $("olivia").style.display = "";
+  }
+
   const MAX_SNATCHES = 1; // Gary goes after Olivia at most this many times per game
   const SNATCH_CHANCE = 0.05; // chance per guess
 
   function snatchOlivia() {
     const x = oliviaX();
     if (olivia.state !== "crawl" || x < 10 || x > 320) return; // only while she's on screen
-    if (!game || game.snatches >= MAX_SNATCHES) return;       // so it stays special
+    if (!game || entrance || game.snatches >= MAX_SNATCHES) return;       // so it stays special
     game.snatches = (game.snatches || 0) + 1;
     olivia.state = "snatch";
     olivia.start = performance.now();
@@ -1988,11 +1997,6 @@
     requestAnimationFrame(oliviaFrame);
   }
   requestAnimationFrame(oliviaFrame);
-
-  // Every so often, even if nobody is guessing, Gary gets ideas
-  setInterval(() => {
-    if (!$("game").classList.contains("hidden") && Math.random() < 0.3) snatchOlivia();
-  }, 20000);
 
   // ---------- Spectators: the worse it's going, the bigger the audience ----------
   // Each drawing stands with its feet at 0,0 and faces left (toward the gallows).
@@ -3340,6 +3344,7 @@
   const LETTUCE = '<circle r="7.5" fill="#95d5b2"/><path d="M-5 -2 q5 -6 10 0 M-4 3 q4 -4 8 0 M0 -7 v14" stroke="#2d6a4f" stroke-width="1.3"/>';
 
   let entrance = null;
+  const IN = 4300, LEAVE = 7800, OUT = 3400; // milliseconds: roll in slowly, stay a while, roll out slowly
 
   function startEntrance(character) {
     stopEntrance();
@@ -3354,8 +3359,8 @@
     entrance = {
       start: performance.now(), character, lettuce: [], said: [],
       throws: [
-        { at: 3200, who: "klaus" }, { at: 3650, who: "gerard" }, { at: 4100, who: "margot" },
-        { at: 4500, who: "pip" }, { at: 4900, who: "klaus" }, { at: 5300, who: "gerard" }
+        { at: IN + 100, who: "klaus" }, { at: IN + 550, who: "gerard" }, { at: IN + 1000, who: "margot" },
+        { at: IN + 1400, who: "pip" }, { at: IN + 1800, who: "klaus" }, { at: IN + 2200, who: "gerard" }
       ]
     };
     requestAnimationFrame(entranceFrame);
@@ -3371,7 +3376,6 @@
   function entranceFrame(now) {
     if (!entrance) return;
     const t = now - entrance.start;
-    const IN = 3100, LEAVE = 6600, OUT = 2700; // milliseconds: roll in slowly, stay a while, roll out slowly
 
     // Roll in, wait under the gallows, then roll back out of sight
     let dx = 0;
@@ -4732,6 +4736,7 @@
     // A fresh (empty) audience, who will arrive in a random order; the bird puts back what it stole
     clearSpectators();
     resetBird();
+    resetOlivia();
     resetCrowd();
     applyWorld(); // bandages, nest trophies, the tally sign... whatever happened in earlier games
     game.birdUsed = new Set();
@@ -4807,6 +4812,9 @@
 
   // Everything that happens after a guess (or a bribe)
   function finishTurn(letter, correct, bribe) {
+    // Anything a guess sets in motion is dropped if a new game starts first
+    const thisGame = game;
+    const soon = (fn, ms) => setTimeout(() => { if (game === thisGame) fn(); }, ms);
     const solved = [...game.word].every((ch) => !/[a-z]/.test(ch) || game.guessed.has(ch));
     let lost = !solved && game.wrong >= game.mode.lives;
     let rescue = null;
@@ -4836,40 +4844,40 @@
       // A cow wanders up now and then (always early in the game, and it usually poops)
       if (game.history.length === 2 || Math.random() < 0.35) cowVisit();
       // ...or a princess charms the swing (once it's up), or Pip throws a frisbee for Biscuit (once a game each)
-      else if (!game.charmed && game.history.length > 2 && $("scene").querySelector('[data-piece="rope"].on') && Math.random() < odds("charm", 0.2)) { game.charmed = true; setTimeout(princessVisit, 900); }
-      else if (!game.fetched && game.history.length > 1 && Math.random() < odds("frisbee", 0.2)) { game.fetched = true; setTimeout(frisbeeFetch, 900); }
+      else if (!game.charmed && game.history.length > 2 && $("scene").querySelector('[data-piece="rope"].on') && Math.random() < odds("charm", 0.2)) { game.charmed = true; soon(princessVisit, 900); }
+      else if (!game.fetched && game.history.length > 1 && Math.random() < odds("frisbee", 0.2)) { game.fetched = true; soon(frisbeeFetch, 900); }
       // ...or the sheep, Pip's bubbles, or the duck parade (once a game each)
-      else if (!game.sheeped && game.history.length > 2 && Math.random() < odds("sheep", 0.15)) { game.sheeped = true; setTimeout(sheepStampede, 900); }
-      else if (!game.bubbled && game.history.length > 1 && Math.random() < odds("bubbles", 0.15)) { game.bubbled = true; setTimeout(bubbleParty, 900); }
-      else if (!game.ducked && game.history.length > 1 && Math.random() < odds("ducks", 0.15)) { game.ducked = true; setTimeout(duckParade, 900); }
+      else if (!game.sheeped && game.history.length > 2 && Math.random() < odds("sheep", 0.15)) { game.sheeped = true; soon(sheepStampede, 900); }
+      else if (!game.bubbled && game.history.length > 1 && Math.random() < odds("bubbles", 0.15)) { game.bubbled = true; soon(bubbleParty, 900); }
+      else if (!game.ducked && game.history.length > 1 && Math.random() < odds("ducks", 0.15)) { game.ducked = true; soon(duckParade, 900); }
     } else {
       // Grown-up modes: Pierre the drunk staggers through, and the bird gets up to mischief
       // (Pierre is a treat: once a game at most, and never two games in a row.)
       const pierreFree = !game.pierreSeen && !world.pierreRest;
       if (pierreFree && Math.random() < PIERRE_CHANCE) drunkVisit();
-      if (Math.random() < 0.08) setTimeout(birdMischief, 600);
+      if (Math.random() < 0.08) soon(birdMischief, 600);
     }
     // Any mode: the ice cream truck comes by (once a game at most)
-    if (!game.iceCream && game.history.length > 3 && Math.random() < 0.08) { game.iceCream = true; setTimeout(iceCreamTruck, 900); }
-    else if (!game.rained && game.history.length > 2 && Math.random() < 0.07) { game.rained = true; setTimeout(rainShower, 900); }
+    if (!game.iceCream && game.history.length > 3 && Math.random() < 0.08) { game.iceCream = true; soon(iceCreamTruck, 900); }
+    else if (!game.rained && game.history.length > 2 && Math.random() < 0.07) { game.rained = true; soon(rainShower, 900); }
     // Any mode: Henri comes to paint, and the squirrel comes for Klaus (once a game each at most)
-    if (!game.painted && game.history.length > 2 && Math.random() < 0.08) { game.painted = true; setTimeout(painterVisit, 900); }
-    if (!game.squirreled && game.history.length > 1 && Math.random() < 0.09) { game.squirreled = true; setTimeout(squirrelVisit, 1100); }
+    if (!game.painted && game.history.length > 2 && Math.random() < 0.08) { game.painted = true; soon(painterVisit, 900); }
+    if (!game.squirreled && game.history.length > 1 && Math.random() < 0.09) { game.squirreled = true; soon(squirrelVisit, 1100); }
     // Any mode: Margot starts a garden, one flower at a time, until the cow finds it
-    if (!game.garden && game.history.length > 1 && Math.random() < odds("garden", 0.1)) { game.garden = []; setTimeout(plantFlower, 900); }
+    if (!game.garden && game.history.length > 1 && Math.random() < odds("garden", 0.1)) { game.garden = []; soon(plantFlower, 900); }
     else if (game.garden && !game.gardenEaten) {
-      if (game.garden.length === GARDEN_SPOTS.length) setTimeout(cowEatsGarden, 900);
-      else if (Math.random() < 0.6) setTimeout(plantFlower, 900);
+      if (game.garden.length === GARDEN_SPOTS.length) soon(cowEatsGarden, 900);
+      else if (Math.random() < 0.6) soon(plantFlower, 900);
     }
     // Any mode: Klaus gets an itch (once a game at most)
-    if (!game.scratched && game.history.length > 2 && Math.random() < odds("scratch", 0.08)) { game.scratched = true; setTimeout(backScratch, 900); }
+    if (!game.scratched && game.history.length > 2 && Math.random() < odds("scratch", 0.08)) { game.scratched = true; soon(backScratch, 900); }
     // Any mode: Sir Reginald comes to the rescue (once a game at most)
-    if (!game.reginald && game.history.length > 2 && document.querySelector('#scene [data-piece="head"].on') && Math.random() < odds("reginald", 0.12)) { game.reginald = true; setTimeout(reginaldVisit, 900); }
+    if (!game.reginald && game.history.length > 2 && document.querySelector('#scene [data-piece="head"].on') && Math.random() < odds("reginald", 0.12)) { game.reginald = true; soon(reginaldVisit, 900); }
     // Any mode: Klaus's mother drops by (once a game at most)
-    else if (!game.muttied && game.history.length > 3 && Math.random() < odds("mutti", 0.1)) { game.muttied = true; setTimeout(muttiVisit, 900); }
-    if (Math.random() < SNATCH_CHANCE) setTimeout(snatchOlivia, 800);
+    else if (!game.muttied && game.history.length > 3 && Math.random() < odds("mutti", 0.1)) { game.muttied = true; soon(muttiVisit, 900); }
+    if (Math.random() < SNATCH_CHANCE) soon(snatchOlivia, 800);
     // Ultra rare: a flying saucer
-    if (!game.ufo && game.history.length > 3 && Math.random() < odds("ufo", 0.012)) { game.ufo = true; setTimeout(ufoVisit, 1200); }
+    if (!game.ufo && game.history.length > 3 && Math.random() < odds("ufo", 0.012)) { game.ufo = true; soon(ufoVisit, 1200); }
   }
 
   function endGame(solved, rescue) {
