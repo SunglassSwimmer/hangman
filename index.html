@@ -322,11 +322,9 @@
   #lettuceLayer text, #scene .snore { paint-order: stroke; stroke: #fffdf6; stroke-width: 4px; }
   .sbubble { max-width: 130px; padding: 3px 10px; font-size: .95rem; animation: sayfade 2.2s forwards; }
 
-  /* The crowd runs off for ice cream (and comes back), and does the wave */
+  /* The crowd runs off for ice cream (and comes back) */
   .scene .bob { transition: translate .9s ease-in, opacity .9s ease-in; }
   .scene .bob.away { translate: 230px 0 !important; opacity: 0; }
-  .bob.crowdwave { animation: crowdwave .55s ease-out; }
-  @keyframes crowdwave { 40% { transform: translateY(-18px); } }
 
   /* Henri the painter: the canvas fills in stage by stage while his brush dabs away */
   .spectator .stage1, .spectator .stage2, .spectator .stage3 { display: none; }
@@ -427,6 +425,17 @@
   @keyframes legthump { to { transform: translateY(-6px); } }
   .gardenflower .bloom { transform-box: fill-box; transform-origin: 50% 100%; animation: bloom .5s cubic-bezier(.3, 1.6, .5, 1) backwards; }
 
+  /* Settings: a faded backdrop behind the cast, so it doesn't compete with them */
+  .backdrop { display: none; opacity: .6; }
+  .scene[data-setting="castle"] .backdrop-castle { display: inline; }
+
+  /* Klaus's Mutti: he bends down for a face-scrubbing, and the lipstick stays for the rest of the game */
+  #klaus.bent { transform: rotate(-10deg); }
+  .lipstick { display: none; }
+  .scene.kissed .lipstick { display: inline; }
+  .scrub { animation: scrub .14s ease-in-out infinite alternate; }
+  @keyframes scrub { from { transform: translate(-3px, 2px); } to { transform: translate(3px, -2px); } }
+
   /* Sir Reginald: he trips, and his helmet and tiny sword go flying */
   .spectator.crashed .waddle { transform: rotate(-88deg); transition: transform .25s ease-in; }
   .spectator.crashed .rhelmet, .spectator.crashed .rsword, .spectator.swordless .rsword { display: none; }
@@ -476,9 +485,8 @@
   /* ---------- A world that remembers ---------- */
   .bandage, .trophy, .smoke { display: none; }
   .scene.bandaged .bandage { display: inline; }
-  .scene.nest-beret .t-beret, .scene.nest-baguette .t-baguette, .scene.nest-balloon .t-balloon { display: inline; }
+  .scene.nest-beret .t-beret, .scene.nest-baguette .t-baguette { display: inline; }
   .scene.nest-beret #beret ellipse { fill: #4d7cff; }                 /* Gerard's new beret */
-  .scene.nest-balloon #balloon ellipse, .scene.nest-balloon #balloon path[fill] { fill: #ffd166; }   /* Pip's new balloon */
   .scene.fixedbrella .umbrella .tear, .scene.fixedbrella .umbrella .drip { display: none; }      /* Klaus fixed his umbrella */
   .scene.zapped #klaus { filter: url(#charred); }
   .scene.zapped .smoke { display: inline; }
@@ -749,6 +757,21 @@
       </g>
       <g id="rainLayer" stroke="#7aa5d6" stroke-width="2"></g>
       <path id="bolt" d="M214 -12 L200 26 L211 26 L196 66 L226 18 L213 18 L228 -12 Z" fill="#ffd166" style="display:none"/>
+
+      <!-- the setting: a faded backdrop behind everyone (see SETTINGS). It never changes the ground or where people stand. -->
+      <g class="backdrop backdrop-castle" stroke="#7f88a8" stroke-width="1.2">
+        <rect x="226" y="94" width="20" height="62" fill="#e6e1d6"/>
+        <rect x="302" y="102" width="20" height="54" fill="#e6e1d6"/>
+        <rect x="246" y="116" width="56" height="40" fill="#efe9dc"/>
+        <rect x="264" y="82" width="20" height="74" fill="#e6e1d6"/>
+        <path d="M226 94 v-5 h5 v5 M233 94 v-5 h6 v5 M241 94 v-5 h5 v5 M302 102 v-5 h5 v5 M309 102 v-5 h6 v5 M317 102 v-5 h5 v5" fill="#e6e1d6"/>
+        <path d="M246 116 v-4 h5 v4 M255 116 v-4 h5 v4 M288 116 v-4 h5 v4 M297 116 v-4 h5 v4" fill="#efe9dc"/>
+        <path d="M262 82 L274 62 L286 82 Z" fill="#c9b8d8"/>
+        <path d="M274 62 V48 l10 3 l-10 3" fill="#e8a7ad"/>
+        <path d="M268 156 V140 q6 -8 12 0 V156 Z" fill="#c8bfae"/>
+        <path d="M234 108 v7 M312 116 v7 M270 96 v7 M278 96 v7" stroke-width="1.6"/>
+        <path d="M150 208 Q205 136 285 148 Q335 156 372 196 V208 Z" fill="#d6ebc6" stroke="none"/>
+      </g>
 
       <!-- the ground, grass and flowers -->
       <path class="grass" d="M-10 210 Q40 202 90 208 T190 207 T290 209 T370 205 L370 277 L-10 277 Z"/>
@@ -1246,6 +1269,7 @@
         <circle class="dot" cx="-4" cy="139" r="1.6"/><circle class="dot" cx="4" cy="139" r="1.6"/>
         <circle cx="4.5" cy="139" r="3.6" stroke="#d4a017" stroke-width="1.5"/>
         <path d="M8 141 q3 6 -1 11" stroke="#d4a017" stroke-width="1"/>
+        <path class="lipstick" d="M-11 144 q2.5 -2.5 5 0 q2.5 -2.5 5 0 q-5 6 -10 0 Z" fill="#e63946" stroke="none"/>
         <path d="M0 145 q-6 -3 -10 -1 q-3 1 -4 -4 M0 145 q6 -3 10 -1 q3 1 4 -4" stroke-width="2.5"/>
         <path class="crowd c-happy dot" d="M-4 147 Q0 152 4 147 Z"/>
         <path class="crowd c-grumpy" d="M-3 149.5 Q0 146.5 3 149.5"/>
@@ -1367,14 +1391,6 @@
         <ellipse cx="29" cy="193" rx="5" ry="2" fill="#e63946"/>
         <circle cx="10" cy="201" r="8" fill="#f4a261"/>
         <path d="M10 201 a1.5 1.5 0 1 1 2 -1 a4 4 0 1 1 -6 -3"/>
-        <!-- her military career (see applyRank) -->
-        <g id="oliviaMedal" style="display:none">
-          <path d="M19 204 l1.5 3.5 l1.5 -3.5 Z" fill="#e63946" stroke-width=".8"/><circle cx="20.5" cy="208.5" r="2.2" fill="#ffd166" stroke-width="1"/>
-        </g>
-        <g id="oliviaHelmet" style="display:none">
-          <path d="M24 193 Q29 184 34 193 Z" fill="#2b2d42" stroke-width="1.2"/>
-          <path d="M28 188 L29 181 L30 188 Z" fill="#ffd166" stroke-width="1"/>
-        </g>
         </g>
         </g>
       </g>
@@ -1996,16 +2012,6 @@
       <path d="M-7 -46 L-2 -44 M7 -46 L2 -44" stroke-width="2"/>
       <circle class="dot" cx="-3.5" cy="-42" r="1.4"/><circle class="dot" cx="3.5" cy="-42" r="1.4"/>
       <ellipse class="dot" cx="0" cy="-36" rx="3" ry="2.5"/>` },
-    // The executioner, who is very late (Regular Joe and Prison Mode only)
-    executioner: { sound: () => "*munch munch*", sfx: "chomp", art: () => `
-      <ellipse class="dot" cx="-6" cy="-1" rx="6" ry="3"/><ellipse class="dot" cx="6" cy="-1" rx="6" ry="3"/>
-      <path d="M0 -36 C16 -36 17 -14 15 -6 C13 1 -13 1 -15 -6 C-17 -14 -16 -36 0 -36 Z" fill="#3d3d3d"/>
-      <path d="M-15 -26 L-22 -18" stroke-width="3"/>
-      <path d="M-30 -21 h12 M-30 -17 h12" stroke="#e9c46a" stroke-width="3.5"/><path d="M-30 -19 h12" stroke="#52b788" stroke-width="2"/>
-      <path d="M15 -26 L19 -14" stroke-width="3"/><rect x="16" y="-18" width="6" height="4" rx="1" fill="#ffd166" stroke-width="1"/>
-      <path d="M-11 -38 Q-12 -58 0 -58 Q12 -58 11 -38 Q0 -34 -11 -38 Z" fill="#2b2d42"/>
-      <ellipse cx="-4.5" cy="-47" rx="3" ry="2" fill="#fff" stroke="none"/><ellipse cx="4.5" cy="-47" rx="3" ry="2" fill="#fff" stroke="none"/>
-      <circle class="dot" cx="-4.5" cy="-47" r="1.1"/><circle class="dot" cx="4.5" cy="-47" r="1.1"/>` },
     // The ice cream truck
     truck: { sound: () => "♪ ding-a-ling ♪", sfx: "pop", art: () => `
       <rect x="-34" y="-36" width="58" height="28" rx="4" fill="#ffafcc"/>
@@ -2117,21 +2123,19 @@
       ${world.reginald >= 1 ? '<path d="M3 -36 l6 3 M9 -36 l-6 3" stroke="#fff" stroke-width="2.5"/>' : ""}
       ${world.reginald >= 2 ? '<path d="M-10 -9 h9 M-10 -6 h9" stroke="#fff" stroke-width="2.5"/>' : ""}
       ${world.reginald >= 3 ? '<path d="M-11 -29 Q0 -16 13 -27" stroke="#fff" stroke-width="4"/>' : ""}` },
-    // The General, here to inspect Klaus (his spike is much bigger)
-    general: { sound: () => "ATTEN-TION!", sfx: "toot", art: (skin) => `
-      <ellipse class="dot" cx="-7" cy="-1" rx="7" ry="3"/><ellipse class="dot" cx="7" cy="-1" rx="7" ry="3"/>
-      <path d="M0 -38 C17 -38 18 -14 15 -4 C13 2 -13 2 -15 -4 C-18 -14 -17 -38 0 -38 Z" fill="#2b2d42"/>
-      <path d="M-13 -32 L12 -8" stroke="#e63946" stroke-width="4"/>
-      <circle cx="-7" cy="-14" r="2.4" fill="#ffd166" stroke-width="1"/><circle cx="0" cy="-11" r="2.4" fill="#ffd166" stroke-width="1"/><circle cx="7" cy="-26" r="2.4" fill="#ffd166" stroke-width="1"/>
-      <path d="M-15 -30 L-22 -20" stroke-width="3.5"/>
-      <rect x="-33" y="-27" width="13" height="17" rx="1" fill="#e0aa72" stroke-width="1.5"/>
-      <rect x="-31" y="-23" width="9" height="11" fill="#fff" stroke-width="1"/>
-      <circle cx="0" cy="-50" r="12" fill="${skin}"/>
-      <circle class="dot" cx="-4" cy="-52" r="1.6"/><circle class="dot" cx="4" cy="-52" r="1.6"/>
-      <circle cx="4" cy="-52" r="3.6" stroke="#d4a017" stroke-width="1.5"/>
-      <path d="M-8 -45 q4 -3 8 0 q4 -3 8 0" stroke-width="2.5"/>
-      <path d="M-12 -56 Q-12 -68 0 -68 Q12 -68 12 -56 Z" fill="#2b2d42"/>
-      <path d="M-4 -68 L0 -98 L4 -68 Z" fill="#adb5bd" stroke-width="1.5"/>` },
+    // Klaus's mother: tiny, and the only person he's afraid of
+    mutti: { sound: () => "KLAUS!", sfx: "toot", art: (skin) => `
+      <ellipse class="dot" cx="-4" cy="-1" rx="4.5" ry="2.5"/><ellipse class="dot" cx="4" cy="-1" rx="4.5" ry="2.5"/>
+      <path d="M0 -29 Q-15 -27 -15 -2 Q0 2 15 -2 Q15 -27 0 -29 Z" fill="#6d597a"/>
+      <path d="M-12 -24 Q0 -13 12 -24 Q0 -30 -12 -24 Z" fill="#b5838d"/>
+      <path d="M13 -22 L17 -12" stroke-width="3"/>
+      <path d="M14 -12 h9 v9 h-9 Z M16 -12 q2.5 -5 5 0" fill="#e63946" stroke-width="1.5"/>
+      <circle cx="0" cy="-49" r="5" fill="#ced4da"/>
+      <circle cx="0" cy="-38" r="10" fill="${skin}"/>
+      <path d="M-10 -40 Q-10 -49 0 -49 Q10 -49 10 -40 Q5 -45 0 -45 Q-5 -45 -10 -40 Z" fill="#ced4da"/>
+      <circle cx="-4" cy="-38" r="3.2" fill="#fff" stroke-width="1.2"/><circle cx="4" cy="-38" r="3.2" fill="#fff" stroke-width="1.2"/>
+      <circle class="dot" cx="-4" cy="-38" r="1.1"/><circle class="dot" cx="4" cy="-38" r="1.1"/>
+      <path d="M-3 -32 h6" stroke-width="1.6"/>` },
     // A very sleepy shepherd, leaning on his crook (Big Kid Words)
     shepherd: { sound: () => "Stay put, sheep. *yawn*", art: (skin) => `
       <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
@@ -2203,7 +2207,7 @@
 
   // Where spectators stand: two staggered rows along the bottom of the grass.
   // The back row stands a little higher up and looks a little smaller, so the front row partly hides it.
-  const SPECTATOR_SLOTS = [[160, 268], [205, 256], [30, 268], [250, 268], [75, 256], [295, 256], [338, 268], [118, 256]];
+  const SPECTATOR_SLOTS = [[160, 268], [205, 256], [250, 268], [295, 256], [75, 256]];
   const BACK_ROW = 260; // anyone standing higher up than this is in the back row
   const VISITOR_SLOT = [146, 209]; // the spot by the gallows where a curious cow stands
   const SVG_NS = "http://www.w3.org/2000/svg";
@@ -2691,52 +2695,60 @@
     at(5600, () => { me.classList.remove("crashed", "swordless"); sendAway(me); });
   }
 
-  // ---------- Klaus's performance review, and Olivia's rise through the ranks (any mode, once a game at most) ----------
-  const SWEAT = '<path d="M0 -5 q-4 6 0 8 q4 -2 0 -8 Z" fill="#9bd0f5" stroke-width="1"/>';
-  const MEDAL = '<path d="M-3 -8 L0 -2 L3 -8 Z" fill="#e63946" stroke-width="1"/><circle r="4" fill="#ffd166" stroke-width="1.2"/>';
+  // ---------- Klaus's Mutti pays him a visit at work (any mode, once a game at most) ----------
+  const MUTTI_ERRANDS = ["You forgot your lunch!", "You forgot your scarf!", "Did you brush your teeth?", "Your room is a disgrace!"];
+  const MUTTI_LINES = {
+    gerard: ["Aww. 'Klausi.'", "Ze big scary sergeant, ladies and gentlemen."],
+    margot: ["Best thing I've seen all week.", "I like her."],
+    pip:    ["Klaus has a MOM?!", "Klaus, you have something on your cheek."]
+  };
+  const HANKY = '<g class="scrub"><path d="M-6 -5 h11 l2 9 h-12 Z" fill="#fff" stroke-width="1.2"/></g>';
 
-  function reviewVisit() {
-    const x = oliviaX();
-    if (!game || game.over || visitor || crowdAway || olivia.state !== "crawl" || x < 10 || x > 300) return;
-    const me = (visitor = addSpectator("general", [238, 236], 1, 0.8));
-    const arrive = (400 - 238) / 90 / 0.8;
+  function muttiVisit() {
+    if (!game || game.over || visitor || crowdAway) return;
+    const x = 150, y = 214, size = 0.8;
+    const me = (visitor = addSpectator("mutti", [x, y], size, 1.1));
+    const arrive = (x + 40) / 90 / 1.1;
     const g = game;
     const at = (ms, fn) => setTimeout(() => { if (me.isConnected && game === g) fn(); }, arrive * 1000 + ms);
-    at(-1800, () => { replay($("klaus"), "hop"); say("klaus", "*gulp* Ze General!"); });
-    at(1000, () => sayFromSpectator(me, "Zis is your crowd, Klaus?"));
-    at(2800, () => {
-      say("klaus", pick(["Zey are very loyal, Herr General!", "It is a slow day, ja?"]));
-      leaveMark(SWEAT, [192, 126]);
+    const klaus = $("klaus");
+    const hanky = document.createElementNS(SVG_NS, "g");
+    at(500, () => {
+      me.querySelector(".flip").style.transform = "scaleX(-1)"; // she turns to face him
+      replay(klaus, "hop");
+      say("klaus", "...Mutti?!");
     });
-    at(4800, () => sayFromSpectator(me, pick(["*writes* Zero out of ten.", "Your boots are a disgrace."])));
-    at(6600, () => {
-      leaveMark(SWEAT, [160, 130]);
-      sayFromSpectator(me, "But zis snail! Such discipline!");
+    at(1700, () => sayFromSpectator(me, pick(MUTTI_ERRANDS)));
+    // He bends down, and out comes the hanky
+    at(3100, () => {
+      klaus.classList.add("bent");
+      sayFromSpectator(me, "Hold still. *lick*");
+      hanky.setAttribute("transform", "translate(165 142)");
+      hanky.innerHTML = HANKY;
+      $("lettuceLayer").appendChild(hanky);
+      play("chomp");
     });
-    // A medal for Olivia, if she's still around to receive it
-    at(8400, () => {
-      if (olivia.state !== "crawl") return sayFromSpectator(me, "Hmm. Ze snail is on leave.");
-      const shell = shellTop();
-      play("whoosh");
-      throwThing(MEDAL, [238, 190], [shell.x, shell.y + 8], () => {
-        if (game !== g) return;
-        play("fanfare");
-        world.oliviaRank++;
-        saveWorld();
-        applyRank();
-        discover("review");
-        say("klaus", world.oliviaRank > 1 ? "AGAIN?! Ze SNAIL?!" : "Ze SNAIL?!");
-      }, 800, 50);
+    // A big kiss, in front of everyone
+    at(4600, () => {
+      hanky.remove();
+      play("pop");
+      $("scene").classList.add("kissed");
+      leaveMark(HEART, [162, 128]);
+      say("klaus", "MUTTI! I am at VERK!");
+      world.mutti++;
+      saveWorld();
+      discover("mutti");
     });
-    at(10800, () => sayFromSpectator(me, "Salute your superior, Klaus."));
-    at(12400, () => { replay($("klaus"), "hop"); say("klaus", "*salutes ze snail* ...Ma'am."); });
-    at(13800, () => { sendAway(me); if (visitor === me) visitor = null; });
-  }
-
-  // Olivia wears her medal, and at the next promotion a tiny spiked helmet
-  function applyRank() {
-    $("oliviaMedal").style.display = world.oliviaRank >= 1 ? "" : "none";
-    $("oliviaHelmet").style.display = world.oliviaRank >= 2 ? "" : "none";
+    at(6000, () => {
+      klaus.classList.remove("bent");
+      const who = pick(Object.keys(MUTTI_LINES));
+      say(who, pick(MUTTI_LINES[who]));
+    });
+    at(6900, () => {
+      sayFromSpectator(me, "Be good, Klausi!");
+      sendAway(me);
+      if (visitor === me) visitor = null;
+    });
   }
 
   // ---------- Margot's garden, one flower at a time (any mode, once a game at most) ----------
@@ -2930,60 +2942,6 @@
     discover("swap");
   }
 
-  // ---------- The late executioner (Regular Joe and Prison Mode, once a game at most) ----------
-  const LATE_LINES = {
-    klaus:  ["You are LATE!", "Unprofessional! *takes notes*"],
-    gerard: ["Ze executioner! Finally!", "He's eating a sandwich?!"],
-    margot: ["He always does this.", "Is that egg salad?"],
-    pip:    ["Who's the man in the hood?", "Can I have a bite?"]
-  };
-
-  function executionerVisit() {
-    if (!game || game.over || game.mode.kid) return;
-    const x = 110;
-    const me = addSpectator("executioner", [x, 268], 1, 0.8);
-    const arrive = Math.abs(x + 40) / 90 / 0.8;
-    const g = game;
-    // "*munch munch*"... checks his watch... "Did I miss it?"... shrugs, leaves
-    const line = (text, at) => setTimeout(() => {
-      if (!me.isConnected || game !== g) return;
-      hush(me);
-      sayFromSpectator(me, text);
-    }, arrive * 1000 + at);
-    // He's late every time, and his excuses get worse
-    world.executioner++;
-    saveWorld();
-    discover("executioner");
-    const excuses = [
-      ["Did I miss it?", "I was told 3 o'clock..."],
-      ["Did I miss it AGAIN?", "My sundial was cloudy."],
-      ["Not again...", "My boss is going to kill me. Ha. Kill."],
-      ["Okay, in my defense...", "...the sandwich line was very long."]
-    ][Math.min(world.executioner, 4) - 1];
-    line(excuses[0], 1900);
-    line(excuses[1], 3700);
-    setTimeout(() => {
-      if (!me.isConnected || game !== g) return;
-      const who = pick(PEASANTS);
-      say(who, pick(LATE_LINES[who]));
-    }, arrive * 1000 + 2600);
-    line("*shrug*", 5500);
-    setTimeout(() => sendAway(me), arrive * 1000 + 6600);
-  }
-
-  // ---------- The wave (after a great streak) ----------
-  function doWave() {
-    // Left to right across the crowd and the audience... with Klaus a beat late
-    const order = [["gerard", 0], ["margot", 150], ["pip", 300], ["klaus", 950]];
-    for (const [who, delay] of order) setTimeout(() => { if (!crowdAway) replay($(who), "crowdwave"); }, delay);
-    [...spectators].sort((a, b) => a.dataset.x - b.dataset.x).forEach((s, i) => {
-      setTimeout(() => replay(s.querySelector(".bob"), "crowdwave"), 80 * i);
-    });
-    play("cheer");
-    discover("wave");
-    setTimeout(() => say("klaus", "Wait... are we doing ze wave?"), 1400);
-  }
-
   // ---------- The ice cream truck (any mode, once a game at most) ----------
   let crowdAway = false;
 
@@ -3153,7 +3111,7 @@
   }
 
   // ---------- The mischievous bird (Regular Joe and Prison Mode) ----------
-  const BIRD_STUNTS = ["balloon", "beret", "baguette", "spike"];
+  const BIRD_STUNTS = ["beret", "baguette", "spike"];
   let birdBusy = false;
   let birdTrip = 0;          // bumps every new game, so an old flight can't keep going
   let birdPos = [0, 0];      // how far the bird is from its nest
@@ -3189,7 +3147,7 @@
   }
 
   function birdMischief() {
-    const options = BIRD_STUNTS.filter((s) => !game.birdUsed.has(s));
+    const options = game.birdUsed.size ? [] : BIRD_STUNTS; // one stunt a game, so it stays special
     if (!options.length || !birdIsHome() || game.over) return;
     const stunt = pick(options.includes("spike") ? [...options, "spike", "spike"] : options); // the spike is its favorite
     game.birdUsed.add(stunt);
@@ -3197,39 +3155,28 @@
     const trip = birdTrip;
     const goHome = (wait) => setTimeout(() => {
       if (trip !== birdTrip) return;
-      flyBird([0, 0], 1300, 40, () => { birdOnTop(false); birdBusy = false; });
+      flyBird([0, 0], 800, 40, () => { birdOnTop(false); birdBusy = false; });
     }, wait);
 
-    if (stunt === "balloon") {
+    if (stunt === "beret") {
       birdOnTop(true);
-      flyBird([244, 110], 1300, 50, () => {
-        $("balloon").style.display = "none";
-        play("balloonpop");
-        discover("balloon");
-        addNestTrophy("balloon"); // a scrap of it goes in the nest for good (Pip gets a new one)
-        leaveMark('<text class="dot" text-anchor="middle" style="font: 18px \'Gochi Hand\', cursive">POP!</text>', [340, 112]);
-        say("pip", "MY BALLOON! 😭");
-        goHome(700);
-      });
-    } else if (stunt === "beret") {
-      birdOnTop(true);
-      flyBird([135, 124], 1300, 50, () => {
+      flyBird([135, 124], 800, 50, () => {
         $("beret").style.display = "none";
         $("birdBeret").style.display = "";
         say("gerard", pick(["Mon béret! Come back here!", "Zut alors! My beret!"]));
         discover("beret");
         addNestTrophy("beret");
-        goHome(600); // and it keeps wearing the beret in its nest
+        goHome(300); // and it keeps wearing the beret in its nest
       });
     } else if (stunt === "baguette") {
       birdOnTop(true);
-      flyBird([150, 158], 1300, 50, () => {
+      flyBird([150, 158], 800, 50, () => {
         $("baguette").style.display = "none";
         $("birdBaguette").style.display = "";
         say("gerard", pick(["MY BAGUETTE! Zut alors!", "Thief! Zat was my lunch!"]));
         discover("baguette");
         addNestTrophy("baguette");
-        goHome(600);
+        goHome(300);
       });
     } else {
       // Swoops at Klaus... and gets stuck on his spiked helmet
@@ -3246,8 +3193,8 @@
           $("bird").classList.remove("stuck");
           replay($("klaus"), "hop");
           say("klaus", pick(["*sigh* Fine. Stay zere.", "Zis is my life now."]));
-        }, 3500);
-        setTimeout(() => { if (trip === birdTrip) $("birdDizzy").style.display = "none"; }, 6000);
+        }, 2000);
+        setTimeout(() => { if (trip === birdTrip) $("birdDizzy").style.display = "none"; }, 3200);
       });
     }
   }
@@ -3261,7 +3208,7 @@
     $("birdFly").setAttribute("transform", "");
     $("bird").classList.remove("flying", "stuck");
     for (const id of ["birdBeret", "birdBaguette", "birdDizzy"]) $(id).style.display = "none";
-    for (const id of ["balloon", "beret", "baguette"]) $(id).style.display = "";
+    for (const id of ["beret", "baguette"]) $(id).style.display = "";
   }
 
   // Tail up, pbbbt, plop... then the cow turns and stares right at the camera
@@ -3620,7 +3567,6 @@
   // What the crowd says after an ordinary guess
   function reactToGuess(letter, correct) {
     const kind = correct ? "right" : "wrong";
-    if (game.streak === 3) return doWave(); // three in a row: the crowd does the wave
     if (game.mode.kid) {
       if (game.streak === 5) { say(pick(PEASANTS), "Five in a row! Amazing!"); throwFlower(); return; }
       if (Math.random() < 0.12) return chat();
@@ -4048,7 +3994,6 @@
   // ---- The sticker book: every gag is a sticker to collect ----
   const GROWN = "Regular Joe & Prison Mode";
   const STICKERS = [
-    { id: "wave", emoji: "🙌", name: "The wave" },
     { id: "icecream", emoji: "🍦", name: "Ice cream run" },
     { id: "rain", emoji: "☔", name: "Klaus's umbrella" },
     { id: "painter", emoji: "🎨", name: "Henri paints" },
@@ -4064,17 +4009,14 @@
     { id: "mud", emoji: "💦", name: "Mud bath", where: "Big Kid Words" },
     { id: "notmud", emoji: "🤢", name: "...Was that mud?", where: "Big Kid Words" },
     { id: "reginald", emoji: "⚔️", name: "Sir Reginald's charge" },
-    { id: "review", emoji: "🎖️", name: "Olivia's promotion" },
     { id: "garden", emoji: "🌷", name: "Margot's garden" },
     { id: "scratch", emoji: "🔱", name: "Klaus's itch" },
     { id: "drunk", emoji: "🍺", name: "Pierre's nap", where: GROWN },
    { id: "wife", emoji: "👵", name: "Brigitte fetches Pierre", where: GROWN },
     { id: "swap", emoji: "🔄", name: "Brigitte's nap", where: GROWN },
-    { id: "balloon", emoji: "🎈", name: "Balloon popped", where: GROWN },
     { id: "beret", emoji: "🐦", name: "Beret thief", where: GROWN },
     { id: "baguette", emoji: "🥖", name: "Baguette heist", where: GROWN },
     { id: "spike", emoji: "🪖", name: "Bird on a spike", where: GROWN },
-    { id: "executioner", emoji: "🪓", name: "The late executioner", where: GROWN },
     { id: "pardon", emoji: "📜", name: "Royal pardon", where: GROWN },
     { id: "garysave", emoji: "🦸", name: "Saved by Gary", where: GROWN },
     { id: "oliviasave", emoji: "✂️", name: "Saved by Olivia", where: GROWN },
@@ -4256,20 +4198,23 @@
 
   // ---- A world that remembers ----
   const world = Object.assign(
-    { klausBandage: 0, gary: 0, olivia: 0, pierreFetched: 0, paintings: [], nest: [], umbrellaFixed: false, executioner: 0, reginald: 0, oliviaRank: 0, pierreRest: false },
+    { klausBandage: 0, gary: 0, olivia: 0, pierreFetched: 0, paintings: [], nest: [], umbrellaFixed: false, reginald: 0, pierreRest: false },
     loadJSON("hangman-world", {})
   );
   const saveWorld = () => saveJSON("hangman-world", world);
 
+  // Where a game takes place. To add one: draw a "backdrop-..." group in the scene, and show it in the CSS.
+  const SETTINGS = ["green", "castle"];
+
   // Show the lasting effects of past games in the scene
   function applyWorld() {
     const sc = $("scene");
+    sc.dataset.setting = pick(SETTINGS);
     game.hadBandage = world.klausBandage > 0;
     sc.classList.toggle("bandaged", game.hadBandage);
-    for (const t of ["beret", "baguette", "balloon"]) sc.classList.toggle("nest-" + t, world.nest.includes(t));
+    for (const t of ["beret", "baguette"]) sc.classList.toggle("nest-" + t, world.nest.includes(t));
     sc.classList.toggle("fixedbrella", world.umbrellaFixed);
     sc.classList.remove("zapped");
-    applyRank();
     updateTally();
     game.callback = pickCallback();
   }
@@ -4296,17 +4241,14 @@
     const options = [];
     if (world.klausBandage > 0) options.push([["gerard", "Klaus, how's ze head?"], ["klaus", "Do not. Mention. Ze squirrel."]]);
     if (world.nest.includes("beret")) options.push([["gerard", "New beret. Don't even think about it, bird."]]);
-    if (world.nest.includes("balloon")) options.push([["pip", "New balloon! I'm watching you, bird."]]);
     if (world.nest.includes("baguette")) options.push([["gerard", "I keep my baguettes under lock and key now."]]);
     if (world.pierreFetched > 0) options.push([["margot", "Has anyone seen Pierre? Brigitte's looking for him."]]);
     if (world.gary + world.olivia > 0) {
       options.push([["pip", `Gary ${world.gary}, Olivia ${world.olivia}! ${world.olivia >= world.gary ? "Go Olivia!" : "Come on, Olivia!"}`]]);
     }
     if (world.paintings.length) options.push([["gerard", `Henri's painting of ${world.paintings[0].c} sold for three baguettes!`]]);
-    if (world.executioner > 0) options.push([["klaus", "If ze executioner is late again, I am filing a complaint."]]);
     if (world.umbrellaFixed) options.push([["klaus", "I had my umbrella fixed. Let it rain!"]]);
     if (world.reginald > 0) options.push([["margot", "I hear Sir Reginald is out of the hospital."], ["gerard", "Again?"]]);
-    if (world.oliviaRank > 0) options.push([["klaus", "*salutes Olivia* ...Nobody laugh."]]);
    if (liveStreak() > 1) options.push([["klaus", `A ${liveStreak()}-day streak! Impressive. *takes notes*`]]);
     return options.length && Math.random() < 0.75 ? pick(options) : null;
   }
@@ -4871,8 +4813,7 @@
       // (Pierre is a treat: once a game at most, and never two games in a row.)
       const pierreFree = !game.pierreSeen && !world.pierreRest;
       if (pierreFree && Math.random() < PIERRE_CHANCE) drunkVisit();
-     if (Math.random() < 0.18) setTimeout(birdMischief, 600);
-      if (!game.executed && game.history.length > 2 && Math.random() < 0.1) { game.executed = true; setTimeout(executionerVisit, 900); }
+      if (Math.random() < 0.08) setTimeout(birdMischief, 600);
     }
     // Any mode: the ice cream truck comes by (once a game at most)
     if (!game.iceCream && game.history.length > 3 && Math.random() < 0.08) { game.iceCream = true; setTimeout(iceCreamTruck, 900); }
@@ -4888,9 +4829,8 @@
     }
     // Any mode: Klaus gets an itch (once a game at most)
     if (!game.scratched && game.history.length > 2 && Math.random() < odds("scratch", 0.08)) { game.scratched = true; setTimeout(backScratch, 900); }
-    // Any mode: Sir Reginald comes to the rescue, and the General inspects Klaus (once a game each at most)
+    // Any mode: Sir Reginald comes to the rescue (once a game at most)
     if (!game.reginald && game.history.length > 2 && document.querySelector('#scene [data-piece="head"].on') && Math.random() < odds("reginald", 0.12)) { game.reginald = true; setTimeout(reginaldVisit, 900); }
-    else if (!game.reviewed && game.history.length > 3 && Math.random() < odds("review", 0.1)) { game.reviewed = true; setTimeout(reviewVisit, 900); }
     if (Math.random() < SNATCH_CHANCE) setTimeout(snatchOlivia, 800);
     // Ultra rare: a flying saucer
     if (!game.ufo && game.history.length > 3 && Math.random() < odds("ufo", 0.012)) { game.ufo = true; setTimeout(ufoVisit, 1200); }

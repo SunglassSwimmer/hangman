@@ -17,6 +17,7 @@ project's GitHub page once GitHub Pages is turned on).
 Everything lives in one file: `index.html`.
 
 - **Look and colors**: the `<style>` section at the top
+- **Settings** (the faded backdrop each game takes place in): `SETTINGS`, plus the `backdrop-...` groups in the drawing
 - **Drawings** (gallows, blob, crowd, bird, sun, Olivia, Gary): the `<svg>` inside the game screen
 - **What the characters say**: `CAST`, `SNATCH_LINES` and `RETURN_LINES` in the `<script>` section
 - **Spectators** (who shows up, where they stand, what they say): `SPECTATORS` and `SPECTATOR_SLOTS`
@@ -39,11 +40,9 @@ Everything lives in one file: `index.html`.
   (Big Kid Words) is `princessVisit` and `charmSwing`; Pip throwing a frisbee for Biscuit the dog (Big Kid Words)
   is `frisbeeFetch`; the sheep burying the crowd is `sheepStampede`; Pip's bubbles (tap them to pop) are `bubbleParty`;
   the duck parade is `duckParade`; Sir Reginald tripping over the gallows is `reginaldVisit` (and his rare success is `reginaldRescue`);
-  Klaus's performance review and Olivia's promotions are `reviewVisit` and `applyRank`;
   Margot's flower garden (and the cow that eats it) is `plantFlower` and `cowEatsGarden`; Margot scratching Klaus's
-  back is `backScratch`; Pip's color-changing balloon is `changeBalloon`; Pierre the drunk is `drunkVisit`;  the bird's stunts (balloon, beret, baguette, Klaus's spike) are `birdMischief`; Pierre's wife is
-  `wifeFetchesPierre`; Olivia making Gary crash is `updateMiss`; the late executioner is `executionerVisit`;
-  the wave is `doWave`; the ice cream truck is `iceCreamTruck`; the rain shower is `rainShower`;
+  back is `backScratch`; Pip's color-changing balloon is `changeBalloon`; Pierre the drunk is `drunkVisit`;  the bird's stunts (beret, baguette, Klaus's spike; one a game) are `birdMischief`; Pierre's wife is
+  `wifeFetchesPierre`; Olivia making Gary crash is `updateMiss`; the ice cream truck is `iceCreamTruck`; the rain shower is `rainShower`;
   Henri the painter is `painterVisit`; the acorn-throwing squirrel is `squirrelVisit`;
   Brigitte napping (and Pierre fetching her) is `pierreFetchesBrigitte`; the flying saucer is `ufoVisit`;
   the golden cow is in `addSpectator`; Klaus getting zapped is in `loseEnding`
@@ -62,7 +61,7 @@ player's own browser.
 - **A world that remembers** (`world`, `applyWorld`, `pickCallback`): Klaus wears a bandage for a few
   games after the squirrel, the bird keeps its trophies in its nest (and Gerard and Pip get a new beret
   and balloon), a sign keeps score between Gary and Olivia, Henri's paintings hang in a gallery on the
-  home screen, Klaus gets his umbrella fixed, the executioner's excuses get worse, and the crowd brings
+  home screen, Klaus gets his umbrella fixed, and the crowd brings
   up what happened last time.
 - **Quick mode** (the ⏩ button skips the cart entrance): `quickMode`
 
