@@ -2712,17 +2712,23 @@
     const g = game;
     const at = (ms, fn) => setTimeout(() => { if (me.isConnected && game === g) fn(); }, arrive * 1000 + ms);
     const klaus = $("klaus");
+    // Her bubbles sit to her left, so they don't cover Klaus's face
+    const speak = (text) => {
+      sayFromSpectator(me, text);
+      me._bubble.style.setProperty("--shift", "-85%");
+      me._bubble.style.setProperty("--tail", "85%");
+    };
     const hanky = document.createElementNS(SVG_NS, "g");
     at(500, () => {
       me.querySelector(".flip").style.transform = "scaleX(-1)"; // she turns to face him
       replay(klaus, "hop");
       say("klaus", "...Mutti?!");
     });
-    at(1700, () => sayFromSpectator(me, pick(MUTTI_ERRANDS)));
+    at(1700, () => speak(pick(MUTTI_ERRANDS)));
     // He bends down, and out comes the hanky
     at(3100, () => {
       klaus.classList.add("bent");
-      sayFromSpectator(me, "Hold still. *lick*");
+      speak("Hold still. *lick*");
       hanky.setAttribute("transform", "translate(165 142)");
       hanky.innerHTML = HANKY;
       $("lettuceLayer").appendChild(hanky);
@@ -2745,7 +2751,7 @@
       say(who, pick(MUTTI_LINES[who]));
     });
     at(6900, () => {
-      sayFromSpectator(me, "Be good, Klausi!");
+      speak("Be good, Klausi!");
       sendAway(me);
       if (visitor === me) visitor = null;
     });
