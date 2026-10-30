@@ -3042,6 +3042,8 @@
    ["klaus", "gerard", "margot", "pip"].forEach((who) => $(who).classList.remove("away"));
     document.querySelectorAll("#scene .icecream").forEach((c) => (c.style.display = "none"));
     document.querySelectorAll("#scene .charm").forEach((c) => c.remove()); // the princess's flowers
+    $("scene").classList.remove("kissed");
+    $("klaus").classList.remove("bent");
   }
 
   // ---------- Henri the painter (any mode, once a game at most) ----------
@@ -4009,6 +4011,7 @@
     { id: "mud", emoji: "💦", name: "Mud bath", where: "Big Kid Words" },
     { id: "notmud", emoji: "🤢", name: "...Was that mud?", where: "Big Kid Words" },
     { id: "reginald", emoji: "⚔️", name: "Sir Reginald's charge" },
+    { id: "mutti", emoji: "💋", name: "Klaus's Mutti" },
     { id: "garden", emoji: "🌷", name: "Margot's garden" },
     { id: "scratch", emoji: "🔱", name: "Klaus's itch" },
     { id: "drunk", emoji: "🍺", name: "Pierre's nap", where: GROWN },
@@ -4198,7 +4201,7 @@
 
   // ---- A world that remembers ----
   const world = Object.assign(
-    { klausBandage: 0, gary: 0, olivia: 0, pierreFetched: 0, paintings: [], nest: [], umbrellaFixed: false, reginald: 0, pierreRest: false },
+    { klausBandage: 0, gary: 0, olivia: 0, pierreFetched: 0, paintings: [], nest: [], umbrellaFixed: false, reginald: 0, mutti: 0, pierreRest: false },
     loadJSON("hangman-world", {})
   );
   const saveWorld = () => saveJSON("hangman-world", world);
@@ -4248,6 +4251,7 @@
     }
     if (world.paintings.length) options.push([["gerard", `Henri's painting of ${world.paintings[0].c} sold for three baguettes!`]]);
     if (world.umbrellaFixed) options.push([["klaus", "I had my umbrella fixed. Let it rain!"]]);
+    if (world.mutti > 0) options.push([["gerard", "Klaus, how is your mother?"], ["klaus", "We do not speak of zis."]]);
     if (world.reginald > 0) options.push([["margot", "I hear Sir Reginald is out of the hospital."], ["gerard", "Again?"]]);
    if (liveStreak() > 1) options.push([["klaus", `A ${liveStreak()}-day streak! Impressive. *takes notes*`]]);
     return options.length && Math.random() < 0.75 ? pick(options) : null;
@@ -4831,6 +4835,8 @@
     if (!game.scratched && game.history.length > 2 && Math.random() < odds("scratch", 0.08)) { game.scratched = true; setTimeout(backScratch, 900); }
     // Any mode: Sir Reginald comes to the rescue (once a game at most)
     if (!game.reginald && game.history.length > 2 && document.querySelector('#scene [data-piece="head"].on') && Math.random() < odds("reginald", 0.12)) { game.reginald = true; setTimeout(reginaldVisit, 900); }
+    // Any mode: Klaus's mother drops by (once a game at most)
+    else if (!game.muttied && game.history.length > 3 && Math.random() < odds("mutti", 0.1)) { game.muttied = true; setTimeout(muttiVisit, 900); }
     if (Math.random() < SNATCH_CHANCE) setTimeout(snatchOlivia, 800);
     // Ultra rare: a flying saucer
     if (!game.ufo && game.history.length > 3 && Math.random() < odds("ufo", 0.012)) { game.ufo = true; setTimeout(ufoVisit, 1200); }

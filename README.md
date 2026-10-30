@@ -40,7 +40,7 @@ Everything lives in one file: `index.html`.
   (Big Kid Words) is `princessVisit` and `charmSwing`; Pip throwing a frisbee for Biscuit the dog (Big Kid Words)
   is `frisbeeFetch`; the sheep burying the crowd is `sheepStampede`; Pip's bubbles (tap them to pop) are `bubbleParty`;
   the duck parade is `duckParade`; Sir Reginald tripping over the gallows is `reginaldVisit` (and his rare success is `reginaldRescue`);
-  Margot's flower garden (and the cow that eats it) is `plantFlower` and `cowEatsGarden`; Margot scratching Klaus's
+  Klaus's mother is `muttiVisit`; Margot's flower garden (and the cow that eats it) is `plantFlower` and `cowEatsGarden`; Margot scratching Klaus's
   back is `backScratch`; Pip's color-changing balloon is `changeBalloon`; Pierre the drunk is `drunkVisit`;  the bird's stunts (beret, baguette, Klaus's spike; one a game) are `birdMischief`; Pierre's wife is
   `wifeFetchesPierre`; Olivia making Gary crash is `updateMiss`; the ice cream truck is `iceCreamTruck`; the rain shower is `rainShower`;
   Henri the painter is `painterVisit`; the acorn-throwing squirrel is `squirrelVisit`;
