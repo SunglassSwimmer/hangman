@@ -397,6 +397,10 @@
   .word.long .slot { width: 17px; height: 34px; line-height: 36px; font-size: 1.35rem; }
   .word.long .slot.gap { width: 8px; }
 
+  /* Sir Reginald: he trips, and his helmet and tiny sword go flying */
+  .spectator.crashed .waddle { transform: rotate(-88deg); transition: transform .25s ease-in; }
+  .spectator.crashed .rhelmet, .spectator.crashed .rsword, .spectator.swordless .rsword { display: none; }
+
   /* Big Kid Words: balloons hold up the swing, and a mud puddle waits below */
   .kballoon.popped { display: none; }
   #puddle { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .6s cubic-bezier(.3, 1.6, .5, 1); }
@@ -1330,6 +1334,14 @@
         <ellipse cx="29" cy="193" rx="5" ry="2" fill="#e63946"/>
         <circle cx="10" cy="201" r="8" fill="#f4a261"/>
         <path d="M10 201 a1.5 1.5 0 1 1 2 -1 a4 4 0 1 1 -6 -3"/>
+        <!-- her military career (see applyRank) -->
+        <g id="oliviaMedal" style="display:none">
+          <path d="M19 204 l1.5 3.5 l1.5 -3.5 Z" fill="#e63946" stroke-width=".8"/><circle cx="20.5" cy="208.5" r="2.2" fill="#ffd166" stroke-width="1"/>
+        </g>
+        <g id="oliviaHelmet" style="display:none">
+          <path d="M24 193 Q29 184 34 193 Z" fill="#2b2d42" stroke-width="1.2"/>
+          <path d="M28 188 L29 181 L30 188 Z" fill="#ffd166" stroke-width="1"/>
+        </g>
         </g>
         </g>
       </g>
@@ -1999,6 +2011,43 @@
       <circle class="dot" cx="-17" cy="-25" r="1.6"/>
       <path d="M-22 -16 q1 4 3 0" fill="#ff8fab"/>
       <g class="heldfrisbee"><ellipse cx="-27" cy="-16" rx="8" ry="2.8" fill="#4d7cff" stroke-width="1.5" transform="rotate(-15 -27 -16)"/></g>` },
+    // Sir Reginald, the useless hero, on his stick horse (he collects more bandages every time he comes back)
+    reginald: { sound: () => "Fear not! I shall save thee!", sfx: "toot", art: (skin) => `
+      <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
+      <path d="M18 -2 L-20 -22" stroke="#8b5a2b" stroke-width="3"/>
+      <path d="M-18 -21 Q-20 -35 -30 -35 Q-37 -33 -38 -26 Q-32 -24 -27 -27 Q-27 -22 -24 -19 Z" fill="#c49a6c"/>
+      <path d="M-19 -24 q0 -7 -6 -12" stroke="#6b4423" stroke-width="3"/>
+      <circle class="dot" cx="-30" cy="-30" r="1.3"/>
+      <path d="M0 -30 C13 -30 14 -12 12 -5 C10 1 -10 1 -12 -5 C-14 -12 -13 -30 0 -30 Z" fill="#adb5bd"/>
+      <path d="M-8 -28 L10 -8" stroke="#e63946" stroke-width="3"/>
+      <path d="M-10 -22 L-18 -21" stroke-width="3"/>
+      <path d="M11 -24 L17 -36" stroke-width="3"/>
+      <g class="rsword"><path d="M17 -36 V-46" stroke="#adb5bd" stroke-width="2"/><path d="M14 -37 h6" stroke="#8b5a2b" stroke-width="2"/></g>
+      <circle cx="0" cy="-40" r="9.5" fill="${skin}"/>
+      <circle class="dot" cx="-3.5" cy="-41" r="1.4"/><circle class="dot" cx="3.5" cy="-41" r="1.4"/>
+      <path d="M-6 -36 q3 3 6 0 q3 3 6 0" stroke-width="2"/>
+      <g class="rhelmet">
+        <path d="M-10 -43 Q-10 -53 0 -53 Q10 -53 10 -43 Z" fill="#ced4da"/>
+        <path d="M0 -53 q4 -10 12 -8 q-2 6 -8 9" fill="#4d7cff" stroke-width="1.5"/>
+      </g>
+      ${world.reginald >= 1 ? '<path d="M3 -36 l6 3 M9 -36 l-6 3" stroke="#fff" stroke-width="2.5"/>' : ""}
+      ${world.reginald >= 2 ? '<path d="M-10 -9 h9 M-10 -6 h9" stroke="#fff" stroke-width="2.5"/>' : ""}
+      ${world.reginald >= 3 ? '<path d="M-11 -29 Q0 -16 13 -27" stroke="#fff" stroke-width="4"/>' : ""}` },
+    // The General, here to inspect Klaus (his spike is much bigger)
+    general: { sound: () => "ATTEN-TION!", sfx: "toot", art: (skin) => `
+      <ellipse class="dot" cx="-7" cy="-1" rx="7" ry="3"/><ellipse class="dot" cx="7" cy="-1" rx="7" ry="3"/>
+      <path d="M0 -38 C17 -38 18 -14 15 -4 C13 2 -13 2 -15 -4 C-18 -14 -17 -38 0 -38 Z" fill="#2b2d42"/>
+      <path d="M-13 -32 L12 -8" stroke="#e63946" stroke-width="4"/>
+      <circle cx="-7" cy="-14" r="2.4" fill="#ffd166" stroke-width="1"/><circle cx="0" cy="-11" r="2.4" fill="#ffd166" stroke-width="1"/><circle cx="7" cy="-26" r="2.4" fill="#ffd166" stroke-width="1"/>
+      <path d="M-15 -30 L-22 -20" stroke-width="3.5"/>
+      <rect x="-33" y="-27" width="13" height="17" rx="1" fill="#e0aa72" stroke-width="1.5"/>
+      <rect x="-31" y="-23" width="9" height="11" fill="#fff" stroke-width="1"/>
+      <circle cx="0" cy="-50" r="12" fill="${skin}"/>
+      <circle class="dot" cx="-4" cy="-52" r="1.6"/><circle class="dot" cx="4" cy="-52" r="1.6"/>
+      <circle cx="4" cy="-52" r="3.6" stroke="#d4a017" stroke-width="1.5"/>
+      <path d="M-8 -45 q4 -3 8 0 q4 -3 8 0" stroke-width="2.5"/>
+      <path d="M-12 -56 Q-12 -68 0 -68 Q12 -68 12 -56 Z" fill="#2b2d42"/>
+      <path d="M-4 -68 L0 -98 L4 -68 Z" fill="#adb5bd" stroke-width="1.5"/>` },
     // A princess with a magic wand (Big Kid Words)
     princess: { sound: () => "Hello, everyone!", sfx: "twinkle", art: (skin) => `
       <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
@@ -2314,6 +2363,126 @@
       say("pip", pick(["Good boy, Biscuit!", "Who's a good boy? YOU are!"]));
     });
     at(6300, () => { sendAway(me); if (visitor === me) visitor = null; });
+  }
+
+  // ---------- Sir Reginald, the useless hero (any mode, once a game at most) ----------
+  const REGINALD_LINES = {
+    gerard: ["Zat is a butter knife.", "Sacrebleu, is zat horse made of wood?"],
+    margot: ["Oh, not him again.", "Somebody fetch his mother."],
+    pip:    ["Is that a toy sword?", "I have a bigger one at home!"],
+    klaus:  ["Halt! Do you have a permit for zat horse?", "*writes* Ze horse is a stick."]
+  };
+  const CRASH_LINES = {
+    gerard: ["Magnifique! Ten out of ten!", "He has defeated ze ground!"],
+    margot: ["Is he all right? ...Do we care?", "Oh, that looked expensive."],
+    pip:    ["Do it again!", "Sir? You dropped your hat."],
+    klaus:  ["Ze gallows: one. Ze knight: zero.", "*writes* Knight, slightly dented."]
+  };
+  const REGINALD_HELMET = '<path d="M-10 4 Q-10 -6 0 -6 Q10 -6 10 4 Z" fill="#ced4da"/><path d="M0 -6 q4 -10 12 -8 q-2 6 -8 9" fill="#4d7cff" stroke-width="1.5"/>';
+  const TINY_SWORD = '<path d="M0 -7 V5" stroke="#adb5bd" stroke-width="2"/><path d="M-3 3 h6" stroke="#8b5a2b" stroke-width="2"/>';
+
+  function reginaldVisit() {
+    if (!game || game.over || visitor || crowdAway) return;
+    const x = 230, y = 262, size = 1.1;
+    const me = (visitor = addSpectator("reginald", [x, y], size, 1.2));
+    const arrive = (400 - x) / 90 / 1.2;
+    const g = game;
+    const at = (ms, fn) => setTimeout(() => { if (me.isConnected && game === g) fn(); }, arrive * 1000 + ms);
+    at(1500, () => { sayFromSpectator(me, "Behold my mighty blade!"); play("clank"); });
+    at(2900, () => { const who = pick(PEASANTS); say(who, pick(REGINALD_LINES[who])); });
+    // He charges the gallows...
+    at(4300, () => {
+      sayFromSpectator(me, "CHAAAARGE!");
+      play("gallop");
+      me.classList.add("walking");
+      me.style.transition = "transform .9s ease-in";
+      me.style.transform = `translate(150px, 214px) scale(${size})`;
+    });
+    // ...and trips over the base
+    at(5200, () => {
+      hush(me);
+      me.classList.remove("walking");
+      me.classList.add("crashed");
+      play("clank");
+      play("thud");
+      leaveMark('<text class="dot" text-anchor="middle" style="font: 18px \'Gochi Hand\', cursive">CLANG!</text>', [120, 184]);
+      throwThing(REGINALD_HELMET, [130, 200], [86, 226], () => leaveMark(REGINALD_HELMET, [86, 226]), 700, 50);
+      throwThing(TINY_SWORD, [130, 200], [192, 232], () => leaveMark(TINY_SWORD, [192, 232]), 600, 40);
+      world.reginald++;
+      saveWorld();
+      discover("reginald");
+    });
+    at(6400, () => { const who = pick(PEASANTS); say(who, pick(CRASH_LINES[who])); });
+    at(8000, () => {
+      me.classList.remove("crashed");
+      sayFromSpectator(me, pick(["'Tis but a scratch!", "I meant to do that.", "The gallows yields!"]));
+    });
+    at(9400, () => { sendAway(me); if (visitor === me) visitor = null; });
+  }
+
+  // Very rarely, after enough tries, he actually pulls it off. Nobody is more surprised than he is.
+  function reginaldRescue() {
+    const x = 150, y = 214, size = 1.1;
+    const me = addSpectator("reginald", [x, y], size, 2.2, "CHAAAARGE!");
+    const arrive = (x + 40) / 90 / 2.2;
+    const g = game;
+    const at = (ms, fn) => setTimeout(() => { if (me.isConnected && game === g) fn(); }, arrive * 1000 + ms);
+    at(300, () => {
+      me.classList.add("swordless");
+      play("whoosh");
+      throwThing(TINY_SWORD, [x + 18, y - 50], [128, 42], () => { play("clank"); dropAndDance(); }, 600, 30);
+    });
+    at(1800, () => sayFromSpectator(me, "It... it WORKED?!"));
+    at(3400, () => { me.classList.add("crashed"); play("thud"); }); // he faints
+    at(5600, () => { me.classList.remove("crashed", "swordless"); sendAway(me); });
+  }
+
+  // ---------- Klaus's performance review, and Olivia's rise through the ranks (any mode, once a game at most) ----------
+  const SWEAT = '<path d="M0 -5 q-4 6 0 8 q4 -2 0 -8 Z" fill="#9bd0f5" stroke-width="1"/>';
+  const MEDAL = '<path d="M-3 -8 L0 -2 L3 -8 Z" fill="#e63946" stroke-width="1"/><circle r="4" fill="#ffd166" stroke-width="1.2"/>';
+
+  function reviewVisit() {
+    const x = oliviaX();
+    if (!game || game.over || visitor || crowdAway || olivia.state !== "crawl" || x < 10 || x > 300) return;
+    const me = (visitor = addSpectator("general", [238, 236], 1, 0.8));
+    const arrive = (400 - 238) / 90 / 0.8;
+    const g = game;
+    const at = (ms, fn) => setTimeout(() => { if (me.isConnected && game === g) fn(); }, arrive * 1000 + ms);
+    at(-1800, () => { replay($("klaus"), "hop"); say("klaus", "*gulp* Ze General!"); });
+    at(1000, () => sayFromSpectator(me, "Zis is your crowd, Klaus?"));
+    at(2800, () => {
+      say("klaus", pick(["Zey are very loyal, Herr General!", "It is a slow day, ja?"]));
+      leaveMark(SWEAT, [192, 126]);
+    });
+    at(4800, () => sayFromSpectator(me, pick(["*writes* Zero out of ten.", "Your boots are a disgrace."])));
+    at(6600, () => {
+      leaveMark(SWEAT, [160, 130]);
+      sayFromSpectator(me, "But zis snail! Such discipline!");
+    });
+    // A medal for Olivia, if she's still around to receive it
+    at(8400, () => {
+      if (olivia.state !== "crawl") return sayFromSpectator(me, "Hmm. Ze snail is on leave.");
+      const shell = shellTop();
+      play("whoosh");
+      throwThing(MEDAL, [238, 190], [shell.x, shell.y + 8], () => {
+        if (game !== g) return;
+        play("fanfare");
+        world.oliviaRank++;
+        saveWorld();
+        applyRank();
+        discover("review");
+        say("klaus", world.oliviaRank > 1 ? "AGAIN?! Ze SNAIL?!" : "Ze SNAIL?!");
+      }, 800, 50);
+    });
+    at(10800, () => sayFromSpectator(me, "Salute your superior, Klaus."));
+    at(12400, () => { replay($("klaus"), "hop"); say("klaus", "*salutes ze snail* ...Ma'am."); });
+    at(13800, () => { sendAway(me); if (visitor === me) visitor = null; });
+  }
+
+  // Olivia wears her medal, and at the next promotion a tiny spiked helmet
+  function applyRank() {
+    $("oliviaMedal").style.display = world.oliviaRank >= 1 ? "" : "none";
+    $("oliviaHelmet").style.display = world.oliviaRank >= 2 ? "" : "none";
   }
 
   // ---------- Pierre, the town drunk (Regular Joe and Prison Mode, instead of the visiting cow) ----------
@@ -3345,19 +3514,23 @@
   const RESCUES = {
     pardon: { result: "📜 A royal pardon! You live... somehow.", outrage: ["A PARDON?! From ze king?!", "Boooo! Rigged!", "Zut alors! Paperwork!"] },
     gary:   { result: "🦅 Gary swooped in and saved you!", outrage: ["GARY! Bring them back!", "Not again, Gary!"] },
-    olivia: { result: "🐌 Olivia chewed through the rope!", outrage: ["OLIVIA?! Traitor!", "Ze snail?! Unbelievable!"] }
+    olivia: { result: "🐌 Olivia chewed through the rope!", outrage: ["OLIVIA?! Traitor!", "Ze snail?! Unbelievable!"] },
+    reginald: { result: "🗡️ Sir Reginald actually did it!", outrage: ["REGINALD?! He has never hit anything!", "Ze butter knife?! Impossible!"] }
   };
 
   function pickRescue() {
+    // Once Sir Reginald has crashed a few times, his luck can finally turn
+    if (world.reginald >= 3 && Math.random() < 0.25) return "reginald";
     // Gary and Olivia can only help if they're not busy with each other
     return pick(olivia.state === "crawl" ? ["pardon", "gary", "olivia"] : ["pardon"]);
   }
 
   function runRescue(kind) {
-    discover({ pardon: "pardon", gary: "garysave", olivia: "oliviasave" }[kind]);
+    discover({ pardon: "pardon", gary: "garysave", olivia: "oliviasave", reginald: "reginaldsave" }[kind]);
     setTimeout(() => {
       if (kind === "pardon") pardonRescue();
       else if (kind === "gary") garyRescue();
+      else if (kind === "reginald") reginaldRescue();
       else oliviaRescue();
       setTimeout(() => say(pick(PEASANTS), pick(RESCUES[kind].outrage), true), 1800);
       setTimeout(() => spectators.forEach((s) => sendAway(s)), 3000);
@@ -3559,6 +3732,8 @@
     { id: "frisbee", emoji: "🥏", name: "Biscuit fetches", where: "Big Kid Words" },
     { id: "mud", emoji: "💦", name: "Mud bath", where: "Big Kid Words" },
     { id: "notmud", emoji: "🤢", name: "...Was that mud?", where: "Big Kid Words" },
+    { id: "reginald", emoji: "⚔️", name: "Sir Reginald's charge" },
+    { id: "review", emoji: "🎖️", name: "Olivia's promotion" },
     { id: "drunk", emoji: "🍺", name: "Pierre's nap", where: GROWN },
     { id: "wife", emoji: "👵", name: "Brigitte fetches Pierre", where: GROWN },
     { id: "swap", emoji: "🔄", name: "Brigitte's nap", where: GROWN },
@@ -3570,6 +3745,7 @@
     { id: "pardon", emoji: "📜", name: "Royal pardon", where: GROWN },
     { id: "garysave", emoji: "🦸", name: "Saved by Gary", where: GROWN },
     { id: "oliviasave", emoji: "✂️", name: "Saved by Olivia", where: GROWN },
+    { id: "reginaldsave", emoji: "🗡️", name: "Reginald actually did it", rare: true, where: GROWN },
     { id: "goldencow", emoji: "🌟", name: "The golden cow", rare: true },
     { id: "ufo", emoji: "🛸", name: "Close encounter", rare: true },
     { id: "zap", emoji: "⚡", name: "Klaus gets zapped", rare: true, where: GROWN }
@@ -3731,7 +3907,7 @@
 
   // ---- A world that remembers ----
   const world = Object.assign(
-    { klausBandage: 0, gary: 0, olivia: 0, pierreFetched: 0, paintings: [], nest: [], umbrellaFixed: false, executioner: 0 },
+    { klausBandage: 0, gary: 0, olivia: 0, pierreFetched: 0, paintings: [], nest: [], umbrellaFixed: false, executioner: 0, reginald: 0, oliviaRank: 0 },
     loadJSON("hangman-world", {})
   );
   const saveWorld = () => saveJSON("hangman-world", world);
@@ -3744,6 +3920,7 @@
     for (const t of ["beret", "baguette", "balloon"]) sc.classList.toggle("nest-" + t, world.nest.includes(t));
     sc.classList.toggle("fixedbrella", world.umbrellaFixed);
     sc.classList.remove("zapped");
+    applyRank();
     updateTally();
     game.callback = pickCallback();
   }
@@ -3780,6 +3957,8 @@
     if (world.paintings.length) options.push([["gerard", `Henri's painting of ${world.paintings[0].c} sold for three baguettes!`]]);
     if (world.executioner > 0) options.push([["klaus", "If ze executioner is late again, I am filing a complaint."]]);
     if (world.umbrellaFixed) options.push([["klaus", "I had my umbrella fixed. Let it rain!"]]);
+    if (world.reginald > 0) options.push([["margot", "I hear Sir Reginald is out of the hospital."], ["gerard", "Again?"]]);
+    if (world.oliviaRank > 0) options.push([["klaus", "*salutes Olivia* ...Nobody laugh."]]);
     if (liveStreak() > 1) options.push([["klaus", `A ${liveStreak()}-day streak! Impressive. *takes notes*`]]);
     return options.length && Math.random() < 0.75 ? pick(options) : null;
   }
@@ -4327,6 +4506,9 @@
     // Any mode: Henri comes to paint, and the squirrel comes for Klaus (once a game each at most)
     if (!game.painted && game.history.length > 2 && Math.random() < 0.08) { game.painted = true; setTimeout(painterVisit, 900); }
     if (!game.squirreled && game.history.length > 1 && Math.random() < 0.09) { game.squirreled = true; setTimeout(squirrelVisit, 1100); }
+    // Any mode: Sir Reginald comes to the rescue, and the General inspects Klaus (once a game each at most)
+    if (!game.reginald && game.history.length > 2 && document.querySelector('#scene [data-piece="head"].on') && Math.random() < odds("reginald", 0.08)) { game.reginald = true; setTimeout(reginaldVisit, 900); }
+    else if (!game.reviewed && game.history.length > 3 && Math.random() < odds("review", 0.07)) { game.reviewed = true; setTimeout(reviewVisit, 900); }
     if (Math.random() < 0.12) setTimeout(snatchOlivia, 800);
     // Ultra rare: a flying saucer
     if (!game.ufo && game.history.length > 3 && Math.random() < odds("ufo", 0.012)) { game.ufo = true; setTimeout(ufoVisit, 1200); }

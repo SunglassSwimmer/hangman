@@ -37,7 +37,8 @@ Everything lives in one file: `index.html`.
   floating away (`releaseBalloons`)
 - **Gags**: the pooping cow (Big Kid Words) is `cowPoop`; the princess who charms the swing with flowers
   (Big Kid Words) is `princessVisit` and `charmSwing`; Pip throwing a frisbee for Biscuit the dog (Big Kid Words)
-  is `frisbeeFetch`; Pierre the drunk is `drunkVisit`;  the bird's stunts (balloon, beret, baguette, Klaus's spike) are `birdMischief`; Pierre's wife is
+  is `frisbeeFetch`; Sir Reginald tripping over the gallows is `reginaldVisit` (and his rare success is `reginaldRescue`);
+  Klaus's performance review and Olivia's promotions are `reviewVisit` and `applyRank`; Pierre the drunk is `drunkVisit`;  the bird's stunts (balloon, beret, baguette, Klaus's spike) are `birdMischief`; Pierre's wife is
   `wifeFetchesPierre`; Olivia making Gary crash is `updateMiss`; the late executioner is `executionerVisit`;
   the wave is `doWave`; the ice cream truck is `iceCreamTruck`; the rain shower is `rainShower`;
   Henri the painter is `painterVisit`; the acorn-throwing squirrel is `squirrelVisit`;
