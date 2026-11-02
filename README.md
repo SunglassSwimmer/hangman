@@ -52,6 +52,10 @@ Everything lives in one file: `index.html`.
 
 ## Things that keep you coming back
 
+- **Word Zoo** (kids' levels): every word a kid solves joins their collection on the home screen, sorted by
+  theme; tap a word to hear it spelled out. Missed words come back for another try a few days later.
+  `recordKidWord`, `renderZoo`, `practiceWordFor`, `PRACTICE_AFTER_DAYS`
+
 All of this lives in the "The story so far" section of the `<script>`, and is remembered in each
 player's own browser.
 

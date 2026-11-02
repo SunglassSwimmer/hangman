@@ -464,6 +464,10 @@
   .sticker.seen { opacity: 1; border-style: solid; border-color: var(--ink); background: var(--paper); }
   .sticker.rare.seen { border-color: #e9b949; box-shadow: 0 0 0 2px #ffd166; }
   .sticker .semoji { display: block; font-size: 1.7rem; }
+  button.sticker { margin: 0; box-shadow: none; font: inherit; color: inherit; cursor: pointer; }
+  .zoopack { margin-top: 8px; }
+  .zoopack summary { cursor: pointer; font-size: 1.15rem; padding: 4px 0; }
+  .zoopack .stickers { margin: 6px 0 4px; }
   .rival { margin-bottom: 12px; }
   .rival h3 { margin: 0 0 4px; font-family: "Gochi Hand", cursive; font-weight: 400; font-size: 1.35rem; }
   .rival ul { margin: 0; padding-left: 18px; }
@@ -602,6 +606,12 @@
       <h2>🗓️ Daily Puzzle <span id="dailyNum"></span></h2>
       <p id="dailyStreak"></p>
       <div class="dailybtns" id="dailyBtns"></div>
+    </div>
+
+    <div class="card" id="zooCard">
+      <h2>🦁 Word Zoo</h2>
+      <p id="zooCount"></p>
+      <div id="zooPacks"></div>
     </div>
 
     <div class="card" id="stepMode">
@@ -1857,7 +1867,10 @@
     win:   ["Hooray! You did it!", "Best speller ever!", "Yaaay! Wunderbar!"],
     lose:  ["SPLOOSH! Good try! Let's learn this one!", "Mud bath! Let's play again!"]
   };
-  const KID_GREETINGS = ["Hello, little speller!", "Let's find the word!", "Yay, a new word!"];
+  const KID_GREETINGS = ["Hello, big speller!", "Let's find the word!", "Yay, a new word!"];
+  const RETRY_GREETINGS = ["Remember this one? Let's try again!", "This word is back for another try!", "You can get it this time!"];
+  // What the crowd says first in a kids' game (a word coming back for another try gets its own line)
+  const kidGreeting = () => pick(game.retry ? RETRY_GREETINGS : KID_GREETINGS);
   const KID_ENTRANCE = ["Flowers for our speller!", "Hooray! Here they come!", "*happy toot toot*"];
 
   const PEASANTS = ["klaus", "gerard", "margot", "pip"]; // the main crowd (everyone who can talk except the bird)
@@ -3527,7 +3540,7 @@
     // The crowd has opinions
     if (t > IN && !entrance.said[0]) {
       entrance.said[0] = true;
-      say(pick(PEASANTS), pick(game.mode.kid ? KID_GREETINGS : entrance.character.tease));
+      say(pick(PEASANTS), game.mode.kid ? kidGreeting() : pick(entrance.character.tease));
     }
     if (t > IN + 1600 && !entrance.said[1]) {
       entrance.said[1] = true;
@@ -4486,6 +4499,72 @@
   }
 
   // ---- The sticker book on the home screen ----
+  // ---------- The Word Zoo: every word a kid solves joins their collection ----------
+  // hangman-zoo:      { word: { pack, date } }   words a kid has solved in the kids' levels
+  // hangman-practice: { word: { mode, due } }    words a kid missed, and the day they come back
+  const ZOO_PACKS = { ...PACKS, friends: "💌 From Friends" };
+  const KID_WORDS = [...SOLO_WORDS.little, ...SOLO_WORDS.easy];
+  const zoo = loadJSON("hangman-zoo", {});
+  const practice = loadJSON("hangman-practice", {});
+  const PRACTICE_AFTER_DAYS = 2;
+  const kidEntry = (w) => KID_WORDS.find((e) => e.w === w);
+  const daysFromNow = (n) => localDateKey(new Date(Date.now() + n * 86400000));
+
+  // At the end of a kids' game: a solved word joins the zoo, a missed one comes back in a few days
+  function recordKidWord(won) {
+    const w = game.word, pack = game.info.pack;
+    if (!won) {
+      if (pack) { practice[w] = { mode: game.modeKey, due: daysFromNow(PRACTICE_AFTER_DAYS) }; saveJSON("hangman-practice", practice); }
+      return;
+    }
+    if (practice[w]) { delete practice[w]; saveJSON("hangman-practice", practice); }
+    if (zoo[w]) return;
+    zoo[w] = { pack: pack || "friends", date: localDateKey() };
+    saveJSON("hangman-zoo", zoo);
+    const count = Object.keys(zoo).length;
+    showToast(`New in your Word Zoo! ${game.info.pic || "💌"} ${w} (${count} ${count === 1 ? "word" : "words"})`);
+    // A whole theme collected
+    if (pack && KID_WORDS.filter((e) => e.pack === pack).every((e) => zoo[e.w])) showToast(`You collected every word in ${PACKS[pack]}! 🎉`);
+  }
+
+  // A missed word that's ready for another try (in this level), if there is one
+  function practiceWordFor(mode) {
+    const today = localDateKey();
+    const w = Object.keys(practice).find((k) => practice[k].mode === mode && practice[k].due <= today && SOLO_WORDS[mode].some((e) => e.w === k));
+    return w ? SOLO_WORDS[mode].find((e) => e.w === w) : null;
+  }
+
+  function renderZoo() {
+    const count = Object.keys(zoo).length;
+    $("zooCount").textContent = count
+      ? `${count} ${count === 1 ? "word" : "words"} collected. Tap one to hear it!`
+      : "Solve words in Big Kids or Even Bigger Kids, and they'll live here!";
+    const box = $("zooPacks");
+    box.replaceChildren();
+    for (const [pack, label] of Object.entries(ZOO_PACKS)) {
+      const words = pack === "friends"
+        ? Object.keys(zoo).filter((w) => zoo[w].pack === "friends").map((w) => ({ w, pic: "💌" }))
+        : KID_WORDS.filter((e) => e.pack === pack);
+      if (!words.length) continue;
+      const got = words.filter((e) => zoo[e.w]).length;
+      const details = document.createElement("details");
+      details.className = "zoopack";
+      details.innerHTML = `<summary></summary><div class="stickers"></div>`;
+      details.querySelector("summary").textContent = `${label} · ${got} of ${words.length}${got === words.length ? " ✅" : ""}`;
+      const grid = details.querySelector(".stickers");
+      for (const e of words) {
+        const tile = document.createElement(zoo[e.w] ? "button" : "div");
+        tile.className = "sticker" + (zoo[e.w] ? " seen" : "");
+        tile.innerHTML = '<span class="semoji"></span><span class="sname"></span>';
+        tile.querySelector(".semoji").textContent = zoo[e.w] ? e.pic : "❓";
+        tile.querySelector(".sname").textContent = zoo[e.w] ? e.w : "???";
+        if (zoo[e.w]) tile.addEventListener("click", () => speak(`${spellOut(e.w)} ${e.def || ""}`));
+        grid.appendChild(tile);
+      }
+      box.appendChild(details);
+    }
+  }
+
   function renderStickers() {
     $("stickerCount").textContent =
       `${stickersSeen.size} of ${STICKERS.length} found (rare ones glow gold). Your record: ${stats.wins} win${stats.wins === 1 ? "" : "s"} in ${stats.games} game${stats.games === 1 ? "" : "s"}.`;
@@ -4504,6 +4583,7 @@
 
   function renderHome() {
     renderDaily();
+    renderZoo();
     renderStickers();
     renderRivals();
     renderGallery();
@@ -4849,9 +4929,11 @@
   }
 
   function startSolo() {
-    const { word, hint, info } = entryToGame(selectedMode, pick(SOLO_WORDS[selectedMode]));
+    // Kids get a second go at a word they missed a few days ago
+    const retry = MODES[selectedMode].kid ? practiceWordFor(selectedMode) : null;
+    const { word, hint, info } = entryToGame(selectedMode, retry || pick(SOLO_WORDS[selectedMode]));
     history.replaceState(null, "", location.pathname + location.search);
-    startGame(word, hint, "", selectedMode, selectedChar, selectedLook, { info });
+    startGame(word, hint, "", selectedMode, selectedChar, selectedLook, { info, retry: !!retry });
   }
 
   // extra = { taunts: { win, lose }, opponent } for puzzles that came from a friend's link
@@ -4862,7 +4944,7 @@
       word, mode, character, from, guessed: new Set(), wrong: 0, over: false, won: false,
       history: [], streak: 0, bribed: false, ropeCut: false, rescue: null,
       taunts: extra.taunts || {}, opponent: extra.opponent || "", modeKey, daily: extra.daily || null,
-      info: extra.info || {}, spokenHint: hint.replace(/^(Clue|Hint|Category): /, "")
+      info: extra.info || {}, retry: !!extra.retry, spokenHint: hint.replace(/^(Clue|Hint|Category): /, "")
     };
 
     // Read-aloud button and the mode's wording (the picture clue stays hidden until halfway; see render)
@@ -4909,6 +4991,7 @@
     $("hintText").textContent = mode.hints ? hint : "";
     $("scene").dataset.mode = mode.scene || modeKey;   // prison bars and stripes in Prison Mode; the swing set for kids
     if (mode.kid && game.info.pack) $("modeText").textContent += " · " + PACKS[game.info.pack];
+    if (game.retry) $("modeText").textContent += " · 🔁 Try again";
     applyLook($("scene"), charKey, look); // who's on the rope, and how they're dressed
     $("scene").dataset.crowd = "neutral";
     $("endBox").classList.add("hidden");
@@ -4923,7 +5006,7 @@
     setTimeout(() => {
       if (game !== g || game.history.length) return;
       if (game.callback) sayCallback(game.callback);
-      else say(pick(PEASANTS), pick(mode.kid ? KID_GREETINGS : character.tease));
+      else say(pick(PEASANTS), mode.kid ? kidGreeting() : pick(character.tease));
     }, 600);
   }
 
@@ -5062,6 +5145,7 @@
     updateScore(game.won);
     recordStats(game.won);
     if (game.daily) recordDaily(game.won);
+    if (game.mode.kid) recordKidWord(game.won);
     logRival(game.opponent, { w: game.word, m: game.modeKey, r: rescue ? "rescued" : solved ? "won" : "lost" });
     endWorld();
     showWordCard();
