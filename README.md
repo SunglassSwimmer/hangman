@@ -25,19 +25,22 @@ Everything lives in one file: `index.html`.
 - **Crowd reactions** to letters, streaks and chats: `LETTER_LINES`, `STREAK_LINES`, `CHATS`
 - **Rare rescues** and how often they happen: `RESCUES`, `RESCUE_CHANCE`
 - **Endings**: `winEnding`, `loseEnding`; **bribing Klaus**: `canBribe`
-- **Difficulty modes** (and what gets drawn on each wrong guess): `MODES`
+- **Difficulty modes** (and what gets drawn on each wrong guess): `MODES`. The kids' levels are `little`
+  (Big Kids, ages 4-5) and `easy` (Even Bigger Kids, ages 6-8).
+- **Letter sounds for kids** (what the phone says when a letter is tapped): `LETTER_NAMES`, `LETTER_SOUNDS`;
+  Big Kids' smaller keyboard is `keyboardLetters`
 - **Characters** (who's on the rope, and how the crowd teases them): `CHARACTERS`, plus the
   `char-...` groups in the drawing
 - **Dress-up options** (faces, extras, shirt colors): `FACES`, `EXTRAS`, `SHIRTS`, plus the
   `face-...` and `opt-...` groups in the drawing
-- **Random words**: `SOLO_WORDS`. Words in Big Kid Words have a picture, a clue, a kid-friendly
+- **Random words**: `SOLO_WORDS`. Words in the kids' levels (Big Kids and Even Bigger Kids) have a theme (`PACKS`), a picture, a clue, a kid-friendly
   meaning and a sentence; Prison Mode words have a crossword-style clue, a definition and an origin.
 - **Kind crowd lines for kids**: `KIND_LINES`, `KID_GREETINGS`, `KID_ENTRANCE`
-- **Big Kid Words balloons and mud**: one balloon pops per wrong guess and the puddle grows (`updateBalloons`,
+- **the kids' levels balloons and mud**: one balloon pops per wrong guess and the puddle grows (`updateBalloons`,
   `BALLOON_SPOTS`); losing is a SPLOOSH into the mud (`kidLoseEnding`), winning sends the balloons
   floating away (`releaseBalloons`)
-- **Gags**: the pooping cow (Big Kid Words) is `cowPoop`; the princess who charms the swing with flowers
-  (Big Kid Words) is `princessVisit` and `charmSwing`; Pip throwing a frisbee for Biscuit the dog (Big Kid Words)
+- **Gags**: the pooping cow (the kids' levels) is `cowPoop`; the princess who charms the swing with flowers
+  (the kids' levels) is `princessVisit` and `charmSwing`; Pip throwing a frisbee for Biscuit the dog (the kids' levels)
   is `frisbeeFetch`; the sheep burying the crowd is `sheepStampede`; Pip's bubbles (tap them to pop) are `bubbleParty`;
   the duck parade is `duckParade`; Sir Reginald tripping over the gallows is `reginaldVisit` (and his rare success is `reginaldRescue`);
   Klaus's mother is `muttiVisit`; Margot's flower garden (and the cow that eats it) is `plantFlower` and `cowEatsGarden`; Margot scratching Klaus's

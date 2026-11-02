@@ -349,7 +349,7 @@
   #bird.stuck { transform-box: fill-box; transform-origin: 50% 50%; animation: stuck .25s ease-in-out infinite alternate; }
   @keyframes stuck { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
 
-  /* The cow gag (Big Kid Words): tail up, poop plops down, cow stares at the camera */
+  /* The cow gag (kids' levels): tail up, poop plops down, cow stares at the camera */
   .spectator .camface { display: none; }
   .spectator.looking .camface { display: inline; }
   .spectator.looking .sideface { display: none; }
@@ -362,7 +362,7 @@
   @keyframes sayfade { 0% { opacity: 0; } 15%, 80% { opacity: 1; } 100% { opacity: 0; } }
   @keyframes wag { to { transform: rotate(25deg); } }
 
-  /* The princess's charm and Biscuit's frisbee (Big Kid Words) */
+  /* The princess's charm and Biscuit's frisbee (kids' levels) */
   .spectator .wand { transform-box: fill-box; transform-origin: 100% 100%; transition: transform .3s; }
   .spectator.casting .wand { transform: rotate(20deg); animation: wandwiggle .25s ease-in-out .3s infinite alternate; }
   @keyframes wandwiggle { from { transform: rotate(12deg); } to { transform: rotate(28deg); } }
@@ -440,15 +440,15 @@
   .spectator.crashed .waddle { transform: rotate(-88deg); transition: transform .25s ease-in; }
   .spectator.crashed .rhelmet, .spectator.crashed .rsword, .spectator.swordless .rsword { display: none; }
 
-  /* Big Kid Words: balloons hold up the swing, and a mud puddle waits below */
-  .kballoon.popped { display: none; }
+  /* kids' levels: balloons hold up the swing, and a mud puddle waits below */
+  .kballoon.popped, .kballoon.unused { display: none; }
   #puddle { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .6s cubic-bezier(.3, 1.6, .5, 1); }
   .mudspots { display: none; }
   .scene.muddy .mudspots { display: inline; }
   .floataway { animation: floataway 3.5s ease-in forwards; }
   @keyframes floataway { to { transform: translateY(-300px); } }
 
-  /* In Big Kid Words mode the rope is a swing (no noose), and there's no halo */
+  /* In the kids' levels the rope is a swing (no noose), and there's no halo */
   .scene[data-mode="easy"] .noose, .scene[data-mode="easy"] .halo { display: none; }
 
   /* ---------- Daily puzzle, sticker book, rivalries, gallery, toasts ---------- */
@@ -607,8 +607,11 @@
     <div class="card" id="stepMode">
       <h2><span class="num">1</span> Pick your difficulty</h2>
       <div class="modes" id="modes">
+        <button class="mode" data-mode="little">
+          <span class="emoji">🌟</span><b>Big Kids</b><small>Ages 4–5: short words, picture clues, letter sounds</small>
+        </button>
         <button class="mode" data-mode="easy">
-          <span class="emoji">🌟</span><b>Big Kid Words</b><small>For big kids: picture clues, read-aloud, nothing scary</small>
+          <span class="emoji">🚀</span><b>Even Bigger Kids</b><small>Ages 6–8: longer words, read-aloud, letter sounds</small>
         </button>
         <button class="mode" data-mode="regular">
           <span class="emoji">🧢</span><b>Regular Joe</b><small>7 wrong guesses</small>
@@ -816,7 +819,7 @@
         <text id="tallyOlivia" x="26" y="179" text-anchor="middle" class="dot" style="font: 12px 'Gochi Hand', cursive">🐌 0</text>
       </g>
 
-      <!-- the gallows, in pieces (in Big Kid Words mode it's a swing set, already built) -->
+      <!-- the gallows, in pieces (in the kids' levels it's a swing set, already built) -->
       <rect class="piece wood" data-piece="base" x="12" y="198" width="112" height="13" rx="6"/>
       <g class="piece" data-piece="post">
         <rect class="wood" x="38" y="16" width="15" height="186" rx="6"/>
@@ -828,7 +831,7 @@
         <path d="M70 17 h14 M110 19 h12" stroke-width="1.5"/>
       </g>
 
-      <!-- Big Kid Words: the mud puddle under the swing (it grows with every popped balloon) -->
+      <!-- kids' levels: the mud puddle under the swing (it grows with every popped balloon) -->
       <g class="costume for-easy"><g id="puddle">
         <ellipse cx="134" cy="217" rx="44" ry="8" fill="#8b5a2b"/>
         <ellipse cx="124" cy="215" rx="15" ry="2.5" fill="#a9744a" stroke="none"/>
@@ -845,7 +848,7 @@
             <path d="M128 25 Q131 38 128 52" stroke-width="4"/>
             <ellipse cx="128" cy="57" rx="6" ry="7" stroke-width="3.5"/>
           </g>
-          <!-- in Big Kid Words mode it's a swing instead -->
+          <!-- in the kids' levels it's a swing instead -->
           <g class="costume for-easy">
             <path d="M112 25 L111 132 M144 25 L145 132" stroke-width="3"/>
             <rect x="102" y="130" width="52" height="7" rx="3" fill="#e0aa72" stroke="#1f2a6b" stroke-width="2"/>
@@ -1184,7 +1187,7 @@
           </g>
         </g>
 
-        <!-- Big Kid Words: splotches of mud after a SPLOOSH -->
+        <!-- kids' levels: splotches of mud after a SPLOOSH -->
         <g class="mudspots" fill="#8b5a2b" stroke="none">
           <circle cx="117" cy="72" r="3.2"/><circle cx="138" cy="58" r="2.6"/><circle cx="132" cy="76" r="2"/>
           <circle cx="119" cy="112" r="4.2"/><circle cx="139" cy="121" r="3.6"/><circle cx="126" cy="129" r="3"/>
@@ -1484,13 +1487,23 @@
   // "stages" = what gets drawn on each wrong guess, in order (so the number of stages = wrong guesses allowed).
   const GALLOWS = ["base", "post", "beam"];
   const MODES = {
+    // The two kids' levels: a swing set held up by balloons (one pops per wrong guess) over a mud puddle,
+    // a kind crowd, letter sounds, picture clues, nothing scary. Empty stages just pop a balloon.
+    // scene: "easy" means both levels share the same kid-friendly drawing.
+    little: {
+      // Ages 4-5: short words, the picture from the start, and only a few letters to choose from
+      name: "Big Kids", emoji: "🌟", freeLetter: true, hints: true, kid: true, scene: "easy",
+      pictureFirst: true, fewKeys: true,
+      built: [...GALLOWS, "rope"],
+      stages: [["head"], ["body"], ["larm"], ["rarm"], ["lleg"], ["rleg"]],
+      win: "Big kid now! 🎉", lose: "SPLOOSH! Let's learn this one together!"
+    },
     easy: {
-      // Kid-friendly: a swing set held up by balloons (one pops per wrong guess) over a mud puddle,
-      // a kind crowd, picture clues, nothing scary. Empty stages just pop a balloon.
-      name: "Big Kid Words", emoji: "🌟", freeLetter: true, hints: true, kid: true,
+      // Ages 6-8: longer words, the whole keyboard, and the picture clue halfway through
+      name: "Even Bigger Kids", emoji: "🚀", freeLetter: true, hints: true, kid: true, scene: "easy",
       built: [...GALLOWS, "rope"],
       stages: [["head"], ["body"], ["larm"], ["rarm"], ["lleg"], ["rleg"], [], [], [], []],
-      win: "Big kid now! 🎉", lose: "SPLOOSH! Let's learn this one together!"
+      win: "Even bigger kid now! 🎉", lose: "SPLOOSH! Let's learn this one together!"
     },
     regular: {
       name: "Regular Joe", emoji: "🧢", freeLetter: false, hints: true,
@@ -1530,48 +1543,171 @@
     return { ...CHARACTERS[key], ...((GENDER_VERSIONS[key] || {})[gender] || {}) };
   }
 
+  // The themes the kids' words belong to
+  const PACKS = {
+    animals: "🐾 Animals", ocean: "🌊 Ocean", space: "🚀 Space", dinos: "🦕 Dinosaurs",
+    food: "🍎 Food", play: "🧸 Home & Play", nature: "🌳 Nature", go: "🚗 Things That Go"
+  };
+
   // Words used in "play by yourself" mode, one list per difficulty
   const SOLO_WORDS = {
-    // For 4-8 year olds: a picture, a clue they can hear read aloud, a simple meaning and a sentence
+    // Big Kids (ages 4-5): short words, with the picture shown from the start
+    // (pack = the theme each word belongs to; see PACKS)
+    little: [
+      { w: "cat", pic: "🐱", clue: "A furry pet that says meow!", def: "A cat is a small furry animal. Lots of people keep cats as pets.", ex: "The cat curled up for a nap.", pack: "animals" },
+      { w: "dog", pic: "🐶", clue: "A pet that barks and wags its tail!", def: "A dog is an animal that barks. Dogs love to play fetch.", ex: "My dog chased the ball.", pack: "animals" },
+      { w: "cow", pic: "🐄", clue: "A big farm animal that says moo!", def: "A cow is a big farm animal. Cows give us milk.", ex: "The cow ate the green grass.", pack: "animals" },
+      { w: "pig", pic: "🐷", clue: "A pink farm animal that says oink!", def: "A pig is a farm animal with a curly tail and a round nose.", ex: "The pig rolled in the mud.", pack: "animals" },
+      { w: "duck", pic: "🦆", clue: "A bird that swims and says quack!", def: "A duck is a bird that swims in ponds and says quack.", ex: "The duck paddled across the pond.", pack: "animals" },
+      { w: "frog", pic: "🐸", clue: "A green jumper that says ribbit!", def: "A frog is a small animal that hops and lives near water.", ex: "The frog jumped onto a lily pad.", pack: "animals" },
+      { w: "fish", pic: "🐟", clue: "It swims in water and has fins!", def: "A fish lives in water and breathes through gills.", ex: "A shiny fish swam past the boat.", pack: "ocean" },
+      { w: "bee", pic: "🐝", clue: "A buzzy bug that makes honey!", def: "A bee is a flying insect that buzzes and makes honey.", ex: "The bee buzzed around the flower.", pack: "animals" },
+      { w: "owl", pic: "🦉", clue: "A bird that says hoo and stays up all night!", def: "An owl is a bird with big eyes that is awake at night.", ex: "The owl hooted in the dark.", pack: "animals" },
+      { w: "bear", pic: "🐻", clue: "A big furry animal that loves honey!", def: "A bear is a large, strong animal with thick fur.", ex: "The bear slept all winter long.", pack: "animals" },
+      { w: "lion", pic: "🦁", clue: "The king of the jungle! ROAR!", def: "A lion is a big wild cat. Boy lions have a fluffy mane.", ex: "The lion gave a mighty roar.", pack: "animals" },
+      { w: "cake", pic: "🎂", clue: "A sweet treat with candles on your birthday!", def: "A cake is a sweet baked treat, often eaten at parties.", ex: "We sang and cut the birthday cake.", pack: "food" },
+      { w: "egg", pic: "🥚", clue: "Chickens lay these!", def: "An egg has a shell. Baby birds hatch out of eggs, and we can cook them too.", ex: "He cracked an egg into the bowl.", pack: "food" },
+      { w: "milk", pic: "🥛", clue: "A white drink that comes from cows!", def: "Milk is a white drink that helps build strong bones.", ex: "I poured milk on my cereal.", pack: "food" },
+      { w: "sun", pic: "☀️", clue: "It shines in the sky during the day!", def: "The sun is a giant star that gives us light and keeps us warm.", ex: "The sun came up in the morning.", pack: "space" },
+      { w: "moon", pic: "🌙", clue: "It glows in the night sky!", def: "The moon goes around the Earth and shines at night.", ex: "We saw a big round moon tonight.", pack: "space" },
+      { w: "star", pic: "⭐", clue: "It twinkles in the night sky!", def: "A star is a giant ball of hot gas, very far away in space.", ex: "I made a wish on a star.", pack: "space" },
+      { w: "tree", pic: "🌳", clue: "It has a trunk, branches and leaves!", def: "A tree is a tall plant with a wooden trunk and branches.", ex: "A bird built a nest in the tree.", pack: "nature" },
+      { w: "rain", pic: "🌧️", clue: "Water that falls from the clouds!", def: "Rain is water that falls from clouds in the sky.", ex: "We splashed in the rain puddles.", pack: "nature" },
+      { w: "snow", pic: "❄️", clue: "Cold, white and fluffy. It falls in winter!", def: "Snow is frozen water that falls from the clouds when it is very cold.", ex: "We built a snowman in the snow.", pack: "nature" },
+      { w: "ball", pic: "⚽", clue: "You can kick it, throw it and bounce it!", def: "A ball is a round toy used in lots of games.", ex: "Kick the ball to me!", pack: "play" },
+      { w: "kite", pic: "🪁", clue: "It flies in the wind on a long string!", def: "A kite is a toy that flies high in the wind on a string.", ex: "Our kite flew higher than the trees.", pack: "play" },
+      { w: "book", pic: "📖", clue: "It has pages and stories inside!", def: "A book has pages with words and pictures to read.", ex: "Dad read me a book at bedtime.", pack: "play" },
+      { w: "sock", pic: "🧦", clue: "You wear it on your foot, inside your shoe!", def: "A sock is something soft you wear on your foot.", ex: "I lost one sock in the wash!", pack: "play" },
+      { w: "bus", pic: "🚌", clue: "A big vehicle that takes kids to school!", def: "A bus is a big vehicle that carries lots of people.", ex: "We rode the bus to school.", pack: "go" },
+      { w: "boat", pic: "⛵", clue: "It floats on the water!", def: "A boat floats and carries people across the water.", ex: "The boat sailed across the lake.", pack: "go" },
+      { w: "ant", pic: "🐜", clue: "A tiny bug that marches in a line!", def: "An ant is a tiny insect. Ants live together in big groups.", ex: "An ant carried a crumb home.", pack: "animals" },
+      { w: "bat", pic: "🦇", clue: "It sleeps upside down and flies at night!", def: "A bat is an animal with wings that flies at night.", ex: "The bat hung upside down in the cave.", pack: "animals" },
+      { w: "fox", pic: "🦊", clue: "An orange animal with a big bushy tail!", def: "A fox is a wild animal with orange fur and a fluffy tail.", ex: "The fox tiptoed through the woods.", pack: "animals" },
+      { w: "hen", pic: "🐔", clue: "A mommy chicken that lays eggs!", def: "A hen is a girl chicken. Hens lay eggs.", ex: "The hen sat on her eggs.", pack: "animals" },
+      { w: "goat", pic: "🐐", clue: "A farm animal with horns that says maa!", def: "A goat is a farm animal with horns and a little beard.", ex: "The goat climbed up the hill.", pack: "animals" },
+      { w: "deer", pic: "🦌", clue: "A forest animal with antlers!", def: "A deer is a gentle forest animal. Boy deer grow antlers.", ex: "A deer drank from the stream.", pack: "animals" },
+      { w: "bug", pic: "🐛", clue: "A creepy-crawly with lots of legs!", def: "A bug is a small creature, like a beetle or a caterpillar.", ex: "A little bug crawled up the leaf.", pack: "animals" },
+      { w: "bird", pic: "🐦", clue: "It has feathers and wings, and it sings!", def: "A bird is an animal with feathers and wings. Most birds can fly.", ex: "A bird sang outside my window.", pack: "animals" },
+      { w: "lamb", pic: "🐑", clue: "A baby sheep!", def: "A lamb is a baby sheep with soft, curly wool.", ex: "The lamb followed its mother.", pack: "animals" },
+      { w: "crab", pic: "🦀", clue: "It walks sideways on the beach!", def: "A crab has a hard shell and two big pinching claws.", ex: "A crab scuttled across the sand.", pack: "ocean" },
+      { w: "seal", pic: "🦭", clue: "A slippery swimmer that claps its flippers!", def: "A seal is an animal that swims in the sea and rests on rocks.", ex: "The seal flopped onto the rock.", pack: "ocean" },
+      { w: "wave", pic: "🌊", clue: "Water that splashes onto the beach!", def: "A wave is water that rises up and rolls across the sea.", ex: "A big wave knocked down my sandcastle.", pack: "ocean" },
+      { w: "ship", pic: "🚢", clue: "A giant boat that sails the sea!", def: "A ship is a very big boat that carries people or things.", ex: "The ship sailed far away.", pack: "ocean" },
+      { w: "ufo", pic: "🛸", clue: "A flying saucer from outer space!", def: "UFO stands for a flying object nobody can explain, like a flying saucer.", ex: "The alien waved from its UFO.", pack: "space" },
+      { w: "sky", pic: "🌤️", clue: "It's blue, and clouds float in it!", def: "The sky is the space above us where the sun and clouds are.", ex: "The sky was bright and blue.", pack: "space" },
+      { w: "dino", pic: "🦕", clue: "A short name for a giant animal from long ago!", def: "Dino is a short word for dinosaur, an animal from long, long ago.", ex: "My toy dino has a long neck.", pack: "dinos" },
+      { w: "bone", pic: "🦴", clue: "Dogs love to chew on these!", def: "A bone is a hard part inside a body. Dinosaur bones turn into fossils.", ex: "The dog buried a bone in the yard.", pack: "dinos" },
+      { w: "roar", pic: "🦖", clue: "The loud sound a dinosaur makes!", def: "A roar is a big, loud sound, like a lion or a dinosaur makes.", ex: "The T. rex let out a giant roar.", pack: "dinos" },
+      { w: "lava", pic: "🌋", clue: "Red-hot melted rock from a volcano!", def: "Lava is melted rock that is so hot it glows and flows.", ex: "Lava poured down the volcano.", pack: "dinos" },
+      { w: "pie", pic: "🥧", clue: "A baked treat with a crust and fruit inside!", def: "A pie is a baked food with a crust, filled with fruit or other yummy things.", ex: "Grandma baked an apple pie.", pack: "food" },
+      { w: "corn", pic: "🌽", clue: "Yellow and bumpy. It grows on a cob!", def: "Corn is a plant with yellow kernels that grow on a cob.", ex: "We ate corn at the picnic.", pack: "food" },
+      { w: "pear", pic: "🍐", clue: "A green fruit shaped like a light bulb!", def: "A pear is a sweet, juicy fruit that is round at the bottom.", ex: "I took a bite of a juicy pear.", pack: "food" },
+      { w: "rice", pic: "🍚", clue: "Tiny white grains you eat from a bowl!", def: "Rice is tiny grains that grow in wet fields. We cook and eat them.", ex: "We had rice with dinner.", pack: "food" },
+      { w: "soup", pic: "🍲", clue: "A warm food you eat with a spoon!", def: "Soup is a hot, watery food made with vegetables or noodles.", ex: "Mom made soup on a rainy day.", pack: "food" },
+      { w: "taco", pic: "🌮", clue: "A crunchy shell filled with yummy stuff!", def: "A taco is a folded tortilla filled with meat, beans or veggies.", ex: "Tuesday is taco night!", pack: "food" },
+      { w: "kiwi", pic: "🥝", clue: "A fuzzy brown fruit that's green inside!", def: "A kiwi is a small fruit with fuzzy skin and green, juicy insides.", ex: "I scooped out my kiwi with a spoon.", pack: "food" },
+      { w: "bed", pic: "🛏️", clue: "You sleep in it every night!", def: "A bed is a soft place where you lie down to sleep.", ex: "I jumped into bed with my teddy.", pack: "play" },
+      { w: "hat", pic: "🎩", clue: "You wear it on your head!", def: "A hat is something you wear on your head.", ex: "The wizard wore a tall hat.", pack: "play" },
+      { w: "key", pic: "🔑", clue: "It opens a lock!", def: "A key is a small metal tool that opens a lock.", ex: "Dad used his key to open the door.", pack: "play" },
+      { w: "toy", pic: "🧸", clue: "Something fun to play with!", def: "A toy is something children play with, like a doll or a ball.", ex: "I shared my toy with my friend.", pack: "play" },
+      { w: "door", pic: "🚪", clue: "You open it to go into a room!", def: "A door is what you open and close to go in and out.", ex: "Please shut the door.", pack: "play" },
+      { w: "drum", pic: "🥁", clue: "Bang it to make music! Boom, boom!", def: "A drum is an instrument you hit to make a beat.", ex: "He played the drum in the parade.", pack: "play" },
+      { w: "bell", pic: "🔔", clue: "It goes ding-dong!", def: "A bell is a metal thing that rings when you shake or hit it.", ex: "The school bell rang.", pack: "play" },
+      { w: "shoe", pic: "👟", clue: "You wear it on your foot to go outside!", def: "A shoe is something you wear on your foot to keep it safe.", ex: "I tied my shoe all by myself.", pack: "play" },
+      { w: "gift", pic: "🎁", clue: "A surprise wrapped in a bow!", def: "A gift is a present you give someone.", ex: "I made a gift for my teacher.", pack: "play" },
+      { w: "box", pic: "📦", clue: "You can put things inside it!", def: "A box is a container with flat sides that holds things.", ex: "The cat sat in the empty box.", pack: "play" },
+      { w: "leaf", pic: "🍃", clue: "It grows on a tree and falls in autumn!", def: "A leaf is the flat green part of a plant.", ex: "A red leaf floated down.", pack: "nature" },
+      { w: "fire", pic: "🔥", clue: "It's hot and bright! Don't touch!", def: "Fire is the hot, bright flames you see when something burns.", ex: "We roasted marshmallows over the fire.", pack: "nature" },
+      { w: "car", pic: "🚗", clue: "It has four wheels and goes vroom!", def: "A car is a vehicle with four wheels that people drive.", ex: "We drove to the park in our car.", pack: "go" },
+      { w: "bike", pic: "🚲", clue: "It has two wheels, and you pedal it!", def: "A bike has two wheels. You push the pedals to make it go.", ex: "I rode my bike down the hill.", pack: "go" }
+    ],
+    // Even Bigger Kids (ages 6-8): longer words; the picture clue shows up halfway
     easy: [
-      { w: "cat", pic: "🐱", clue: "A furry pet that says meow!", def: "A cat is a small furry animal. Lots of people keep cats as pets.", ex: "The cat curled up for a nap." },
-      { w: "dog", pic: "🐶", clue: "A pet that barks and wags its tail!", def: "A dog is an animal that barks. Dogs love to play fetch.", ex: "My dog chased the ball." },
-      { w: "cow", pic: "🐄", clue: "A big farm animal that says moo!", def: "A cow is a big farm animal. Cows give us milk.", ex: "The cow ate the green grass." },
-      { w: "pig", pic: "🐷", clue: "A pink farm animal that says oink!", def: "A pig is a farm animal with a curly tail and a round nose.", ex: "The pig rolled in the mud." },
-      { w: "duck", pic: "🦆", clue: "A bird that swims and says quack!", def: "A duck is a bird that swims in ponds and says quack.", ex: "The duck paddled across the pond." },
-      { w: "frog", pic: "🐸", clue: "A green jumper that says ribbit!", def: "A frog is a small animal that hops and lives near water.", ex: "The frog jumped onto a lily pad." },
-      { w: "fish", pic: "🐟", clue: "It swims in water and has fins!", def: "A fish lives in water and breathes through gills.", ex: "A shiny fish swam past the boat." },
-      { w: "bee", pic: "🐝", clue: "A buzzy bug that makes honey!", def: "A bee is a flying insect that buzzes and makes honey.", ex: "The bee buzzed around the flower." },
-      { w: "owl", pic: "🦉", clue: "A bird that says hoo and stays up all night!", def: "An owl is a bird with big eyes that is awake at night.", ex: "The owl hooted in the dark." },
-      { w: "bear", pic: "🐻", clue: "A big furry animal that loves honey!", def: "A bear is a large, strong animal with thick fur.", ex: "The bear slept all winter long." },
-      { w: "lion", pic: "🦁", clue: "The king of the jungle! ROAR!", def: "A lion is a big wild cat. Boy lions have a fluffy mane.", ex: "The lion gave a mighty roar." },
-      { w: "horse", pic: "🐴", clue: "You can ride it, and it says neigh!", def: "A horse is a big animal with a long mane that people can ride.", ex: "The horse galloped across the field." },
-      { w: "turtle", pic: "🐢", clue: "It carries its house on its back!", def: "A turtle is an animal with a hard shell that keeps it safe.", ex: "The turtle tucked its head into its shell." },
-      { w: "apple", pic: "🍎", clue: "A crunchy fruit that grows on trees!", def: "An apple is a round fruit. It can be red, green or yellow.", ex: "I packed an apple for lunch." },
-      { w: "banana", pic: "🍌", clue: "A long yellow fruit that monkeys love!", def: "A banana is a long fruit with a yellow peel.", ex: "She peeled a banana for a snack." },
-      { w: "cake", pic: "🎂", clue: "A sweet treat with candles on your birthday!", def: "A cake is a sweet baked treat, often eaten at parties.", ex: "We sang and cut the birthday cake." },
-      { w: "pizza", pic: "🍕", clue: "A cheesy food cut into slices!", def: "Pizza is flat bread with sauce and cheese on top, baked in an oven.", ex: "We shared a pizza for dinner." },
-      { w: "egg", pic: "🥚", clue: "Chickens lay these!", def: "An egg has a shell. Baby birds hatch out of eggs, and we can cook them too.", ex: "He cracked an egg into the bowl." },
-      { w: "milk", pic: "🥛", clue: "A white drink that comes from cows!", def: "Milk is a white drink that helps build strong bones.", ex: "I poured milk on my cereal." },
-      { w: "sun", pic: "☀️", clue: "It shines in the sky during the day!", def: "The sun is a giant star that gives us light and keeps us warm.", ex: "The sun came up in the morning." },
-      { w: "moon", pic: "🌙", clue: "It glows in the night sky!", def: "The moon goes around the Earth and shines at night.", ex: "We saw a big round moon tonight." },
-      { w: "star", pic: "⭐", clue: "It twinkles in the night sky!", def: "A star is a giant ball of hot gas, very far away in space.", ex: "I made a wish on a star." },
-      { w: "tree", pic: "🌳", clue: "It has a trunk, branches and leaves!", def: "A tree is a tall plant with a wooden trunk and branches.", ex: "A bird built a nest in the tree." },
-      { w: "rain", pic: "🌧️", clue: "Water that falls from the clouds!", def: "Rain is water that falls from clouds in the sky.", ex: "We splashed in the rain puddles." },
-      { w: "snow", pic: "❄️", clue: "Cold, white and fluffy. Build a snowman!", def: "Snow is frozen water that falls from the clouds when it is very cold.", ex: "We built a snowman in the snow." },
-      { w: "rainbow", pic: "🌈", clue: "Lots of colors in the sky after the rain!", def: "A rainbow is a curve of colors you see when sunlight shines through rain.", ex: "A rainbow stretched across the sky." },
-      { w: "ball", pic: "⚽", clue: "You can kick it, throw it and bounce it!", def: "A ball is a round toy used in lots of games.", ex: "Kick the ball to me!" },
-      { w: "kite", pic: "🪁", clue: "It flies in the wind on a long string!", def: "A kite is a toy that flies high in the wind on a string.", ex: "Our kite flew higher than the trees." },
-      { w: "book", pic: "📖", clue: "It has pages and stories inside!", def: "A book has pages with words and pictures to read.", ex: "Dad read me a book at bedtime." },
-      { w: "sock", pic: "🧦", clue: "You wear it on your foot, inside your shoe!", def: "A sock is something soft you wear on your foot.", ex: "I lost one sock in the wash!" },
-      { w: "bus", pic: "🚌", clue: "A big vehicle that takes kids to school!", def: "A bus is a big vehicle that carries lots of people.", ex: "We rode the bus to school." },
-      { w: "boat", pic: "⛵", clue: "It floats on the water!", def: "A boat floats and carries people across the water.", ex: "The boat sailed across the lake." },
-      { w: "train", pic: "🚂", clue: "It goes choo-choo on the tracks!", def: "A train is a line of cars that rolls along on tracks.", ex: "The train whistled at the station." },
-      { w: "rocket", pic: "🚀", clue: "It blasts off into space!", def: "A rocket is a vehicle that blasts off into outer space.", ex: "Three, two, one... the rocket blasted off!" },
-      { w: "robot", pic: "🤖", clue: "A machine that can move and help!", def: "A robot is a machine that can do jobs all by itself.", ex: "The robot swept the floor." },
-      { w: "dragon", pic: "🐉", clue: "A make-believe creature that breathes fire!", def: "A dragon is a make-believe creature with wings that breathes fire.", ex: "The dragon guarded its treasure." },
-      { w: "house", pic: "🏠", clue: "A building where a family lives!", def: "A house is a building where people live.", ex: "Our house has a red door." },
-      { w: "clock", pic: "⏰", clue: "It tells you what time it is!", def: "A clock is a machine that shows the time.", ex: "The clock says it's time for bed." }
+      { w: "horse", pic: "🐴", clue: "You can ride it, and it says neigh!", def: "A horse is a big animal with a long mane that people can ride.", ex: "The horse galloped across the field.", pack: "animals" },
+      { w: "turtle", pic: "🐢", clue: "It carries its house on its back!", def: "A turtle is an animal with a hard shell that keeps it safe.", ex: "The turtle tucked its head into its shell.", pack: "ocean" },
+      { w: "apple", pic: "🍎", clue: "A crunchy fruit that grows on trees!", def: "An apple is a round fruit. It can be red, green or yellow.", ex: "I packed an apple for lunch.", pack: "food" },
+      { w: "banana", pic: "🍌", clue: "A long yellow fruit that monkeys love!", def: "A banana is a long fruit with a yellow peel.", ex: "She peeled a banana for a snack.", pack: "food" },
+      { w: "pizza", pic: "🍕", clue: "A cheesy food cut into slices!", def: "Pizza is flat bread with sauce and cheese on top, baked in an oven.", ex: "We shared a pizza for dinner.", pack: "food" },
+      { w: "rainbow", pic: "🌈", clue: "Lots of colors in the sky after the rain!", def: "A rainbow is a curve of colors you see when sunlight shines through rain.", ex: "A rainbow stretched across the sky.", pack: "nature" },
+      { w: "train", pic: "🚂", clue: "It goes choo-choo on the tracks!", def: "A train is a line of cars that rolls along on tracks.", ex: "The train whistled at the station.", pack: "go" },
+      { w: "rocket", pic: "🚀", clue: "It blasts off into space!", def: "A rocket is a vehicle that blasts off into outer space.", ex: "Three, two, one... the rocket blasted off!", pack: "space" },
+      { w: "robot", pic: "🤖", clue: "A machine that can move and help!", def: "A robot is a machine that can do jobs all by itself.", ex: "The robot swept the floor.", pack: "play" },
+      { w: "dragon", pic: "🐉", clue: "A make-believe creature that breathes fire!", def: "A dragon is a make-believe creature with wings that breathes fire.", ex: "The dragon guarded its treasure.", pack: "play" },
+      { w: "house", pic: "🏠", clue: "A building where a family lives!", def: "A house is a building where people live.", ex: "Our house has a red door.", pack: "play" },
+      { w: "clock", pic: "⏰", clue: "It tells you what time it is!", def: "A clock is a machine that shows the time.", ex: "The clock says it's time for bed.", pack: "play" },
+      { w: "zebra", pic: "🦓", clue: "A horse with black and white stripes!", def: "A zebra is a wild animal from Africa with black and white stripes.", ex: "The zebra ran across the grassland.", pack: "animals" },
+      { w: "tiger", pic: "🐯", clue: "A big orange cat with black stripes!", def: "A tiger is the biggest wild cat. It has orange fur and black stripes.", ex: "The tiger crept through the tall grass.", pack: "animals" },
+      { w: "monkey", pic: "🐵", clue: "It swings from trees and loves bananas!", def: "A monkey is a clever animal that climbs trees and swings on branches.", ex: "The monkey swung from vine to vine.", pack: "animals" },
+      { w: "rabbit", pic: "🐰", clue: "It has long ears and hops around!", def: "A rabbit is a small, furry animal with long ears and a fluffy tail.", ex: "The rabbit nibbled a carrot.", pack: "animals" },
+      { w: "panda", pic: "🐼", clue: "A black and white bear that eats bamboo!", def: "A panda is a black and white bear from China that munches bamboo.", ex: "The panda rolled in the grass.", pack: "animals" },
+      { w: "koala", pic: "🐨", clue: "A sleepy, cuddly animal from Australia!", def: "A koala lives in trees in Australia and sleeps most of the day.", ex: "The koala hugged the tree branch.", pack: "animals" },
+      { w: "camel", pic: "🐫", clue: "It has humps and lives in the desert!", def: "A camel is a desert animal with one or two humps on its back.", ex: "The camel walked across the sand.", pack: "animals" },
+      { w: "snake", pic: "🐍", clue: "A long animal with no legs that goes hiss!", def: "A snake is a long animal with no legs. It slides along the ground.", ex: "The snake slithered under a rock.", pack: "animals" },
+      { w: "spider", pic: "🕷️", clue: "It has eight legs and spins a web!", def: "A spider is a small creature with eight legs that spins sticky webs.", ex: "A spider spun a web in the corner.", pack: "animals" },
+      { w: "mouse", pic: "🐭", clue: "A tiny animal that squeaks and loves cheese!", def: "A mouse is a tiny animal with a long tail and round ears.", ex: "The mouse scurried into its hole.", pack: "animals" },
+      { w: "sheep", pic: "🐑", clue: "A farm animal with fluffy wool that says baa!", def: "A sheep is a farm animal covered in soft wool.", ex: "The sheep munched on the grass.", pack: "animals" },
+      { w: "parrot", pic: "🦜", clue: "A colorful bird that can copy what you say!", def: "A parrot is a bright, colorful bird. Some parrots can copy words.", ex: "The parrot said hello!", pack: "animals" },
+      { w: "elephant", pic: "🐘", clue: "A huge gray animal with a long trunk!", def: "An elephant is the biggest land animal. It has a long trunk and big ears.", ex: "The elephant sprayed water with its trunk.", pack: "animals" },
+      { w: "squirrel", pic: "🐿️", clue: "It has a bushy tail and loves nuts!", def: "A squirrel is a small animal with a bushy tail that climbs trees.", ex: "The squirrel hid an acorn.", pack: "animals" },
+      { w: "unicorn", pic: "🦄", clue: "A make-believe horse with a horn!", def: "A unicorn is a make-believe horse with one horn on its head.", ex: "The unicorn galloped over a rainbow.", pack: "animals" },
+      { w: "whale", pic: "🐳", clue: "The biggest animal in the ocean!", def: "A whale is a huge animal that lives in the ocean and breathes air.", ex: "The whale sprayed water from its blowhole.", pack: "ocean" },
+      { w: "shark", pic: "🦈", clue: "A fish with a fin and lots of sharp teeth!", def: "A shark is a big fish with a fin on its back and sharp teeth.", ex: "The shark swam deep in the sea.", pack: "ocean" },
+      { w: "dolphin", pic: "🐬", clue: "A smart, playful swimmer that loves to jump!", def: "A dolphin is a clever sea animal that loves to leap and play.", ex: "The dolphin jumped over the waves.", pack: "ocean" },
+      { w: "seashell", pic: "🐚", clue: "You can find one on the beach!", def: "A seashell is the hard shell left behind by a sea creature.", ex: "I held a seashell up to my ear.", pack: "ocean" },
+      { w: "pirate", pic: "🏴‍☠️", clue: "A sailor who hunts for treasure! Arrr!", def: "A pirate is a sailor from stories who hunts for treasure.", ex: "The pirate found a treasure chest.", pack: "ocean" },
+      { w: "island", pic: "🏝️", clue: "Land with water all around it!", def: "An island is a piece of land with water all around it.", ex: "We sailed to a tiny island.", pack: "ocean" },
+      { w: "anchor", pic: "⚓", clue: "A heavy hook that keeps a boat still!", def: "An anchor is a heavy hook that drops to the sea floor to hold a boat in place.", ex: "The sailors dropped the anchor.", pack: "ocean" },
+      { w: "beach", pic: "🏖️", clue: "Sand, sun and waves!", def: "A beach is the sandy land next to the sea.", ex: "We built a sandcastle at the beach.", pack: "ocean" },
+      { w: "lobster", pic: "🦞", clue: "A red sea creature with big claws!", def: "A lobster lives on the sea floor and has big claws and a hard shell.", ex: "The lobster snapped its claws.", pack: "ocean" },
+      { w: "planet", pic: "🪐", clue: "Earth is one of these!", def: "A planet is a giant ball in space that goes around a star.", ex: "Mars is a red planet.", pack: "space" },
+      { w: "comet", pic: "☄️", clue: "A space snowball with a long, glowing tail!", def: "A comet is a ball of ice and dust in space with a glowing tail.", ex: "We saw a comet streak across the sky.", pack: "space" },
+      { w: "alien", pic: "👽", clue: "A make-believe visitor from another planet!", def: "An alien is a creature from another planet, like in stories.", ex: "The friendly alien said hello.", pack: "space" },
+      { w: "earth", pic: "🌍", clue: "The planet we live on!", def: "Earth is our home planet. It has land, oceans and air.", ex: "Earth is the only planet with people.", pack: "space" },
+      { w: "galaxy", pic: "🌌", clue: "A giant swirl of billions of stars!", def: "A galaxy is a huge group of stars. Our galaxy is called the Milky Way.", ex: "Our sun is one star in the galaxy.", pack: "space" },
+      { w: "saturn", pic: "🪐", clue: "The planet with beautiful rings!", def: "Saturn is a giant planet with rings made of ice and rock.", ex: "Saturn's rings shine in the telescope.", pack: "space" },
+      { w: "dinosaur", pic: "🦕", clue: "A giant animal that lived long, long ago!", def: "A dinosaur is an animal that lived millions of years ago.", ex: "The museum has a huge dinosaur skeleton.", pack: "dinos" },
+      { w: "fossil", pic: "🦴", clue: "Old bones turned to stone!", def: "A fossil is what's left of a plant or animal from long ago, turned to stone.", ex: "We found a fossil in the rock.", pack: "dinos" },
+      { w: "raptor", pic: "🦖", clue: "A fast dinosaur with sharp claws!", def: "A raptor is a quick dinosaur that ran on two legs.", ex: "The raptor ran through the forest.", pack: "dinos" },
+      { w: "jungle", pic: "🌴", clue: "A hot, green forest full of animals!", def: "A jungle is a thick, warm forest full of plants and animals.", ex: "We heard monkeys in the jungle.", pack: "dinos" },
+      { w: "swamp", pic: "🐊", clue: "A muddy, wet place where crocodiles hide!", def: "A swamp is wet, muddy land with lots of plants.", ex: "A crocodile swam in the swamp.", pack: "dinos" },
+      { w: "grapes", pic: "🍇", clue: "Little round fruits that grow in bunches!", def: "Grapes are small, juicy fruits that grow in bunches.", ex: "I ate a bunch of purple grapes.", pack: "food" },
+      { w: "orange", pic: "🍊", clue: "A round fruit that's also a color!", def: "An orange is a juicy fruit with a peel. It is also a color!", ex: "I squeezed an orange for juice.", pack: "food" },
+      { w: "lemon", pic: "🍋", clue: "A yellow fruit that tastes super sour!", def: "A lemon is a yellow fruit that tastes very sour.", ex: "We made lemonade with a lemon.", pack: "food" },
+      { w: "cookie", pic: "🍪", clue: "A sweet treat, sometimes with chocolate chips!", def: "A cookie is a small, sweet baked treat.", ex: "I dunked my cookie in milk.", pack: "food" },
+      { w: "donut", pic: "🍩", clue: "A sweet treat with a hole in the middle!", def: "A donut is a round, sweet treat with a hole in the middle.", ex: "My donut had sprinkles on top.", pack: "food" },
+      { w: "cheese", pic: "🧀", clue: "Mice love it! Made from milk!", def: "Cheese is a food made from milk.", ex: "I put cheese on my sandwich.", pack: "food" },
+      { w: "carrot", pic: "🥕", clue: "An orange vegetable that bunnies love!", def: "A carrot is a long, orange vegetable that grows under the ground.", ex: "The rabbit crunched a carrot.", pack: "food" },
+      { w: "cherry", pic: "🍒", clue: "A little red fruit with a stem!", def: "A cherry is a small, round red fruit with a pit inside.", ex: "I put a cherry on top of my sundae.", pack: "food" },
+      { w: "popcorn", pic: "🍿", clue: "A snack that goes pop! Great at the movies!", def: "Popcorn is corn that puffs up and pops when it gets hot.", ex: "We ate popcorn at the movies.", pack: "food" },
+      { w: "waffle", pic: "🧇", clue: "A breakfast treat with little squares!", def: "A waffle is a crispy breakfast food with a pattern of squares.", ex: "I poured syrup on my waffle.", pack: "food" },
+      { w: "burger", pic: "🍔", clue: "A sandwich with a patty in a round bun!", def: "A burger is a round patty served in a bun.", ex: "Dad grilled a burger for me.", pack: "food" },
+      { w: "sandwich", pic: "🥪", clue: "Two slices of bread with yummy stuff between!", def: "A sandwich is food between two slices of bread.", ex: "I packed a sandwich for lunch.", pack: "food" },
+      { w: "cupcake", pic: "🧁", clue: "A tiny cake with frosting on top!", def: "A cupcake is a small cake baked in a paper cup.", ex: "We had cupcakes at my party.", pack: "food" },
+      { w: "candy", pic: "🍬", clue: "A sugary sweet treat!", def: "Candy is a sweet treat made with sugar.", ex: "I saved one candy for later.", pack: "food" },
+      { w: "peach", pic: "🍑", clue: "A fuzzy, sweet fruit with a big pit!", def: "A peach is a soft, sweet fruit with fuzzy skin.", ex: "The peach was so juicy!", pack: "food" },
+      { w: "tomato", pic: "🍅", clue: "A red fruit that's used to make ketchup!", def: "A tomato is a juicy red fruit used in sauces and salads.", ex: "We picked a tomato from the garden.", pack: "food" },
+      { w: "puzzle", pic: "🧩", clue: "Lots of pieces that fit together!", def: "A puzzle is a game where you fit pieces together to make a picture.", ex: "We finished the puzzle together.", pack: "play" },
+      { w: "piano", pic: "🎹", clue: "An instrument with black and white keys!", def: "A piano is a big instrument with black and white keys.", ex: "She played a song on the piano.", pack: "play" },
+      { w: "crayon", pic: "🖍️", clue: "A colorful stick you draw with!", def: "A crayon is a stick of colored wax for drawing.", ex: "I drew a cat with a blue crayon.", pack: "play" },
+      { w: "balloon", pic: "🎈", clue: "Blow it up and it floats! Don't let it pop!", def: "A balloon is a stretchy bag you fill with air or gas.", ex: "My balloon floated up to the ceiling.", pack: "play" },
+      { w: "camera", pic: "📷", clue: "Say cheese! It takes pictures!", def: "A camera is a machine that takes photos.", ex: "Grandpa took my picture with his camera.", pack: "play" },
+      { w: "candle", pic: "🕯️", clue: "Blow it out on your birthday cake!", def: "A candle is a stick of wax with a string that burns to make light.", ex: "I blew out every candle on my cake.", pack: "play" },
+      { w: "basket", pic: "🧺", clue: "You carry things in it, like a picnic!", def: "A basket is a container, often woven, for carrying things.", ex: "We packed a picnic basket.", pack: "play" },
+      { w: "window", pic: "🪟", clue: "Glass you look through to see outside!", def: "A window is an opening with glass that lets in light.", ex: "I watched the rain through the window.", pack: "play" },
+      { w: "glasses", pic: "👓", clue: "You wear them to help you see!", def: "Glasses are lenses you wear over your eyes to help you see.", ex: "Grandma put on her glasses to read.", pack: "play" },
+      { w: "scissors", pic: "✂️", clue: "You use them to cut paper! Snip, snip!", def: "Scissors are a tool with two blades for cutting.", ex: "I cut out a paper heart with scissors.", pack: "play" },
+      { w: "castle", pic: "🏰", clue: "Where kings and queens live!", def: "A castle is a big stone building with towers, where royalty lived.", ex: "The princess waved from the castle.", pack: "play" },
+      { w: "crown", pic: "👑", clue: "A king or queen wears this on their head!", def: "A crown is a special hat made of gold that kings and queens wear.", ex: "The king's crown sparkled.", pack: "play" },
+      { w: "wizard", pic: "🧙", clue: "Someone in stories who does magic!", def: "A wizard is a person in stories who can do magic.", ex: "The wizard waved his magic wand.", pack: "play" },
+      { w: "flower", pic: "🌸", clue: "A pretty plant that bees love to visit!", def: "A flower is the colorful part of a plant.", ex: "I picked a flower for Mom.", pack: "nature" },
+      { w: "cloud", pic: "☁️", clue: "Fluffy and white, it floats in the sky!", def: "A cloud is made of tiny drops of water floating in the sky.", ex: "That cloud looks like a bunny!", pack: "nature" },
+      { w: "mountain", pic: "⛰️", clue: "A very, very tall hill!", def: "A mountain is a huge hill that reaches high into the sky.", ex: "There was snow on top of the mountain.", pack: "nature" },
+      { w: "forest", pic: "🌲", clue: "A place with lots and lots of trees!", def: "A forest is a big area full of trees.", ex: "We went for a walk in the forest.", pack: "nature" },
+      { w: "storm", pic: "⛈️", clue: "Rain, wind, thunder and lightning!", def: "A storm is bad weather with strong wind, rain and sometimes thunder.", ex: "We stayed inside during the storm.", pack: "nature" },
+      { w: "pumpkin", pic: "🎃", clue: "A big orange vegetable you carve on Halloween!", def: "A pumpkin is a big, round orange vegetable that grows on a vine.", ex: "We carved a funny face in our pumpkin.", pack: "nature" },
+      { w: "truck", pic: "🚚", clue: "A big vehicle that carries heavy things!", def: "A truck is a big vehicle that carries heavy loads.", ex: "The truck delivered a big box.", pack: "go" },
+      { w: "tractor", pic: "🚜", clue: "A farm vehicle with giant wheels!", def: "A tractor is a strong farm vehicle with big back wheels.", ex: "The farmer drove the tractor.", pack: "go" },
+      { w: "plane", pic: "✈️", clue: "It flies people high in the sky!", def: "A plane is a flying machine with wings that carries people.", ex: "We waved at the plane flying by.", pack: "go" }
     ],
     regular: [
       ["giraffe", "Animal"], ["penguin", "Animal"], ["octopus", "Animal"], ["kangaroo", "Animal"],
@@ -1714,7 +1850,7 @@
     }
   };
 
-  // In Big Kid Words mode the crowd is kind and encouraging instead
+  // In the kids' levels the crowd is kind and encouraging instead
   const KIND_LINES = {
     wrong: ["Oh no, a balloon!", "Careful! Watch out for the mud!", "Hold on to those balloons!", "Not that one! Try another!", "Pop! You can do it!"],
     right: ["Yay! Great job!", "You found one!", "Wow, you're good at this!", "Hooray!", "Super duper!"],
@@ -2164,7 +2300,7 @@
       <circle cx="-4" cy="-38" r="3.2" fill="#fff" stroke-width="1.2"/><circle cx="4" cy="-38" r="3.2" fill="#fff" stroke-width="1.2"/>
       <circle class="dot" cx="-4" cy="-38" r="1.1"/><circle class="dot" cx="4" cy="-38" r="1.1"/>
       <path d="M-3 -32 h6" stroke-width="1.6"/>` },
-    // A very sleepy shepherd, leaning on his crook (Big Kid Words)
+    // A very sleepy shepherd, leaning on his crook (kids' levels)
     shepherd: { sound: () => "Stay put, sheep. *yawn*", art: (skin) => `
       <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
       <path d="M-20 0 V-56 q0 -9 7 -9 q7 0 6 7" stroke="#8b5a2b" stroke-width="3"/>
@@ -2177,10 +2313,10 @@
       <path d="M-7 -36 Q0 -28 7 -36 Q0 -33 -7 -36 Z" fill="#fff"/>
       <ellipse cx="0" cy="-48" rx="15" ry="3" fill="#e9c46a"/>
       <path d="M-8 -49 Q-8 -58 0 -58 Q8 -58 8 -49 Z" fill="#e9c46a"/>` },
-    // A mother duck and her ducklings (Big Kid Words)
+    // A mother duck and her ducklings (kids' levels)
     duck: { sound: () => "Quack!", sfx: "quack", art: () => duckArt("#fff") },
     duckling: { sound: () => "Peep!", sfx: "quack", art: () => duckArt("#ffd166") },
-    // A princess with a magic wand (Big Kid Words)
+    // A princess with a magic wand (kids' levels)
     princess: { sound: () => "Hello, everyone!", sfx: "twinkle", art: (skin) => `
       <ellipse class="dot" cx="-5" cy="-1" rx="5" ry="2.5"/><ellipse class="dot" cx="5" cy="-1" rx="5" ry="2.5"/>
       <path d="M-10 -40 Q-13 -22 -9 -19 L9 -19 Q13 -22 10 -40 Z" fill="#e9c46a"/>
@@ -2368,7 +2504,7 @@
     const kid = game && game.mode.kid;
     const me = (visitor = kid ? addSpectator("cow", [190, 266], 0.95) : addSpectator("cow", VISITOR_SLOT, 0.55));
     if (birdIsHome()) replay($("bird"), "hop"); // the bird is startled
-    // In Big Kid Words the cow usually... does its business. (It takes about 2 seconds to walk up.)
+    // In kids' levels the cow usually... does its business. (It takes about 2 seconds to walk up.)
     const poops = kid && Math.random() < 0.85;
     if (poops) setTimeout(() => cowPoop(me), 3200);
     setTimeout(() => {
@@ -2399,7 +2535,7 @@
       <path d="M10 -15.5 l-2 -2.5 M10 -15.5 l2 -2.5" stroke-width=".8"/>
     </g>`;
 
-  // ---------- A princess casts a charm on the swing (Big Kid Words, once a game at most) ----------
+  // ---------- A princess casts a charm on the swing (kids' levels, once a game at most) ----------
   const CHARM_LINES = {
     pip:    ["Ooooh! Sparkly!", "Can she do me next?"],
     gerard: ["Magnifique! Ze flowers!", "Ooh la la, a real princess!"],
@@ -2458,7 +2594,7 @@
     setTimeout(() => { const who = pick(PEASANTS); say(who, pick(CHARM_LINES[who])); }, 1200);
   }
 
-  // ---------- Pip throws a frisbee for Biscuit the dog (Big Kid Words, once a game at most) ----------
+  // ---------- Pip throws a frisbee for Biscuit the dog (kids' levels, once a game at most) ----------
   const FETCH_LINES = {
     gerard: ["Bravo, Biscuit!", "Ze best dog in all of France!"],
     margot: ["What a good boy!", "Nice catch!"],
@@ -2519,7 +2655,7 @@
     at(6300, () => { sendAway(me); if (visitor === me) visitor = null; });
   }
 
-  // ---------- The sheep stampede (Big Kid Words, once a game at most) ----------
+  // ---------- The sheep stampede (kids' levels, once a game at most) ----------
   // Rows of sheep, bottom to top, so they pile up over the crowd until only Klaus's spike pokes out
   const SHEEP_ROWS = [268, 240, 212, 184, 158];
   const SHEEP_COLUMNS = [190, 242, 294, 346];
@@ -2568,7 +2704,7 @@
     at(14600, () => { sendAway(me); if (visitor === me) visitor = null; });
   }
 
-  // ---------- Pip's bubbles, which you can pop (Big Kid Words, once a game at most) ----------
+  // ---------- Pip's bubbles, which you can pop (kids' levels, once a game at most) ----------
   const BUBBLES_BLOWN = 14;
 
   function bubbleParty() {
@@ -2609,7 +2745,7 @@
     }, 500 + BUBBLES_BLOWN * 450 + 4000);
   }
 
-  // ---------- The duck parade (Big Kid Words, once a game at most) ----------
+  // ---------- The duck parade (kids' levels, once a game at most) ----------
   function duckArt(color) {
     return `
       <path d="M-3 0 v-5 M3 0 v-5 M-6 0 h4 M0 0 h4" stroke="#ff9f1c" stroke-width="2"/>
@@ -3559,6 +3695,21 @@
   }
   function play(name) { try { SFX[name](); } catch (e) {} }
 
+  // Kids hear each letter's name and its sound when they tap it ("Bee. Buh.").
+  // Spelled out so the phone's voice says them properly. Tweak any that sound off.
+  const LETTER_NAMES = {
+    a: "Ay", b: "Bee", c: "See", d: "Dee", e: "Ee", f: "Eff", g: "Jee", h: "Aitch", i: "Eye", j: "Jay", k: "Kay", l: "Ell", m: "Em",
+    n: "En", o: "Oh", p: "Pee", q: "Cue", r: "Ar", s: "Ess", t: "Tee", u: "You", v: "Vee", w: "Double you", x: "Ex", y: "Why", z: "Zee"
+  };
+  const LETTER_SOUNDS = {
+    a: "as in apple", b: "buh", c: "kuh", d: "duh", e: "as in egg", f: "fff", g: "guh", h: "huh", i: "as in igloo", j: "juh",
+    k: "kuh", l: "lll", m: "mmm", n: "nnn", o: "as in octopus", p: "puh", q: "kwuh", r: "rrr", s: "sss", t: "tuh",
+    u: "as in umbrella", v: "vvv", w: "wuh", x: "ks", y: "yuh", z: "zzz"
+  };
+  const sayLetter = (letter) => speak(`${LETTER_NAMES[letter]}. ${LETTER_SOUNDS[letter]}.`);
+  // ...and when the game ends, they hear the whole word spelled out: "Cat. See, Ay, Tee. Cat!"
+  const spellOut = (word) => `${word}. ${[...word].filter((l) => LETTER_NAMES[l]).map((l) => LETTER_NAMES[l]).join(", ")}. ${word}!`;
+
   function updateMuteButton() { $("muteBtn").textContent = muted ? "🔇" : "🔊"; }
   $("muteBtn").addEventListener("click", () => {
     muted = !muted;
@@ -3714,7 +3865,7 @@
     }
   }
 
-  // ---------- Big Kid Words: balloons hold up the swing, over a mud puddle ----------
+  // ---------- kids' levels: balloons hold up the swing, over a mud puddle ----------
   const BALLOON_SPOTS = [[166, 36], [184, 33], [202, 38], [158, 53], [176, 51], [194, 53], [212, 57], [168, 70], [186, 68], [204, 73]];
   const BALLOON_COLORS = ["#ff6b6b", "#ffd166", "#4d7cff", "#52b788", "#c77dff", "#ff8fab", "#ff9f1c", "#4cc9f0", "#ff6b6b", "#52b788"];
   const BALLOONS = BALLOON_SPOTS.map(([x, y], i) => `
@@ -3733,7 +3884,8 @@
   function updateBalloons() {
     const left = Math.max(0, game.mode.lives - game.wrong);
     document.querySelectorAll("#balloons .kballoon").forEach((b, i) => {
-      const pop = i >= left;
+      b.classList.toggle("unused", i >= game.mode.lives); // fewer balloons when there are fewer guesses
+      const pop = i >= left && i < game.mode.lives;
       if (pop && !b.classList.contains("popped")) { play("balloonpop"); leaveMark(POP_MARK, BALLOON_SPOTS[i]); }
       b.classList.toggle("popped", pop);
     });
@@ -3979,7 +4131,11 @@
   // ---------- Word cards (what the word means, revealed at the end) ----------
   function showWordCard() {
     const info = game.info;
-    if (!info.def && !info.pic) return $("wordCard").classList.add("hidden");
+    if (!info.def && !info.pic) {
+      // A friend's word has no card, but kids still hear it spelled out
+      if (game.mode.kid) { const g = game; setTimeout(() => { if (game === g) speak(spellOut(game.word)); }, 1600); }
+      return $("wordCard").classList.add("hidden");
+    }
     $("wcPic").textContent = info.pic || "";
     $("wcWord").textContent = game.word;
     $("wcPos").textContent = info.pos || "";
@@ -3995,7 +4151,8 @@
 
   function speakWordCard() {
     const info = game.info;
-    speak(`${game.word}. ${info.def || ""} ${info.ex || ""}`);
+    const word = game.mode.kid ? spellOut(game.word) : `${game.word}.`;
+    speak(`${word} ${info.def || ""} ${info.ex || ""}`);
   }
   $("wcSpeak").addEventListener("click", speakWordCard);
   $("hearBtn").addEventListener("click", () => speak(game.spokenHint));
@@ -4029,6 +4186,7 @@
 
   // ---- The sticker book: every gag is a sticker to collect ----
   const GROWN = "Regular Joe & Prison Mode";
+  const KIDS = "Big Kids & Even Bigger Kids";
   const STICKERS = [
     { id: "icecream", emoji: "🍦", name: "Ice cream run" },
     { id: "rain", emoji: "☔", name: "Klaus's umbrella" },
@@ -4036,14 +4194,14 @@
     { id: "squirrel", emoji: "🐿️", name: "Acorn attack" },
     { id: "snatch", emoji: "🦅", name: "Gary snatches Olivia" },
     { id: "miss", emoji: "🐌", name: "Olivia's revenge" },
-    { id: "cowpoop", emoji: "💩", name: "The cow's business", where: "Big Kid Words" },
-    { id: "charm", emoji: "👑", name: "The princess's charm", where: "Big Kid Words" },
-    { id: "frisbee", emoji: "🥏", name: "Biscuit fetches", where: "Big Kid Words" },
-    { id: "sheep", emoji: "🐑", name: "Sheep everywhere", where: "Big Kid Words" },
-    { id: "bubbles", emoji: "🫧", name: "Bubble popper", where: "Big Kid Words" },
-    { id: "ducks", emoji: "🦆", name: "Duck parade", where: "Big Kid Words" },
-    { id: "mud", emoji: "💦", name: "Mud bath", where: "Big Kid Words" },
-    { id: "notmud", emoji: "🤢", name: "...Was that mud?", where: "Big Kid Words" },
+    { id: "cowpoop", emoji: "💩", name: "The cow's business", where: KIDS },
+    { id: "charm", emoji: "👑", name: "The princess's charm", where: KIDS },
+    { id: "frisbee", emoji: "🥏", name: "Biscuit fetches", where: KIDS },
+    { id: "sheep", emoji: "🐑", name: "Sheep everywhere", where: KIDS },
+    { id: "bubbles", emoji: "🫧", name: "Bubble popper", where: KIDS },
+    { id: "ducks", emoji: "🦆", name: "Duck parade", where: KIDS },
+    { id: "mud", emoji: "💦", name: "Mud bath", where: KIDS },
+    { id: "notmud", emoji: "🤢", name: "...Was that mud?", where: KIDS },
     { id: "reginald", emoji: "⚔️", name: "Sir Reginald's charge" },
     { id: "mutti", emoji: "💋", name: "Klaus's Mutti" },
     { id: "garden", emoji: "🌷", name: "Margot's garden" },
@@ -4119,7 +4277,7 @@
   // One shuffled pass through a mode's word list (the same shuffle for everyone)
   function dailyPass(mode, pass) {
     const order = SOLO_WORDS[mode].map((_, i) => i);
-    const salt = { easy: 1, regular: 2, prison: 3 }[mode];
+    const salt = { easy: 1, regular: 2, prison: 3, little: 4 }[mode];
     for (let i = order.length - 1; i > 0; i--) {
       const j = Math.floor(seeded(pass * 100003 + i * 7 + salt) * (i + 1));
       [order[i], order[j]] = [order[j], order[i]];
@@ -4170,7 +4328,7 @@
       : `Three new words every day, the same for everyone. Win one a day to build a streak!${daily.best ? ` (Best: ${daily.best})` : ""}`;
     const box = $("dailyBtns");
     box.replaceChildren();
-    for (const mode of ["easy", "regular", "prison"]) {
+    for (const mode of ["little", "easy", "regular", "prison"]) {
       const r = daily.results[localDateKey() + "|" + mode];
       const btn = document.createElement("button");
       btn.className = "btn secondary dailybtn" + (r ? " done" : "");
@@ -4389,11 +4547,12 @@
   let selectedMode = MODES[loadMode()] ? loadMode() : "regular";
 
   const HINT_LABELS = {
-    easy:    ["Clue for a big kid (they can hear it read aloud)", "e.g. It says moo!"],
+    little:  ["Clue for a big kid (they can hear it read aloud)", "e.g. It says moo!"],
+    easy:    ["Clue for an even bigger kid (they can hear it read aloud)", "e.g. It has a long trunk!"],
     regular: ["Hint (optional)", "e.g. A spiky fruit"],
     prison:  ["Crossword-style clue (optional)", "e.g. Hot air from the south of France?"]
   };
-  const HINT_PREFIX = { easy: "", regular: "Hint: ", prison: "Clue: " };
+  const HINT_PREFIX = { little: "", easy: "", regular: "Hint: ", prison: "Clue: " };
 
   function selectMode(mode) {
     selectedMode = mode;
@@ -4685,7 +4844,7 @@
   // Turn an entry from one of the word lists into a word, a hint and word-card info
   function entryToGame(mode, entry) {
     if (mode === "regular") return { word: entry[0], hint: "Category: " + entry[1], info: {} };
-    if (mode === "easy") return { word: entry.w, hint: entry.clue, info: { pic: entry.pic, def: entry.def, ex: entry.ex } };
+    if (MODES[mode].kid) return { word: entry.w, hint: entry.clue, info: { pic: entry.pic, def: entry.def, ex: entry.ex, pack: entry.pack } };
     return { word: entry.w, hint: "Clue: " + entry.clue, info: { pos: entry.pos, def: entry.def, origin: entry.origin } };
   }
 
@@ -4742,13 +4901,14 @@
     game.birdUsed = new Set();
     game.audience = shuffle(["cow", "pig", "sheep", "chicken", "dog", "popcorn", "parasol", "knight", "kid"]);
 
-    // Big Kid Words: give away the first letter for free
+    // kids' levels: give away the first letter for free
     if (mode.freeLetter) game.guessed.add(word.match(/[a-z]/)[0]);
 
     $("fromText").textContent = from ? `${from} sent you a puzzle... and made you ${character.name}!` : "";
     $("modeText").textContent = mode.emoji + " " + mode.name + (game.daily ? ` · 📅 Daily #${dailyNumber()}` : "");
     $("hintText").textContent = mode.hints ? hint : "";
-    $("scene").dataset.mode = modeKey;   // prison bars and stripes in Prison Mode
+    $("scene").dataset.mode = mode.scene || modeKey;   // prison bars and stripes in Prison Mode; the swing set for kids
+    if (mode.kid && game.info.pack) $("modeText").textContent += " · " + PACKS[game.info.pack];
     applyLook($("scene"), charKey, look); // who's on the rope, and how they're dressed
     $("scene").dataset.crowd = "neutral";
     $("endBox").classList.add("hidden");
@@ -4767,10 +4927,20 @@
     }, 600);
   }
 
+  // Big Kids only get the letters in their word, plus a few others to choose from
+  const EXTRA_KEYS = 7;
+  function keyboardLetters() {
+    if (!game.mode.fewKeys) return [..."abcdefghijklmnopqrstuvwxyz"];
+    const inWord = [...new Set(game.word.replace(/[^a-z]/g, ""))];
+    const others = shuffle([..."abcdefghijklmnopqrstuvwxyz"].filter((l) => !inWord.includes(l))).slice(0, EXTRA_KEYS);
+    return [...inWord, ...others].sort();
+  }
+
   function buildKeyboard() {
     const keys = $("keys");
     keys.innerHTML = "";
-    for (const letter of "abcdefghijklmnopqrstuvwxyz") {
+    game.keys = keyboardLetters();
+    for (const letter of game.keys) {
       const btn = document.createElement("button");
       btn.className = "key";
       btn.textContent = letter.toUpperCase();
@@ -4781,8 +4951,9 @@
   }
 
   function guess(letter) {
-    if (!game || game.over || game.guessed.has(letter)) return;
+    if (!game || game.over || game.guessed.has(letter) || !game.keys.includes(letter)) return;
     stopEntrance(); // guessing right away skips the entrance
+    if (game.mode.kid) sayLetter(letter);
     game.guessed.add(letter);
     const correct = game.word.includes(letter);
     if (!correct) game.wrong++;
@@ -4835,7 +5006,7 @@
     if (game.balloonTurns.includes(game.history.length)) changeBalloon();
     if ((!correct || bribe) && game.mode.lives - game.wrong === 1) return lastChance();
     if (bribe) return;
-    if (game.info.pic && !correct && game.wrong === PICTURE_AFTER) {
+    if (game.info.pic && !game.mode.pictureFirst && !correct && game.wrong === PICTURE_AFTER) {
       play("pop");
       return say("pip", "Psst! Here's a picture to help!");
     }
@@ -4941,7 +5112,7 @@
     $("bribeBtn").classList.toggle("hidden", !canBribe());
 
     // Picture clue (little kids' words): a helping hand once they're halfway through their guesses
-    const showPic = game.info.pic && (game.over || game.wrong >= PICTURE_AFTER);
+    const showPic = game.info.pic && (game.over || game.mode.pictureFirst || game.wrong >= PICTURE_AFTER);
     $("picHint").textContent = showPic ? game.info.pic : "";
     const swing = $("swing");
     if (swing.getAttribute("dur") !== SWING_SPEED[mood]) swing.setAttribute("dur", SWING_SPEED[mood]);
