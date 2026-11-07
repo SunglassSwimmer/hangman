@@ -261,14 +261,15 @@
   /* Speech bubbles */
   .bubble {
     position: absolute; width: max-content; max-width: 165px; padding: 5px 12px; z-index: 2; pointer-events: none;
-    background: var(--card); border: 2.5px solid var(--ink);
+    background: #fffefa; border: 2.5px solid var(--ink);
+    color: #000; /* always black on the white bubble, even in dark mode */
     border-radius: 20px 24px 18px 26px / 26px 18px 24px 20px;
     font-size: 1.1rem; line-height: 1.15; text-align: center;
     transform: translateX(var(--shift)); transform-origin: var(--tail) 100%;
     opacity: 0; scale: .5; transition: opacity .15s, scale .25s cubic-bezier(.3, 1.6, .5, 1);
   }
   .bubble.show { opacity: 1; scale: 1; }
-  .bubble small { display: block; font-size: .85rem; color: var(--muted); }
+  .bubble small { display: block; font-size: .85rem; color: #000; }
   .bubble::after {
     content: ""; position: absolute; top: 100%; left: var(--tail); margin-left: -8px;
     border: 8px solid transparent; border-top-color: var(--ink);
@@ -3754,7 +3755,22 @@
     [["pip", "Can we get a puppy after this?"], ["margot", "We'll see."]],
     [["klaus", "Silence in ze crowd!"], ["pip", "...okay."]],
     [["gerard", "I have seen better guessing from a snail."], ["pip", "Olivia IS very smart."]],
-    [["margot", "Did anyone bring snacks?"], ["gerard", "I have... one baguette."]]
+    [["margot", "Did anyone bring snacks?"], ["gerard", "I have... one baguette."]],
+    // Gerard's opera past
+    [["pip", "Gerard, why don't you sing anymore?"], ["gerard", "We do not speak of ze sneeze."]],
+    [["margot", "Gerard, sing us something while we wait."], ["gerard", "Non. Ze critics are still out zere."]],
+    [["klaus", "Gerard, why is your baguette so hard?"], ["gerard", "It has been on stage. It has seen things."]],
+    [["pip", "Is your mustache real?"], ["gerard", "It is insured. Zat is more than real."]],
+    // Margot's spelling bee grudge
+    [["pip", "Mama, what word did you lose on?"], ["margot", "We don't say it in this house, dear."]],
+    [["gerard", "Margot, you were spelling champion?"], ["margot", "Five years running. The sixth was RIGGED."]],
+    [["klaus", "Margot, zis puzzle is in pen?"], ["margot", "Pencil is for cowards, Klaus."]],
+    [["margot", "Hortense knows the word, you know."], ["pip", "Hortense won't tell me anything."]],
+    // Pip's shoe collection
+    [["pip", "I have 214 shoes now!"], ["margot", "And not one pair, dear."]],
+    [["gerard", "Pip, why do you want ze shoes?"], ["pip", "For the museum. Obviously."]],
+    [["pip", "Klaus, can I blow the bugle?"], ["klaus", "...Maybe. Vun toot. Ze small vun."]],
+    [["klaus", "Pip, zere is a shoe in my barracks."], ["pip", "That's not mine. (It's mine.)"]]
   ];
 
   function chat() {
