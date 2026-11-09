@@ -4329,6 +4329,7 @@
     const key = localDateKey();
     if (daily.results[key + "|" + mode]) return showToast("You've done today's puzzle in this mode. Come back tomorrow!");
     const { word, hint, info } = entryToGame(mode, dailyEntry(mode));
+    markSeen(mode, word); // so a random game won't hand you today's daily word again
     history.replaceState(null, "", location.pathname + location.search);
     startGame(word, hint, "", mode, selectedChar, selectedLook, { info, daily: { key, mode } });
   }
@@ -4944,10 +4945,33 @@
     return { word: entry.w, hint: "Clue: " + entry.clue, info: { pos: entry.pos, def: entry.def, origin: entry.origin } };
   }
 
+  // hangman-seen: { mode: [words] }   words this device has already had in random and daily games.
+  // Random games skip them until the whole list has been used, then start a fresh round.
+  const seenWords = loadJSON("hangman-seen", {});
+  const entryWord = (mode, entry) => entryToGame(mode, entry).word;
+  function markSeen(mode, word) {
+    const seen = (seenWords[mode] ||= []);
+    if (!seen.includes(word)) seen.push(word);
+    saveJSON("hangman-seen", seenWords);
+  }
+  function pickUnseen(mode) {
+    const list = SOLO_WORDS[mode];
+    const seen = new Set(seenWords[mode] || []);
+    let fresh = list.filter((e) => !seen.has(entryWord(mode, e)));
+    if (!fresh.length) {
+      // Every word has been used: start a new round, but not with the word just played
+      const last = (seenWords[mode] || []).at(-1);
+      seenWords[mode] = [];
+      fresh = list.length > 1 ? list.filter((e) => entryWord(mode, e) !== last) : list;
+    }
+    return pick(fresh);
+  }
+
   function startSolo() {
     // Kids get a second go at a word they missed a few days ago
     const retry = MODES[selectedMode].kid ? practiceWordFor(selectedMode) : null;
-    const { word, hint, info } = entryToGame(selectedMode, retry || pick(SOLO_WORDS[selectedMode]));
+    const { word, hint, info } = entryToGame(selectedMode, retry || pickUnseen(selectedMode));
+    markSeen(selectedMode, word);
     history.replaceState(null, "", location.pathname + location.search);
     startGame(word, hint, "", selectedMode, selectedChar, selectedLook, { info, retry: !!retry });
   }
