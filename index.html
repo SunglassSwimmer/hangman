@@ -505,6 +505,23 @@
   .score { text-align: center; margin: 2px 0 0; font-size: 1.15rem; }
   .bribe { font-size: 1.1rem; }
   .bribe small { display: block; font-size: .85rem; color: var(--muted); }
+
+  /* Gerald the sneaky duck (kids' levels) and the button that catches him */
+  .spybtn { font-size: 1.15rem; }
+  .gerald .gflip { transition: transform .2s; }
+  .gerald .gbody { transform-box: fill-box; transform-origin: 50% 100%; }
+  .gerald.sneaking .gbody { animation: gtiptoe .4s ease-in-out infinite alternate; }
+  @keyframes gtiptoe { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-2px) rotate(4deg); } }
+  .gerald .gopen, .gerald .gflap, .gerald .gsurprise, .gerald .gloot { display: none; }
+  .gerald.caught .gopen, .gerald.caught .gflap, .gerald.caught .gsurprise, .gerald.looting .gloot { display: inline; }
+  .gerald.caught .gclosed, .gerald.caught .gtuck, .gerald.caught .gbrow { display: none; }
+  .gerald.caught .gbody { animation: gstartle .5s ease-out; }
+  @keyframes gstartle { 30% { transform: translateY(-8px) rotate(-6deg); } 60% { transform: translateY(0) rotate(4deg); } }
+  .gerald .gflapL { transform-box: fill-box; transform-origin: 100% 100%; animation: gflapL .13s ease-in-out infinite alternate; }
+  .gerald .gflapR { transform-box: fill-box; transform-origin: 0% 100%; animation: gflapR .13s ease-in-out infinite alternate; }
+  @keyframes gflapL { from { transform: rotate(15deg); } to { transform: rotate(-30deg); } }
+  @keyframes gflapR { from { transform: rotate(-15deg); } to { transform: rotate(30deg); } }
+  .gerald.poof { opacity: 0; transition: transform .35s ease-in, opacity .35s ease-in !important; }
   .taunts { margin-top: 12px; }
   .taunts summary { cursor: pointer; font-size: 1.1rem; }
 
@@ -1288,6 +1305,10 @@
         <g class="trophy t-balloon"><path d="M85 9 q3 -6 7 -2 q-2 4 -7 2 Z" fill="#ff6b6b" stroke-width="1.2"/></g>
       </g>
 
+      <!-- Gerald the sneaky duck (kids' levels): he stands behind the crowd, and the clip lets him peek in from the edges -->
+      <clipPath id="geraldClip"><rect x="0" y="-20" width="360" height="292"/></clipPath>
+      <g id="geraldLayer" clip-path="url(#geraldClip)"></g>
+
       <!-- Sergeant Klaus: spiked helmet, monocle, upturned mustache, bugle -->
       <g transform="translate(176 0)"><g class="bob" id="klaus">
         <g class="icecream" style="display:none"><path d="M-21 176 l4 10 l4 -10 Z" fill="#e9c46a" stroke-width="1.5"/><circle cx="-17" cy="173" r="4.5" fill="#ff8fab" stroke-width="1.5"/></g>
@@ -1472,6 +1493,7 @@
     <div class="word" id="wordBox"></div>
     <div class="keys" id="keys"></div>
     <button class="btn secondary bribe hidden" id="bribeBtn">💰 Bribe Klaus for a letter <small>(costs you a body part)</small></button>
+    <button class="btn secondary spybtn hidden" id="spyBtn">🔍 I spy Gerald!</button>
 
     <div id="endBox" class="hidden">
       <p class="result" id="resultText"></p>
@@ -2821,6 +2843,236 @@
     });
   }
 
+  // ---------- Gerald, the sneaky duck (kids' levels, up to twice a game) ----------
+  // A mischievous scamp in cahoots with the squirrel. He peeks in from the corners, tiptoes behind the crowd
+  // and swipes things, but what he REALLY wants is to pop Pip's balloon. He never makes a sound... until a
+  // kid taps "I spy Gerald!" Then he gets such a fright that he quacks, flaps, and vanishes in a puff.
+  const GERALD_SIZE = 0.75;
+  // Drawn facing left, standing at 0,0
+  const GERALD_ART = `
+    <g class="gbody">
+      <path d="M-1 -12 V-2 M7 -12 V-2" stroke="#f4a340" stroke-width="3"/>
+      <path d="M-1 -2 h-7 M7 -2 h-7" stroke="#f4a340" stroke-width="4"/>
+      <path d="M18 -26 l11 -7 l-3 6 l6 -1 l-12 8 Z" fill="#fff"/>
+      <ellipse cx="6" cy="-21" rx="16" ry="12" fill="#fff"/>
+      <path d="M-10 -21 V-56 Q-10 -64 -3 -64 Q4 -64 4 -57 V-33 Q-3 -30 -10 -21 Z" fill="#fff" stroke="none"/>
+      <path d="M-10 -21 V-56 Q-10 -64 -3 -64 Q4 -64 4 -57 V-33"/>
+      <path class="gtuck" d="M5 -22 q5 -6 10 -2 q-1 6 -9 4 q4 -1 3 -3" stroke-width="2"/>
+      <g class="gflap gflapL"><path d="M4 -24 Q-4 -42 -14 -38 Q-8 -30 -2 -20 Z" fill="#fff" stroke-width="2"/></g>
+      <g class="gflap gflapR"><path d="M12 -24 Q22 -44 32 -38 Q24 -30 20 -20 Z" fill="#fff" stroke-width="2"/></g>
+      <circle class="dot" cx="-5" cy="-57" r="1.7"/>
+      <path class="gbrow" d="M-9 -62 l6 2" stroke-width="1.6"/>
+      <path class="gclosed" d="M-9 -58 Q-22 -60 -23 -55 Q-22 -51 -9 -52 Z" fill="#f4a340"/>
+      <g class="gopen"><path d="M-9 -58 Q-21 -67 -24 -63 Q-18 -57 -9 -55 Z" fill="#f4a340"/><path d="M-9 -54 Q-20 -51 -22 -46 Q-15 -47 -9 -51 Z" fill="#f4a340"/></g>
+      <path class="gsurprise" d="M-16 -70 l-4 -6 M-7 -73 v-7 M2 -70 l4 -6" stroke-width="1.8"/>
+      <g class="gloot"><rect x="-36" y="-58" width="22" height="6" rx="3" fill="#e9c46a" stroke-width="1.5" transform="rotate(-12 -25 -55)"/></g>
+    </g>`;
+  // Where he peeks in from: out of sight, peeking, and which way he looks
+  const GERALD_PEEKS = [
+    { from: [24, 345], at: [24, 300], face: "right" },   // up from the bottom-left corner (just his head shows)
+    { from: [338, 345], at: [338, 300], face: "left" },  // up from the bottom-right corner
+    { from: [-45, 236], at: [-2, 236], face: "right" },  // round the left edge
+    { from: [405, 236], at: [366, 236], face: "left" }   // round the right edge
+  ];
+  const GERALD_GROUND = 212;   // where he tiptoes, just behind the crowd
+  const GERALD_MAX_TRIPS = 2;  // visits a game, at most
+  const SPY_MISS_LINES = ["No Gerald right now. Keep watching!", "Hmm, no duck here... yet!", "Not now! But he's sneaky, so keep looking!"];
+  let gerald = null;           // { el, trip, plan, visible, caught, loot, squirrel } while he's on a mission
+  let geraldTrip = 0;          // bumps every mission and new game, so an old mission can't keep going
+
+  const geraldFace = (el, face) => (el.querySelector(".gflip").style.transform = `scaleX(${face === "right" ? -1 : 1})`);
+  function geraldMove(el, [x, y], seconds, face) {
+    el.style.transition = seconds ? `transform ${seconds}s ease-in-out` : "none";
+    el.style.transform = `translate(${x}px, ${y}px) scale(${GERALD_SIZE})`;
+    if (!seconds) el.getBoundingClientRect(); // jump there now, so the next move starts from here
+    if (face) geraldFace(el, face);
+  }
+  function geraldWhere(el) {
+    const m = new DOMMatrixReadOnly(getComputedStyle(el).transform);
+    return [m.e, m.f];
+  }
+
+  function geraldMission() {
+    if (!game || game.over || !game.mode.kid || gerald || crowdAway) return;
+    const balloonUp = $("balloon").style.display !== "none";
+    const baguetteHere = $("baguette").style.display !== "none";
+    // The balloon is what he's really after; the baguette is a warm-up
+    const plan = balloonUp && (!baguetteHere || Math.random() < 0.7) ? "balloon" : baguetteHere ? "baguette" : null;
+    if (!plan) return;
+    const trip = ++geraldTrip;
+    const el = document.createElementNS(SVG_NS, "g");
+    el.setAttribute("class", "gerald");
+    el.innerHTML = `<g class="gflip">${GERALD_ART}</g>`;
+    $("geraldLayer").appendChild(el);
+    el.style.transform = "translate(-100px, 400px)"; // out of sight until his first step
+    gerald = { el, trip, plan, visible: false, caught: false, loot: null, squirrel: null };
+    const g = game;
+    // Steps happen one after another; each waits `ms` after the one before. A catch, a new game,
+    // the end of the game or the crowd running off for ice cream stops the rest.
+    let t = 0;
+    const next = (ms, fn) => {
+      t += ms;
+      setTimeout(() => {
+        if (!gerald || gerald.trip !== trip || gerald.caught || game !== g) return;
+        if (game.over || crowdAway) return geraldSlipAway();
+        fn();
+      }, t);
+    };
+
+    // 1. He peeks in from a corner and looks around...
+    const peek = pick(GERALD_PEEKS);
+    geraldMove(el, peek.from, 0, peek.face);
+    next(50, () => { gerald.visible = true; geraldMove(el, peek.at, 0.9); });
+    if (!stickersSeen.has("gerald")) next(600, () => say("pip", "Psst... did something move?"));
+    next(1300, () => geraldFace(el, peek.face === "right" ? "left" : "right"));
+    next(800, () => geraldFace(el, peek.face));
+    // ...ducks out of sight...
+    next(900, () => geraldMove(el, peek.from, 0.6));
+    next(650, () => {
+      gerald.visible = false;
+      geraldMove(el, [400, GERALD_GROUND], 0, "left");
+      // His partner in crime, the squirrel, sometimes keeps a lookout
+      if (Math.random() < 0.5) gerald.squirrel = addSpectator("squirrel", [40, 262], 1, 1.4, "*chitter* (Psst! Go, Gerald!)");
+    });
+    // ...and tiptoes in behind the crowd
+    next(300, () => {
+      gerald.visible = true;
+      el.classList.add("sneaking");
+      geraldMove(el, [298, GERALD_GROUND], 2.6);
+    });
+    next(2700, () => { el.classList.remove("sneaking"); geraldFace(el, "right"); }); // anyone watching?
+    next(700, () => geraldFace(el, "left"));
+
+    if (plan === "balloon") {
+      // 2. He creeps up behind Pip...
+      next(500, () => { el.classList.add("sneaking"); geraldMove(el, [337, GERALD_GROUND], 1.5); });
+      next(1600, () => el.classList.remove("sneaking"));
+      // ...jumps... POP!
+      next(1100, () => geraldMove(el, [360, 168], 0.3));
+      next(300, geraldPops);
+      next(350, () => geraldMove(el, [360, GERALD_GROUND], 0.25));
+      next(300, () => { el.classList.add("sneaking"); geraldMove(el, [420, GERALD_GROUND], 0.7, "right"); });
+      next(800, geraldGetsAway);
+    } else {
+      // 2. He sneaks up to Gerard and swipes his baguette
+      next(500, () => { el.classList.add("sneaking"); geraldMove(el, [256, GERALD_GROUND], 1.6); });
+      next(1700, () => el.classList.remove("sneaking"));
+      next(900, () => {
+        $("baguette").style.display = "none";
+        el.classList.add("looting", "sneaking");
+        gerald.loot = "baguette";
+        play("whoosh");
+        say("gerard", pick(["Hey! Mon baguette!", "Zut alors! Zat duck took my baguette!"]));
+        geraldMove(el, [420, GERALD_GROUND], 1.3, "right");
+      });
+      next(1400, geraldGetsAway);
+    }
+  }
+
+  // Gerald's big moment: Pip's balloon goes POP (Margot always carries a spare)
+  function geraldPops() {
+    const g = game;
+    $("balloon").style.display = "none";
+    play("balloonpop");
+    leaveMark(POP_MARK, [340, 119]);
+    replay($("pip"), "hop");
+    say("pip", pick(["My balloon! GERALD!", "Hey! That sneaky duck popped my balloon!"]));
+    discover("geraldpop");
+    const sq = gerald.squirrel;
+    if (sq) setTimeout(() => { if (sq.isConnected) sayFromSpectator(sq, "*chitter chitter!* (Nice one, Gerald!)"); }, 1300);
+    if (!stickersSeen.has("gerald")) setTimeout(() => { if (game === g && !game.over) say("klaus", "Next time, tap 'I spy Gerald!'"); }, 2400);
+    setTimeout(() => {
+      if (game !== g || $("balloon").style.display !== "none") return;
+      $("balloon").style.display = "";
+      setBalloonColor(pick(BALLOON_SHADES));
+      play("pop");
+      if (!game.over) say("margot", pick(["Here, Pip. I always carry a spare!", "Don't cry, dear. Here's a new one."]));
+    }, 4600);
+  }
+
+  // He made it off the screen with whatever he was up to
+  function geraldGetsAway() {
+    const { el, loot, squirrel } = gerald;
+    gerald = null;
+    el.remove();
+    if (squirrel) sendAway(squirrel);
+    if (loot === "baguette") {
+      const g = game;
+      setTimeout(() => {
+        if (game !== g) return;
+        $("baguette").style.display = "";
+        if (!game.over) say("gerard", pick(["Ah! He dropped it in ze grass.", "My baguette! A little nibbled, but mine."]));
+      }, 3000);
+    }
+  }
+
+  // The game ended (or the crowd ran off) mid-mission: he waddles away, putting back what he took
+  function geraldSlipAway() {
+    if (!gerald) return;
+    const { el, squirrel } = gerald;
+    if (gerald.loot === "baguette") $("baguette").style.display = "";
+    gerald = null;
+    geraldTrip++;
+    el.classList.add("poof");
+    setTimeout(() => el.remove(), 400);
+    if (squirrel) sendAway(squirrel);
+  }
+
+  // "I spy Gerald!" ...and he really was there!
+  function catchGerald() {
+    const gd = gerald;
+    gd.caught = true;
+    const g = game;
+    const el = gd.el;
+    // Freeze him where he is. If only his head was poking out, he jumps up in surprise so everyone can see him.
+    const [x, y] = geraldWhere(el);
+    geraldMove(el, [x, y], 0);
+    el.classList.remove("sneaking", "looting");
+    el.classList.add("caught");
+    const spot = [Math.min(Math.max(x, 22), 340), Math.min(y - 14, 262)];
+    $("spectators").appendChild(el); // out from behind the crowd, in front of everyone
+    geraldMove(el, [x, y], 0);
+    geraldMove(el, spot, 0.25);
+    play("quack");
+    setTimeout(() => play("quack"), 380);
+    setTimeout(() => sayOver(el.querySelector(".gbody"), pick(["QUACK?!", "QUACK! QUACK!", "Quack?! (Caught!)"]), el), 250);
+    discover("gerald");
+    // Whatever he was carrying goes right back
+    if (gd.loot === "baguette") $("baguette").style.display = "";
+    setTimeout(() => {
+      if (game !== g || game.over) return;
+      say("pip", pick(["You caught Gerald!", "Ha! We see you, Gerald!", "Great spotting!"]));
+      play("cheer");
+    }, 900);
+    const sq = gd.squirrel;
+    if (sq) setTimeout(() => { if (sq.isConnected) { sayFromSpectator(sq, "*eep!*"); sendAway(sq); } }, 1700);
+    // Then he vanishes in a puff
+    setTimeout(() => {
+      if (gerald === gd) gerald = null;
+      if (!el.isConnected) return;
+      leaveMark(POP_MARK, [spot[0], spot[1] - 25]);
+      play("pop");
+      el.classList.add("poof");
+      el.style.transform = `translate(${spot[0]}px, ${spot[1] - 20}px) scale(0.1)`;
+      setTimeout(() => el.remove(), 400);
+    }, 1700);
+  }
+
+  function spyGerald() {
+    if (!game || game.over || !game.mode.kid) return;
+    if (gerald && !gerald.caught && gerald.visible) return catchGerald();
+    if (gerald && !gerald.caught) return say("pip", "He was just here! Keep watching!");
+    say("pip", pick(SPY_MISS_LINES));
+  }
+
+  // New game: no duck
+  function resetGerald() {
+    geraldTrip++;
+    gerald = null;
+    $("geraldLayer").replaceChildren();
+    $("balloon").style.display = "";
+  }
+
   // ---------- Sir Reginald, the useless hero (any mode, once a game at most) ----------
   const REGINALD_LINES = {
     gerard: ["Zat is a butter knife.", "Sacrebleu, is zat horse made of wood?"],
@@ -4118,6 +4370,8 @@
     return [...game.word].some((ch) => /[a-z]/.test(ch) && !game.guessed.has(ch));
   }
 
+  $("spyBtn").addEventListener("click", spyGerald);
+
   $("bribeBtn").addEventListener("click", () => {
     if (!canBribe()) return;
     stopEntrance();
@@ -4249,6 +4503,8 @@
     { id: "sheep", emoji: "🐑", name: "Sheep everywhere", where: KIDS },
     { id: "bubbles", emoji: "🫧", name: "Bubble popper", where: KIDS },
     { id: "ducks", emoji: "🦆", name: "Duck parade", where: KIDS },
+    { id: "gerald", emoji: "🔍", name: "I spied Gerald!", where: KIDS },
+    { id: "geraldpop", emoji: "🎈", name: "Gerald's big pop", where: KIDS },
     { id: "mud", emoji: "💦", name: "Mud bath", where: KIDS },
     { id: "notmud", emoji: "🤢", name: "...Was that mud?", where: KIDS },
     { id: "reginald", emoji: "⚔️", name: "Sir Reginald's charge" },
@@ -5036,6 +5292,7 @@
 
     // A fresh (empty) audience, who will arrive in a random order; the bird puts back what it stole
     clearSpectators();
+    resetGerald();
     resetBird();
     resetOlivia();
     resetCrowd();
@@ -5164,6 +5421,11 @@
       else if (!game.sheeped && game.history.length > 2 && Math.random() < odds("sheep", 0.15)) { game.sheeped = true; soon(sheepStampede, 900); }
       else if (!game.bubbled && game.history.length > 1 && Math.random() < odds("bubbles", 0.15)) { game.bubbled = true; soon(bubbleParty, 900); }
       else if (!game.ducked && game.history.length > 1 && Math.random() < odds("ducks", 0.15)) { game.ducked = true; soon(duckParade, 900); }
+      // Gerald the sneaky duck goes after Pip's balloon (up to twice a game, one mission at a time)
+      if (!gerald && (game.geraldTrips || 0) < GERALD_MAX_TRIPS && game.history.length > 1 && Math.random() < odds("gerald", 0.3)) {
+        game.geraldTrips = (game.geraldTrips || 0) + 1;
+        soon(geraldMission, 1500);
+      }
     } else {
       // Grown-up modes: Pierre the drunk staggers through, and the bird gets up to mischief
       // (Pierre is a treat: once a game at most, and never two games in a row.)
@@ -5198,6 +5460,7 @@
     game.over = true;
     game.won = solved || !!rescue;
     game.rescue = rescue;
+    geraldSlipAway();
     $("scene").classList.remove("lastchance");
     $("resultText").textContent = rescue ? RESCUES[rescue].result : solved ? game.mode.win : game.mode.lose;
     $("resultText").className = "result " + (game.won ? "win" : game.mode.kid ? "kidlose" : "lose");
@@ -5254,6 +5517,7 @@
     if (game.mode.kid) sky = sky === "sunny" ? "sunny" : "cloudy"; // no storms for little kids
     $("scene").dataset.sky = sky;
     $("bribeBtn").classList.toggle("hidden", !canBribe());
+    $("spyBtn").classList.toggle("hidden", !game.mode.kid || game.over);
 
     // Picture clue (little kids' words): a helping hand once they're halfway through their guesses
     const showPic = game.info.pic && (game.over || game.mode.pictureFirst || game.wrong >= PICTURE_AFTER);

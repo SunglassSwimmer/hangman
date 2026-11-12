@@ -42,7 +42,9 @@ Everything lives in one file: `index.html`.
 - **Gags**: the pooping cow (the kids' levels) is `cowPoop`; the princess who charms the swing with flowers
   (the kids' levels) is `princessVisit` and `charmSwing`; Pip throwing a frisbee for Biscuit the dog (the kids' levels)
   is `frisbeeFetch`; the sheep burying the crowd is `sheepStampede`; Pip's bubbles (tap them to pop) are `bubbleParty`;
-  the duck parade is `duckParade`; Sir Reginald tripping over the gallows is `reginaldVisit` (and his rare success is `reginaldRescue`);
+  the duck parade is `duckParade`; Gerald the sneaky duck (the kids' levels: he peeks in from the corners, swipes Gerard's
+  baguette and tries to pop Pip's balloon, with the squirrel as lookout, until a kid taps 🔍 I spy Gerald!) is
+  `geraldMission`, `catchGerald` and `spyGerald` (where he hides: `GERALD_PEEKS`); Sir Reginald tripping over the gallows is `reginaldVisit` (and his rare success is `reginaldRescue`);
   Klaus's mother is `muttiVisit`; Margot's flower garden (and the cow that eats it) is `plantFlower` and `cowEatsGarden`; Margot scratching Klaus's
   back is `backScratch`; Pip's color-changing balloon is `changeBalloon`; Pierre the drunk is `drunkVisit`;  the bird's stunts (beret, baguette, Klaus's spike; one a game) are `birdMischief`; Pierre's wife is
   `wifeFetchesPierre`; Olivia making Gary crash is `updateMiss`; the ice cream truck is `iceCreamTruck`; the rain shower is `rainShower`;
