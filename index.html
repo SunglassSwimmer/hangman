@@ -507,7 +507,8 @@
   .bribe small { display: block; font-size: .85rem; color: var(--muted); }
 
   /* Gerald the sneaky duck (kids' levels) and the button that catches him */
-  .spybtn { font-size: 1.15rem; }
+  .spyrow { text-align: center; margin-top: 8px; }
+  .spybtn { font-size: 1.2rem; padding: 8px 18px; }
   .gerald .gflip { transition: transform .2s; }
   .gerald .gbody { transform-box: fill-box; transform-origin: 50% 100%; }
   .gerald.sneaking .gbody { animation: gtiptoe .4s ease-in-out infinite alternate; }
@@ -1485,6 +1486,8 @@
     <div class="stamp" id="stamp">LAST CHANCE!</div>
     <div class="flash" id="flash"></div>
     </div>
+    <!-- right under the scene, so kids can tap it while they're still looking at Gerald -->
+    <div class="spyrow"><button class="chip spybtn hidden" id="spyBtn">🔍 I spy Gerald!</button></div>
 
     <div class="pichint" id="picHint"></div>
     <p class="hint" id="hintText"></p>
@@ -1493,7 +1496,6 @@
     <div class="word" id="wordBox"></div>
     <div class="keys" id="keys"></div>
     <button class="btn secondary bribe hidden" id="bribeBtn">💰 Bribe Klaus for a letter <small>(costs you a body part)</small></button>
-    <button class="btn secondary spybtn hidden" id="spyBtn">🔍 I spy Gerald!</button>
 
     <div id="endBox" class="hidden">
       <p class="result" id="resultText"></p>
@@ -2867,14 +2869,18 @@
       <path class="gsurprise" d="M-16 -70 l-4 -6 M-7 -73 v-7 M2 -70 l4 -6" stroke-width="1.8"/>
       <g class="gloot"><rect x="-36" y="-58" width="22" height="6" rx="3" fill="#e9c46a" stroke-width="1.5" transform="rotate(-12 -25 -55)"/></g>
     </g>`;
-  // Where he peeks in from: out of sight, peeking, and which way he looks
+  // Where he pops up: always straight up from behind the bottom edge (head and neck showing), in one of
+  // these spots, facing into the scene. Every pop-up moves the same way; only the spot changes.
   const GERALD_PEEKS = [
-    { from: [24, 345], at: [24, 300], face: "right" },   // up from the bottom-left corner (just his head shows)
-    { from: [338, 345], at: [338, 300], face: "left" },  // up from the bottom-right corner
-    { from: [-45, 236], at: [-2, 236], face: "right" },  // round the left edge
-    { from: [405, 236], at: [366, 236], face: "left" }   // round the right edge
+    { x: 26, face: "right" },   // bottom-left corner
+    { x: 334, face: "left" },   // bottom-right corner
+    { x: 92, face: "right" },   // under the swing
+    { x: 262, face: "left" }    // under Margot
   ];
+  const GERALD_HIDDEN_Y = 345; // out of sight below the bottom edge
+  const GERALD_PEEK_Y = 292;   // popped up: head and neck above the edge
   const GERALD_GROUND = 212;   // where he tiptoes, just behind the crowd
+  const GERALD_CAUGHT_Y = 266; // where he lands when caught: low on the grass, under everyone's speech bubbles
   const GERALD_MAX_TRIPS = 2;  // visits a game, at most
   const SPY_MISS_LINES = ["No Gerald right now. Keep watching!", "Hmm, no duck here... yet!", "Not now! But he's sneaky, so keep looking!"];
   let gerald = null;           // { el, trip, plan, visible, caught, loot, squirrel } while he's on a mission
@@ -2919,45 +2925,49 @@
       }, t);
     };
 
-    // 1. He peeks in from a corner and looks around...
+    // 1. He pops up from behind the bottom edge (a little bounce), and has a good long look around...
     const peek = pick(GERALD_PEEKS);
-    geraldMove(el, peek.from, 0, peek.face);
-    next(50, () => { gerald.visible = true; geraldMove(el, peek.at, 0.9); });
-    if (!stickersSeen.has("gerald")) next(600, () => say("pip", "Psst... did something move?"));
-    next(1300, () => geraldFace(el, peek.face === "right" ? "left" : "right"));
-    next(800, () => geraldFace(el, peek.face));
-    // ...ducks out of sight...
-    next(900, () => geraldMove(el, peek.from, 0.6));
+    const turn = peek.face === "right" ? "left" : "right";
+    geraldMove(el, [peek.x, GERALD_HIDDEN_Y], 0, peek.face);
+    next(50, () => { gerald.visible = true; geraldMove(el, [peek.x, GERALD_PEEK_Y - 6], 0.7); });
+    next(700, () => geraldMove(el, [peek.x, GERALD_PEEK_Y], 0.25));
+    if (!stickersSeen.has("gerald")) next(500, () => say("pip", "Psst... did something move?"));
+    next(1500, () => geraldFace(el, turn));
+    next(1400, () => geraldFace(el, peek.face));
+    next(1400, () => geraldFace(el, turn));
+    next(1200, () => geraldFace(el, peek.face));
+    // ...ducks back down out of sight...
+    next(1000, () => geraldMove(el, [peek.x, GERALD_HIDDEN_Y], 0.6));
     next(650, () => {
       gerald.visible = false;
       geraldMove(el, [400, GERALD_GROUND], 0, "left");
       // His partner in crime, the squirrel, sometimes keeps a lookout
       if (Math.random() < 0.5) gerald.squirrel = addSpectator("squirrel", [40, 262], 1, 1.4, "*chitter* (Psst! Go, Gerald!)");
     });
-    // ...and tiptoes in behind the crowd
-    next(300, () => {
+    // ...and tiptoes in behind the crowd, slowly, checking nobody's watching
+    next(600, () => {
       gerald.visible = true;
       el.classList.add("sneaking");
-      geraldMove(el, [298, GERALD_GROUND], 2.6);
+      geraldMove(el, [298, GERALD_GROUND], 4);
     });
-    next(2700, () => { el.classList.remove("sneaking"); geraldFace(el, "right"); }); // anyone watching?
-    next(700, () => geraldFace(el, "left"));
+    next(4100, () => { el.classList.remove("sneaking"); geraldFace(el, "right"); }); // anyone watching?
+    next(1300, () => geraldFace(el, "left"));
 
     if (plan === "balloon") {
       // 2. He creeps up behind Pip...
-      next(500, () => { el.classList.add("sneaking"); geraldMove(el, [337, GERALD_GROUND], 1.5); });
-      next(1600, () => el.classList.remove("sneaking"));
-      // ...jumps... POP!
-      next(1100, () => geraldMove(el, [360, 168], 0.3));
+      next(900, () => { el.classList.add("sneaking"); geraldMove(el, [337, GERALD_GROUND], 2.2); });
+      next(2300, () => el.classList.remove("sneaking"));
+      // ...waits for his moment... jumps... POP!
+      next(2200, () => geraldMove(el, [360, 168], 0.3));
       next(300, geraldPops);
       next(350, () => geraldMove(el, [360, GERALD_GROUND], 0.25));
       next(300, () => { el.classList.add("sneaking"); geraldMove(el, [420, GERALD_GROUND], 0.7, "right"); });
       next(800, geraldGetsAway);
     } else {
       // 2. He sneaks up to Gerard and swipes his baguette
-      next(500, () => { el.classList.add("sneaking"); geraldMove(el, [256, GERALD_GROUND], 1.6); });
-      next(1700, () => el.classList.remove("sneaking"));
-      next(900, () => {
+      next(900, () => { el.classList.add("sneaking"); geraldMove(el, [256, GERALD_GROUND], 2.4); });
+      next(2500, () => el.classList.remove("sneaking"));
+      next(2200, () => {
         $("baguette").style.display = "none";
         el.classList.add("looting", "sneaking");
         gerald.loot = "baguette";
@@ -3024,12 +3034,13 @@
     gd.caught = true;
     const g = game;
     const el = gd.el;
-    // Freeze him where he is. If only his head was poking out, he jumps up in surprise so everyone can see him.
+    // Freeze him where he is, then he tumbles out in front of the crowd, down onto the grass, where his
+    // flapping and quacking won't cover anyone else's speech bubbles
     const [x, y] = geraldWhere(el);
     geraldMove(el, [x, y], 0);
     el.classList.remove("sneaking", "looting");
     el.classList.add("caught");
-    const spot = [Math.min(Math.max(x, 22), 340), Math.min(y - 14, 262)];
+    const spot = [Math.min(Math.max(x, 40), 320), GERALD_CAUGHT_Y];
     $("spectators").appendChild(el); // out from behind the crowd, in front of everyone
     geraldMove(el, [x, y], 0);
     geraldMove(el, spot, 0.25);
