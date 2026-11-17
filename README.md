@@ -27,7 +27,8 @@ Everything lives in one file: `index.html`.
 - **Endings**: `winEnding`, `loseEnding`; **bribing Klaus**: `canBribe`
 - **Difficulty modes** (and what gets drawn on each wrong guess): `MODES`. The kids' levels are `little`
   (Big Kids, ages 4-5) and `easy` (Even Bigger Kids, ages 6-8).
-- **Letter sounds for kids** (what the phone says when a letter is tapped): `LETTER_NAMES`, `LETTER_SOUNDS`;
+- **Letters read aloud for kids** (what the device says when a letter is tapped, and the voice it uses): `sayLetter`,
+  `spellOut`, `pickVoice`; how busy the kids' levels get: `KID_GAG_LIMIT`, `KID_GAG_GAP`, `KID_CROWD`;
   Big Kids' smaller keyboard is `keyboardLetters`
 - **Characters** (who's on the rope, and how the crowd teases them): `CHARACTERS`, plus the
   `char-...` groups in the drawing

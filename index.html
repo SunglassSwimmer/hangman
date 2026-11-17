@@ -144,6 +144,14 @@
   .genderchips .chip { font-size: 1.2rem; padding: 6px 18px; }
   .swatch { width: 32px; height: 32px; padding: 0; border-radius: 50%; }
   .swatch.on { box-shadow: 0 0 0 3px var(--yellow), 2px 2px 0 3px var(--ink); }
+  /* Tablets: a bigger scene and bigger letter buttons for small fingers */
+  @media (min-width: 700px) {
+    main { max-width: 720px; }
+    .scene { max-width: 580px; }
+    .keys { max-width: 640px; margin: 0 auto; gap: 10px; }
+    .key { font-size: 1.9rem; padding: 12px 0; }
+  }
+  .freshbtn { display: block; width: auto; margin: 0 auto 4px; padding: 6px 18px; font-size: 1.15rem; }
   .dressup-actions { display: flex; gap: 8px; }
   .dressup-actions .btn { margin-top: 12px; font-size: 1.15rem; padding: 8px; }
 
@@ -641,6 +649,7 @@
       <div class="dressup">
         <h3>Dress them up</h3>
         <div class="scene thumb preview" id="preview" data-mood="calm"></div>
+        <button class="btn secondary freshbtn" id="resetLookBtn">🧽 Start fresh</button>
         <div class="optrow"><b>Face</b><div class="chips" id="faceChips"></div></div>
         <div class="optrow"><b>Skin tone</b><div class="chips" id="skinChips"></div></div>
         <div class="optrow"><b>Hair color</b><div class="chips" id="hairChips"></div></div>
@@ -649,7 +658,6 @@
         <div class="optrow"><b>Shirt</b><div class="chips" id="shirtChips"></div></div>
         <div class="dressup-actions">
           <button class="btn" id="surpriseBtn">🎲 Surprise me</button>
-          <button class="btn secondary" id="resetLookBtn">Reset</button>
         </div>
       </div>
     </div>
@@ -2503,7 +2511,8 @@
 
   // After the first wrong guess, each wrong guess brings one more spectator
   function updateAudience() {
-    const wanted = Math.min(SPECTATOR_SLOTS.length, Math.max(0, game.wrong - 1));
+    const room = game.mode.kid ? KID_CROWD : SPECTATOR_SLOTS.length; // a smaller, calmer crowd for kids
+    const wanted = Math.min(room, Math.max(0, game.wrong - 1));
     while (spectators.length < wanted) {
       const type = game.audience[spectators.length % game.audience.length];
       spectators.push(addSpectator(type, SPECTATOR_SLOTS[spectators.length]));
@@ -3696,32 +3705,41 @@
   };
 
   // Read words and clues out loud (great for kids who can't read yet). Uses the phone's built-in voice.
+  // Use the most natural-sounding English voice the device has, instead of whatever robot it picks by default
+  let bestVoice = null;
+  function pickVoice() {
+    const score = (v) =>
+      (/natural|neural|enhanced|premium/i.test(v.name) ? 5 : 0) +
+      (/samantha|ava|allison|aria|jenny|google us english|google uk english female/i.test(v.name) ? 3 : 0) +
+      (/zira|karen|moira/i.test(v.name) ? 1 : 0) +
+      (/en[-_]us/i.test(v.lang) ? 1 : 0) -
+      (/zarvox|whisper|trinoids|bad news|bells|boing|bubbles|cellos|organ|hysterical|deranged|superstar|jester|wobble/i.test(v.name) ? 10 : 0);
+    const english = speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang));
+    bestVoice = english.sort((a, b) => score(b) - score(a))[0] || null;
+  }
+  if ("speechSynthesis" in window) {
+    pickVoice();
+    speechSynthesis.addEventListener("voiceschanged", pickVoice); // some browsers load their voices late
+  }
+
   function speak(text) {
     if (muted || !("speechSynthesis" in window) || !text) return;
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.9;
-      u.pitch = 1.1;
+      if (bestVoice) u.voice = bestVoice;
+      u.rate = game && game.mode.kid ? 0.8 : 0.9; // a little slower for kids
       speechSynthesis.speak(u);
     } catch (e) {}
   }
   function play(name) { try { SFX[name](); } catch (e) {} }
 
-  // Kids hear each letter's name and its sound when they tap it ("Bee. Buh.").
-  // Spelled out so the phone's voice says them properly. Tweak any that sound off.
-  const LETTER_NAMES = {
-    a: "Ay", b: "Bee", c: "See", d: "Dee", e: "Ee", f: "Eff", g: "Jee", h: "Aitch", i: "Eye", j: "Jay", k: "Kay", l: "Ell", m: "Em",
-    n: "En", o: "Oh", p: "Pee", q: "Cue", r: "Ar", s: "Ess", t: "Tee", u: "You", v: "Vee", w: "Double you", x: "Ex", y: "Why", z: "Zee"
-  };
-  const LETTER_SOUNDS = {
-    a: "as in apple", b: "buh", c: "kuh", d: "duh", e: "as in egg", f: "fff", g: "guh", h: "huh", i: "as in igloo", j: "juh",
-    k: "kuh", l: "lll", m: "mmm", n: "nnn", o: "as in octopus", p: "puh", q: "kwuh", r: "rrr", s: "sss", t: "tuh",
-    u: "as in umbrella", v: "vvv", w: "wuh", x: "ks", y: "yuh", z: "zzz"
-  };
-  const sayLetter = (letter) => speak(`${LETTER_NAMES[letter]}. ${LETTER_SOUNDS[letter]}.`);
-  // ...and when the game ends, they hear the whole word spelled out: "Cat. See, Ay, Tee. Cat!"
-  const spellOut = (word) => `${word}. ${[...word].filter((l) => LETTER_NAMES[l]).map((l) => LETTER_NAMES[l]).join(", ")}. ${word}!`;
+  // Kids hear each letter's name when they tap it. (A capital letter on its own is what device voices read most
+  // reliably; spelled-out names like "Ay" got mixed up, and letter sounds like "fff" were garbled.)
+  const letterName = (letter) => letter.toUpperCase();
+  const sayLetter = (letter) => speak(`${letterName(letter)}.`);
+  // ...and when the game ends, they hear the whole word spelled out: "Cat. C, A, T. Cat!"
+  const spellOut = (word) => `${word}. ${[...word].filter((l) => /[a-z]/.test(l)).map(letterName).join(", ")}. ${word}!`;
 
   function updateMuteButton() { $("muteBtn").textContent = muted ? "🔇" : "🔊"; }
   $("muteBtn").addEventListener("click", () => {
@@ -5094,16 +5112,19 @@
       return say("pip", "Psst! Here's a picture to help!");
     }
     reactToGuess(letter, correct);
+    // In the kids' levels, each gag has to pass gag(): at most two a game, spaced out, favoring ones not seen lately.
+    // (Grown-up modes aren't limited.)
+    const gag = (id) => gagOk(id) && (gagStarted(id), true);
     if (game.mode.kid) {
-      // A cow wanders up now and then (always early in the game, and it usually poops)
-      if (game.history.length === 2 || Math.random() < 0.35) cowVisit();
+      // A cow wanders up now and then (always early in the game, and it usually poops). Kids love it, so it doesn't count toward the limit.
+      if (game.history.length === 2 || ((game.cows || 0) < KID_COWS && Math.random() < 0.25)) { game.cows = (game.cows || 0) + 1; game.lastGag = game.history.length; cowVisit(); }
       // ...or a princess charms the swing (once it's up), or Pip throws a frisbee for Biscuit (once a game each)
-      else if (!game.charmed && game.history.length > 2 && $("scene").querySelector('[data-piece="rope"].on') && Math.random() < odds("charm", 0.2)) { game.charmed = true; soon(princessVisit, 900); }
-      else if (!game.fetched && game.history.length > 1 && Math.random() < odds("frisbee", 0.2)) { game.fetched = true; soon(frisbeeFetch, 900); }
+      else if (!game.charmed && game.history.length > 2 && $("scene").querySelector('[data-piece="rope"].on') && Math.random() < odds("charm", 0.2) && gag("charm")) { game.charmed = true; soon(princessVisit, 900); }
+      else if (!game.fetched && game.history.length > 1 && Math.random() < odds("frisbee", 0.2) && gag("frisbee")) { game.fetched = true; soon(frisbeeFetch, 900); }
       // ...or the sheep, Pip's bubbles, or the duck parade (once a game each)
-      else if (!game.sheeped && game.history.length > 2 && Math.random() < odds("sheep", 0.15)) { game.sheeped = true; soon(sheepStampede, 900); }
-      else if (!game.bubbled && game.history.length > 1 && Math.random() < odds("bubbles", 0.15)) { game.bubbled = true; soon(bubbleParty, 900); }
-      else if (!game.ducked && game.history.length > 1 && Math.random() < odds("ducks", 0.15)) { game.ducked = true; soon(duckParade, 900); }
+      else if (!game.sheeped && game.history.length > 2 && Math.random() < odds("sheep", 0.15) && gag("sheep")) { game.sheeped = true; soon(sheepStampede, 900); }
+      else if (!game.bubbled && game.history.length > 1 && Math.random() < odds("bubbles", 0.15) && gag("bubbles")) { game.bubbled = true; soon(bubbleParty, 900); }
+      else if (!game.ducked && game.history.length > 1 && Math.random() < odds("ducks", 0.15) && gag("ducks")) { game.ducked = true; soon(duckParade, 900); }
     } else {
       // Grown-up modes: Pierre the drunk staggers through, and the bird gets up to mischief
       // (Pierre is a treat: once a game at most, and never two games in a row.)
@@ -5112,28 +5133,50 @@
       if (Math.random() < 0.08) soon(birdMischief, 600);
     }
     // Any mode: the ice cream truck comes by (once a game at most)
-    if (!game.iceCream && game.history.length > 3 && Math.random() < 0.08) { game.iceCream = true; soon(iceCreamTruck, 900); }
-    else if (!game.rained && game.history.length > 2 && Math.random() < 0.07) { game.rained = true; soon(rainShower, 900); }
+    if (!game.iceCream && game.history.length > 3 && Math.random() < 0.08 && gag("icecream")) { game.iceCream = true; soon(iceCreamTruck, 900); }
+    else if (!game.rained && game.history.length > 2 && Math.random() < 0.07 && gag("rain")) { game.rained = true; soon(rainShower, 900); }
     // Any mode: Henri comes to paint, and the squirrel comes for Klaus (once a game each at most)
-    if (!game.painted && game.history.length > 2 && Math.random() < 0.08) { game.painted = true; soon(painterVisit, 900); }
-    if (!game.squirreled && game.history.length > 1 && Math.random() < 0.09) { game.squirreled = true; soon(squirrelVisit, 1100); }
+    if (!game.painted && game.history.length > 2 && Math.random() < 0.08 && gag("painter")) { game.painted = true; soon(painterVisit, 900); }
+    if (!game.squirreled && game.history.length > 1 && Math.random() < 0.09 && gag("squirrel")) { game.squirreled = true; soon(squirrelVisit, 1100); }
     // Any mode: Margot starts a garden, one flower at a time, until the cow finds it
-    if (!game.garden && game.history.length > 1 && Math.random() < odds("garden", 0.1)) { game.garden = []; soon(plantFlower, 900); }
+    if (!game.garden && game.history.length > 1 && Math.random() < odds("garden", 0.1) && gag("garden")) { game.garden = []; soon(plantFlower, 900); }
     else if (game.garden && !game.gardenEaten) {
       if (game.garden.length === GARDEN_SPOTS.length) soon(cowEatsGarden, 900);
       else if (Math.random() < 0.6) soon(plantFlower, 900);
     }
     // Any mode: Klaus gets an itch (once a game at most)
-    if (!game.scratched && game.history.length > 2 && Math.random() < odds("scratch", 0.08)) { game.scratched = true; soon(backScratch, 900); }
+    if (!game.scratched && game.history.length > 2 && Math.random() < odds("scratch", 0.08) && gag("scratch")) { game.scratched = true; soon(backScratch, 900); }
     // Any mode: Sir Reginald comes to the rescue (once a game at most)
-    if (!game.reginald && game.history.length > 2 && document.querySelector('#scene [data-piece="head"].on') && Math.random() < odds("reginald", 0.12)) { game.reginald = true; soon(reginaldVisit, 900); }
+    if (!game.reginald && game.history.length > 2 && document.querySelector('#scene [data-piece="head"].on') && Math.random() < odds("reginald", 0.12) && gag("reginald")) { game.reginald = true; soon(reginaldVisit, 900); }
     // Any mode: Klaus's mother drops by (once a game at most)
-    else if (!game.muttied && game.history.length > 3 && Math.random() < odds("mutti", 0.1)) { game.muttied = true; soon(muttiVisit, 900); }
-    if (Math.random() < SNATCH_CHANCE) soon(snatchOlivia, 800);
+    else if (!game.muttied && game.history.length > 3 && Math.random() < odds("mutti", 0.1) && gag("mutti")) { game.muttied = true; soon(muttiVisit, 900); }
+    if (Math.random() < SNATCH_CHANCE && gag("snatch")) soon(snatchOlivia, 800);
     // Ultra rare: a flying saucer
-    if (!game.ufo && game.history.length > 3 && Math.random() < odds("ufo", 0.012)) { game.ufo = true; soon(ufoVisit, 1200); }
+    if (!game.ufo && game.history.length > 3 && Math.random() < odds("ufo", 0.012) && gag("ufo")) { game.ufo = true; soon(ufoVisit, 1200); }
   }
 
+  // ---------- Keeping the kids' levels calm ----------
+  // Kids noticed the gags far less when lots happened at once, so their levels get fewer, more varied ones.
+  const KID_GAG_LIMIT = 2;  // big moments per game (the cow doesn't count)
+  const KID_GAG_GAP = 3;    // guesses between them
+  const KID_COWS = 2;       // cow visits per game
+  const KID_CROWD = 3;      // extra spectators who gather
+  let recentGags = loadJSON("hangman-recent-gags", []);
+
+  function gagOk(id) {
+    if (!game.mode.kid) return true;
+    if ((game.gags || 0) >= KID_GAG_LIMIT) return false;
+    if (game.lastGag !== undefined && game.history.length - game.lastGag < KID_GAG_GAP) return false;
+    return !(recentGags.includes(id) && Math.random() < 0.7); // ones seen in the last few games come up less
+  }
+
+  function gagStarted(id) {
+    if (!game.mode.kid) return;
+    game.gags = (game.gags || 0) + 1;
+    game.lastGag = game.history.length;
+    recentGags = [id, ...recentGags.filter((g) => g !== id)].slice(0, 4);
+    saveJSON("hangman-recent-gags", recentGags);
+  }
   function endGame(solved, rescue) {
     game.over = true;
     game.won = solved || !!rescue;
