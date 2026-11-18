@@ -4078,42 +4078,62 @@
     ufo:      () => { tone(300, 0, 2.6, { type: "sine", vol: 0.08, to: 900, vibrato: 60 }); tone(450, 0.2, 2.4, { type: "triangle", vol: 0.04, to: 1300, vibrato: 90 }); }
   };
 
-  // Read words and clues out loud (great for kids who can't read yet). Uses the phone's built-in voice.
-  // Use the most natural-sounding English voice the device has, instead of whatever robot it picks by default
+  // Read words and clues out loud (great for kids who can't read yet). Uses the device's built-in voices.
+  // Two styles: the LEARNING voice (letters, spelling, word meanings) is slow and clear, while the CHARACTERS
+  // chat at a natural, lively pace, each with their own voice: Klaus uses a German voice and Gérard a French one
+  // (so they have real accents, when the device has those voices), Margot a British one, and Pip is squeaky.
+  const naturalness = (v) =>
+    (/natural|neural|enhanced|premium/i.test(v.name) ? 5 : 0) +
+    (/samantha|ava|allison|aria|jenny|google/i.test(v.name) ? 3 : 0) +
+    (/zira|karen|moira|daniel|thomas|anna/i.test(v.name) ? 1 : 0) -
+    (/zarvox|whisper|trinoids|bad news|bells|boing|bubbles|cellos|organ|hysterical|deranged|superstar|jester|wobble/i.test(v.name) ? 10 : 0);
+  // Voice names that are usually men's voices (so Klaus and Gérard don't sound like the narrator)
+  const MALE_VOICE = /\b(david|mark|paul|daniel|thomas|alex|fred|guy|ryan|eric|henri|claude|stefan|markus|yannick|reed|aaron|arthur|male)\b/i;
+  // The most natural voice for a language ("en-US", "de", "fr"...), or null if the device has none
+  function voiceFor(lang, male) {
+    const want = lang.toLowerCase();
+    const matches = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().replace("_", "-").startsWith(want));
+    const score = (v) => naturalness(v) + (male && MALE_VOICE.test(v.name) ? 4 : 0);
+    return matches.sort((a, b) => score(b) - score(a))[0] || null;
+  }
+
+  // How each character sounds. lang: which voice (an accent, if the device has it); rate: how fast; pitch: how high
+  const CHARACTER_VOICES = {
+    klaus:  { lang: "de", pitch: 0.8,  rate: 1.0, male: true },
+    gerard: { lang: "fr", pitch: 0.95, rate: 1.0, male: true },
+    margot: { lang: "en-gb", pitch: 1.1, rate: 1.0 },
+    pip:    { lang: "en", pitch: 1.5,  rate: 1.1 },
+    hero:   { lang: "en", pitch: 1.3,  rate: 1.05 },  // the kid's own character, giggling
+    crowd:  { lang: "en", pitch: 1.15, rate: 1.05 }   // animals and other visitors
+  };
+  // The learning voice: a touch slower for the youngest
+  const SPEECH_RATE = { little: 0.72, easy: 0.8 };
+
   let bestVoice = null;
-  function pickVoice() {
-    const score = (v) =>
-      (/natural|neural|enhanced|premium/i.test(v.name) ? 5 : 0) +
-      (/samantha|ava|allison|aria|jenny|google us english|google uk english female/i.test(v.name) ? 3 : 0) +
-      (/zira|karen|moira/i.test(v.name) ? 1 : 0) +
-      (/en[-_]us/i.test(v.lang) ? 1 : 0) -
-      (/zarvox|whisper|trinoids|bad news|bells|boing|bubbles|cellos|organ|hysterical|deranged|superstar|jester|wobble/i.test(v.name) ? 10 : 0);
-    const english = speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang));
-    bestVoice = english.sort((a, b) => score(b) - score(a))[0] || null;
+  const characterVoice = {};
+  function pickVoices() {
+    bestVoice = voiceFor("en-us") || voiceFor("en");
+    for (const [who, v] of Object.entries(CHARACTER_VOICES)) characterVoice[who] = voiceFor(v.lang, v.male) || (v.male && voiceFor("en", true)) || bestVoice;
   }
   if ("speechSynthesis" in window) {
-    pickVoice();
-    speechSynthesis.addEventListener("voiceschanged", pickVoice); // some browsers load their voices late
+    pickVoices();
+    speechSynthesis.addEventListener("voiceschanged", pickVoices); // some browsers load their voices late
   }
 
-  // How fast the voice talks: a touch slower for the youngest
-  const SPEECH_RATE = { little: 0.72, easy: 0.8 };
-  // Each character sounds a bit different (where the device's voice allows it): Klaus low, Pip squeaky
-  const VOICE_PITCH = { klaus: 0.7, gerard: 0.9, margot: 1.15, pip: 1.6, hero: 1.35 };
-
-  // who: optional, to use that character's pitch
+  // who: a character (see CHARACTER_VOICES) to speak in their voice; leave it out for the slow, clear learning voice
   function speak(text, who) {
     if (muted || !("speechSynthesis" in window) || !text) return;
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text.replace(/\*/g, "")); // "*TOOT TOOT*" is read as "toot toot"
-      if (bestVoice) u.voice = bestVoice;
-      u.rate = (game && SPEECH_RATE[game.modeKey]) || 0.9;
-      if (who && VOICE_PITCH[who]) u.pitch = VOICE_PITCH[who];
+      const style = CHARACTER_VOICES[who];
+      const voice = style ? characterVoice[who] : bestVoice;
+      if (voice) { u.voice = voice; u.lang = voice.lang; }
+      u.rate = style ? style.rate : (game && SPEECH_RATE[game.modeKey]) || 0.9;
+      if (style) u.pitch = style.pitch;
       speechSynthesis.speak(u);
     } catch (e) {}
   }
-
   // A speech bubble that's also read out loud (for kids who can't read the bubbles yet)
   function sayAloud(who, text) {
     say(who, escapeHtml(text));
@@ -5613,7 +5633,7 @@
     const sound = kind.sound();
     sayFromSpectator(s, sound);
     play(kind.sfx || (s.dataset.type === "cow" ? "moo" : "pop"));
-    speak(sound);
+    speak(sound, "crowd");
   });
 
   function guess(letter) {

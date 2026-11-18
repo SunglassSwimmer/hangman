@@ -28,7 +28,7 @@ Everything lives in one file: `index.html`.
 - **Difficulty modes** (and what gets drawn on each wrong guess): `MODES`. The kids' levels are `little`
   (Big Kids, ages 4-5) and `easy` (Even Bigger Kids, ages 6-8).
 - **Letters read aloud for kids** (what the device says when a letter is tapped, and the voice it uses): `sayLetter`,
-  `spellOut`, `pickVoice`; how busy the kids' levels get: `KID_GAG_LIMIT`, `KID_GAG_GAP`, `KID_CROWD`;
+  `spellOut`; each character's voice, accent and pace: `CHARACTER_VOICES` (the slow learning voice: `SPEECH_RATE`); how busy the kids' levels get: `KID_GAG_LIMIT`, `KID_GAG_GAP`, `KID_CROWD`;
   Big Kids' glowing hint when they're stuck is `scheduleNudge` (`NUDGE_AFTER`);
   tapping things in the kids' levels: `TAP_LINES`, `GIGGLES`, plus the cloud (rains on Klaus, `RAIN_CLOUD`) and Pip's
   balloon (changes color, `BALLOON_COLOR_NAMES`); each right letter's celebration: `celebrateLetter`;
