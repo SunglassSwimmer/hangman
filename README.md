@@ -29,6 +29,10 @@ Everything lives in one file: `index.html`.
   (Big Kids, ages 4-5) and `easy` (Even Bigger Kids, ages 6-8).
 - **Letters read aloud for kids** (what the device says when a letter is tapped, and the voice it uses): `sayLetter`,
   `spellOut`, `pickVoice`; how busy the kids' levels get: `KID_GAG_LIMIT`, `KID_GAG_GAP`, `KID_CROWD`;
+  Big Kids' faint "ghost" letters are the `ghost` class in `render`, and the glowing hint is `scheduleNudge` (`NUDGE_AFTER`);
+  tapping things in the kids' levels: `TAP_LINES`, `GIGGLES`, plus the cloud (rains on Klaus, `RAIN_CLOUD`) and Pip's
+  balloon (changes color, `BALLOON_COLOR_NAMES`); each right letter's celebration: `celebrateLetter`;
+  the kid's name (typed into the Word Zoo card): `kidName`; outfits earned by learning words: `UNLOCKS`
   Big Kids' smaller keyboard is `keyboardLetters`
 - **Characters** (who's on the rope, and how the crowd teases them): `CHARACTERS`, plus the
   `char-...` groups in the drawing

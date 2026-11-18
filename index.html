@@ -228,7 +228,11 @@
   [data-extras~="crown"] .opt-crown, [data-extras~="cowboy"] .opt-cowboy,
   [data-extras~="partyhat"] .opt-partyhat, [data-extras~="flower"] .opt-flower,
   [data-extras~="chain"] .opt-chain, [data-extras~="scarf"] .opt-scarf,
-  [data-extras~="viking"] .opt-viking, [data-extras~="wizard"] .opt-wizard, [data-extras~="heromask"] .opt-heromask { display: inline; }
+  [data-extras~="viking"] .opt-viking, [data-extras~="wizard"] .opt-wizard, [data-extras~="heromask"] .opt-heromask,
+  [data-extras~="bunny"] .opt-bunny, [data-extras~="unicorn"] .opt-unicorn, [data-extras~="bow"] .opt-bow { display: inline; }
+  /* Tapping your character makes them giggle */
+  .giggle { transform-box: fill-box; transform-origin: 50% 100%; animation: giggle .5s ease-in-out; }
+  @keyframes giggle { 20% { transform: rotate(-9deg); } 45% { transform: rotate(8deg); } 70% { transform: rotate(-5deg); } }
 
   /* The Yoked body type swaps in a V-shaped torso and beefs up the arms */
   .yoked-only { display: none; }
@@ -304,6 +308,13 @@
   .slot.gap { border-bottom-color: transparent; width: 14px; }
   .slot.extra { border-bottom-color: transparent; }
   .slot.missed { color: #e05561; }
+  /* Big Kids: the word is shown faintly, so they can match letter shapes before they can spell */
+  .slot.ghost { color: var(--muted); opacity: .35; }
+  .slot.found { animation: found .55s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes found { from { transform: scale(1.8); color: #2f9e63; } }
+  /* ...and if they get stuck, the next letter's button glows */
+  .key.nudge { animation: nudge 1s ease-in-out infinite alternate; }
+  @keyframes nudge { to { background: var(--yellow); box-shadow: 0 0 0 4px #ffd166; transform: scale(1.08); } }
 
   .keys { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; }
   .key {
@@ -553,6 +564,8 @@
   .rainfall { animation: rainfall .55s linear infinite; }
   @keyframes rainfall { from { transform: translate(0, -16px); opacity: .9; } to { transform: translate(-4px, 16px); opacity: .2; } }
   .umbrella { display: none; }
+  #klaus.brolly .umbrella { display: inline; transform-box: fill-box; transform-origin: 50% 100%; animation: popopen .35s cubic-bezier(.3, 1.6, .5, 1); }
+  #cloud, #balloon { cursor: pointer; }
   .scene.umbrellas .umbrella { display: inline; transform-box: fill-box; transform-origin: 50% 100%; animation: popopen .35s cubic-bezier(.3, 1.6, .5, 1); }
   @keyframes popopen { from { transform: scale(.2); } }
   .drip { animation: drip .7s linear infinite; }
@@ -636,7 +649,9 @@
     </div>
 
     <div class="card" id="zooCard">
-      <h2>🦁 Word Zoo</h2>
+      <h2 id="zooTitle">🦁 Word Zoo</h2>
+      <label for="kidNameInput">Who's playing? (the crowd will cheer for them)</label>
+      <input id="kidNameInput" maxlength="16" placeholder="Their first name" autocomplete="off">
       <p id="zooCount"></p>
       <div id="zooPacks"></div>
     </div>
@@ -782,8 +797,8 @@
         <path class="mood when-scared when-worried sweat" d="M345 -8 q-4 6 0 8 q4 -2 0 -8 Z"/>
       </g>
 
-      <!-- a drifting cloud -->
-      <g>
+      <!-- a drifting cloud (in the kids' levels, tap it and it rains on Klaus) -->
+      <g id="cloud">
         <path class="paper-fill" d="M172 6 q-14 0 -12 -11 q2 -12 16 -9 q6 -12 20 -6 q14 -6 18 8 q12 2 8 12 q-2 6 -10 6 Z"/>
         <animateTransform attributeName="transform" type="translate" values="0 0; 45 0; 0 0" dur="26s" repeatCount="indefinite"/>
       </g>
@@ -1212,6 +1227,20 @@
           </g>
           <path class="opt opt-heromask" fill-rule="evenodd" fill="#e63946" stroke-width="1.8"
                 d="M107 64 q21 -7 42 0 v9 q-21 7 -42 0 Z M116 68.5 a4 3 0 1 0 8 0 a4 3 0 1 0 -8 0 Z M132 68.5 a4 3 0 1 0 8 0 a4 3 0 1 0 -8 0 Z"/>
+          <g class="opt opt-bunny">
+            <ellipse cx="116" cy="26" rx="6.5" ry="17" fill="#fff" transform="rotate(-12 116 26)"/>
+            <ellipse cx="116" cy="27" rx="3" ry="12" fill="#ffafcc" stroke="none" transform="rotate(-12 116 27)"/>
+            <ellipse cx="140" cy="26" rx="6.5" ry="17" fill="#fff" transform="rotate(12 140 26)"/>
+            <ellipse cx="140" cy="27" rx="3" ry="12" fill="#ffafcc" stroke="none" transform="rotate(12 140 27)"/>
+          </g>
+          <g class="opt opt-unicorn">
+            <path d="M122 46 L128 10 L134 46 Z" fill="#ffd166"/>
+            <path d="M124 38 l8 -3 M125 30 l6 -2.5 M126.5 22 l3.5 -1.5" stroke="#e9a23b" stroke-width="1.5"/>
+          </g>
+          <g class="opt opt-bow">
+            <path d="M128 40 L110 30 L110 50 Z M128 40 L146 30 L146 50 Z" fill="#ff8fab"/>
+            <circle cx="128" cy="40" r="4.5" fill="#ff6b9a"/>
+          </g>
           <g class="opt opt-crown">
             <path d="M112 53 l3 -15 l7 8 l6 -13 l6 13 l7 -8 l3 15 Z" fill="#ffd166"/>
             <circle cx="128" cy="47" r="2.2" fill="#e63946" stroke="none"/>
@@ -1589,7 +1618,7 @@
   // The themes the kids' words belong to
   const PACKS = {
     animals: "🐾 Animals", ocean: "🌊 Ocean", space: "🚀 Space", dinos: "🦕 Dinosaurs",
-    food: "🍎 Food", play: "🧸 Home & Play", nature: "🌳 Nature", go: "🚗 Things That Go"
+    food: "🍎 Food", play: "🧸 Home & Play", nature: "🌳 Nature", go: "🚗 Things That Go", body: "🖐️ My Body"
   };
 
   // Words used in "play by yourself" mode, one list per difficulty
@@ -1662,7 +1691,46 @@
       { w: "leaf", pic: "🍃", clue: "It grows on a tree and falls in autumn!", def: "A leaf is the flat green part of a plant.", ex: "A red leaf floated down.", pack: "nature" },
       { w: "fire", pic: "🔥", clue: "It's hot and bright! Don't touch!", def: "Fire is the hot, bright flames you see when something burns.", ex: "We roasted marshmallows over the fire.", pack: "nature" },
       { w: "car", pic: "🚗", clue: "It has four wheels and goes vroom!", def: "A car is a vehicle with four wheels that people drive.", ex: "We drove to the park in our car.", pack: "go" },
-      { w: "bike", pic: "🚲", clue: "It has two wheels, and you pedal it!", def: "A bike has two wheels. You push the pedals to make it go.", ex: "I rode my bike down the hill.", pack: "go" }
+      { w: "bike", pic: "🚲", clue: "It has two wheels, and you pedal it!", def: "A bike has two wheels. You push the pedals to make it go.", ex: "I rode my bike down the hill.", pack: "go" },
+      { w: "pony", pic: "🐴", clue: "A small horse you can ride!", def: "A pony is a small kind of horse.", ex: "I fed the pony an apple.", pack: "animals" },
+      { w: "wolf", pic: "🐺", clue: "A wild dog that howls at the moon!", def: "A wolf is a wild animal like a big dog. Wolves live in groups called packs.", ex: "The wolf howled at night.", pack: "animals" },
+      { w: "swan", pic: "🦢", clue: "A white bird with a long, curvy neck!", def: "A swan is a big white bird that swims gracefully on lakes.", ex: "A swan glided across the pond.", pack: "animals" },
+      { w: "dove", pic: "🕊️", clue: "A soft white bird that coos!", def: "A dove is a gentle bird that makes a soft cooing sound.", ex: "A dove sat on the windowsill.", pack: "animals" },
+      { w: "ram", pic: "🐏", clue: "A boy sheep with big curly horns!", def: "A ram is a boy sheep. Rams have curly horns.", ex: "The ram climbed the rocky hill.", pack: "animals" },
+      { w: "ape", pic: "🦍", clue: "A big, strong cousin of the monkey, like a gorilla!", def: "An ape is a big animal like a gorilla. Apes have no tails.", ex: "The ape beat its chest.", pack: "animals" },
+      { w: "worm", pic: "🪱", clue: "A wiggly creature that lives in the dirt!", def: "A worm is a long, soft creature with no legs that lives in soil.", ex: "A worm wiggled out after the rain.", pack: "animals" },
+      { w: "sail", pic: "⛵", clue: "Wind pushes this cloth to move a boat!", def: "A sail is a big piece of cloth on a boat that catches the wind.", ex: "The wind filled the sail.", pack: "ocean" },
+      { w: "fin", pic: "🦈", clue: "The pointy part on a shark's back!", def: "A fin is a flat part that helps a fish or shark swim.", ex: "We saw a fin poking out of the water.", pack: "ocean" },
+      { w: "surf", pic: "🏄", clue: "Ride a big wave on a board!", def: "To surf is to stand on a board and ride the waves.", ex: "We watched people surf at the beach.", pack: "ocean" },
+      { w: "jam", pic: "🍓", clue: "Sweet, sticky fruit spread for your toast!", def: "Jam is a sweet spread made by cooking fruit with sugar.", ex: "I put strawberry jam on my toast.", pack: "food" },
+      { w: "nut", pic: "🥜", clue: "Squirrels love to crunch these!", def: "A nut is a seed with a hard shell that you can eat.", ex: "The squirrel cracked open a nut.", pack: "food" },
+      { w: "ham", pic: "🍖", clue: "A meat you can put in a sandwich!", def: "Ham is a kind of meat that is often sliced for sandwiches.", ex: "Dad made a ham sandwich.", pack: "food" },
+      { w: "tea", pic: "🍵", clue: "A warm drink grown-ups sip from a little cup!", def: "Tea is a drink made by soaking leaves in hot water.", ex: "Grandma made a cup of tea.", pack: "food" },
+      { w: "cup", pic: "🥤", clue: "You drink from it!", def: "A cup is something you drink out of.", ex: "I filled my cup with water.", pack: "play" },
+      { w: "boot", pic: "👢", clue: "A tall shoe for stomping in puddles!", def: "A boot is a strong shoe that covers your foot and ankle.", ex: "I splashed in a puddle in my boots.", pack: "play" },
+      { w: "pan", pic: "🍳", clue: "Cook eggs in it on the stove!", def: "A pan is a flat pot with a handle, used for cooking.", ex: "Mom cooked pancakes in the pan.", pack: "play" },
+      { w: "hug", pic: "🤗", clue: "Squeeze someone you love with both arms!", def: "A hug is when you wrap your arms around someone to show you care.", ex: "I gave Grandpa a big hug.", pack: "body" },
+      { w: "sled", pic: "🛷", clue: "Ride it down a snowy hill! Wheee!", def: "A sled is something you sit on to slide down snowy hills.", ex: "We zoomed down the hill on a sled.", pack: "play" },
+      { w: "flag", pic: "🚩", clue: "A colorful cloth that waves on a pole!", def: "A flag is a piece of cloth with colors or a picture, hung on a pole.", ex: "The flag flapped in the wind.", pack: "play" },
+      { w: "soap", pic: "🧼", clue: "Wash your hands with it! Bubbles!", def: "Soap makes bubbles and helps wash away dirt and germs.", ex: "I washed my hands with soap.", pack: "play" },
+      { w: "sofa", pic: "🛋️", clue: "A comfy seat for the whole family!", def: "A sofa is a long, soft seat for more than one person.", ex: "We cuddled on the sofa.", pack: "play" },
+      { w: "ring", pic: "💍", clue: "Shiny jewelry you wear on your finger!", def: "A ring is a circle of metal you wear on your finger.", ex: "Mom wears a gold ring.", pack: "play" },
+      { w: "tent", pic: "⛺", clue: "Sleep in it when you go camping!", def: "A tent is a little shelter made of cloth that you sleep in outside.", ex: "We camped in a tent.", pack: "play" },
+      { w: "net", pic: "🥅", clue: "Catch butterflies or score a goal with it!", def: "A net is made of strings tied together with holes in between.", ex: "The ball flew into the net.", pack: "play" },
+      { w: "rose", pic: "🌹", clue: "A red flower with prickly thorns!", def: "A rose is a pretty flower that smells sweet and has thorns.", ex: "I gave Mom a red rose.", pack: "nature" },
+      { w: "ice", pic: "🧊", clue: "Frozen water! Brrr!", def: "Ice is water that is so cold it turned hard.", ex: "I put ice in my drink.", pack: "nature" },
+      { w: "rock", pic: "🪨", clue: "Hard and heavy. You find it on the ground!", def: "A rock is a hard piece of stone.", ex: "I found a smooth rock by the river.", pack: "nature" },
+      { w: "web", pic: "🕸️", clue: "A spider spins this sticky trap!", def: "A web is a net of sticky threads that a spider spins.", ex: "Dew sparkled on the web.", pack: "nature" },
+      { w: "fog", pic: "🌫️", clue: "A cloud down low near the ground!", def: "Fog is a cloud close to the ground that makes it hard to see.", ex: "The fog hid the trees.", pack: "nature" },
+      { w: "bath", pic: "🛁", clue: "Splish, splash! Get clean in the tub!", def: "A bath is when you sit in warm water to get clean.", ex: "I played with bubbles in the bath.", pack: "play" },
+      { w: "plane", pic: "✈️", clue: "It flies people high in the sky!", def: "A plane is a flying machine with wings that carries people.", ex: "We waved at the plane flying by.", pack: "go" },
+      { w: "taxi", pic: "🚕", clue: "A yellow car you pay to ride in!", def: "A taxi is a car that drives people where they want to go, for money.", ex: "We took a taxi to the airport.", pack: "go" },
+      { w: "hand", pic: "✋", clue: "It has five fingers! Wave hello!", def: "Your hand is at the end of your arm. It has a thumb and fingers.", ex: "Raise your hand to answer.", pack: "body" },
+      { w: "foot", pic: "🦶", clue: "You walk on it and wear a shoe on it!", def: "Your foot is at the end of your leg. You stand on your feet.", ex: "I stubbed my foot on a toy.", pack: "body" },
+      { w: "nose", pic: "👃", clue: "You smell with it! Sniff, sniff!", def: "Your nose is in the middle of your face. You smell and breathe with it.", ex: "The flowers tickled my nose.", pack: "body" },
+      { w: "ear", pic: "👂", clue: "You listen with it!", def: "Your ears are on the sides of your head. They help you hear.", ex: "I whispered in her ear.", pack: "body" },
+      { w: "eye", pic: "👁️", clue: "You see with it! Blink, blink!", def: "Your eyes help you see colors, shapes and everything around you.", ex: "I closed one eye and winked.", pack: "body" },
+      { w: "baby", pic: "👶", clue: "A tiny new person who says waa!", def: "A baby is a very young child.", ex: "The baby giggled and clapped.", pack: "body" }
     ],
     // Even Bigger Kids (ages 6-8): longer words; the picture clue shows up halfway
     easy: [
@@ -1749,8 +1817,7 @@
       { w: "storm", pic: "⛈️", clue: "Rain, wind, thunder and lightning!", def: "A storm is bad weather with strong wind, rain and sometimes thunder.", ex: "We stayed inside during the storm.", pack: "nature" },
       { w: "pumpkin", pic: "🎃", clue: "A big orange vegetable you carve on Halloween!", def: "A pumpkin is a big, round orange vegetable that grows on a vine.", ex: "We carved a funny face in our pumpkin.", pack: "nature" },
       { w: "truck", pic: "🚚", clue: "A big vehicle that carries heavy things!", def: "A truck is a big vehicle that carries heavy loads.", ex: "The truck delivered a big box.", pack: "go" },
-      { w: "tractor", pic: "🚜", clue: "A farm vehicle with giant wheels!", def: "A tractor is a strong farm vehicle with big back wheels.", ex: "The farmer drove the tractor.", pack: "go" },
-      { w: "plane", pic: "✈️", clue: "It flies people high in the sky!", def: "A plane is a flying machine with wings that carries people.", ex: "We waved at the plane flying by.", pack: "go" }
+      { w: "tractor", pic: "🚜", clue: "A farm vehicle with giant wheels!", def: "A tractor is a strong farm vehicle with big back wheels.", ex: "The farmer drove the tractor.", pack: "go" }
     ],
     regular: [
       ["giraffe", "Animal"], ["penguin", "Animal"], ["octopus", "Animal"], ["kangaroo", "Animal"],
@@ -1923,7 +1990,21 @@
   const KID_GREETINGS = ["Hello, big speller!", "Let's find the word!", "Yay, a new word!"];
   const RETRY_GREETINGS = ["Remember this one? Let's try again!", "This word is back for another try!", "You can get it this time!"];
   // What the crowd says first in a kids' game (a word coming back for another try gets its own line)
-  const kidGreeting = () => pick(game.retry ? RETRY_GREETINGS : KID_GREETINGS);
+  const kidGreeting = () => {
+    const n = kidName();
+    if (game.retry || !n) return pick(game.retry ? RETRY_GREETINGS : KID_GREETINGS);
+    return pick([`Hello, ${n}!`, `Yay, ${n} is here!`, `Let's find the word, ${n}!`]);
+  };
+  // The kid's first name, if a grown-up typed it in (shown safely, since it goes into speech bubbles)
+  // When the character arrives in a kids' game, the crowd welcomes the kid by name, out loud
+  function welcomeKid() {
+    const n = rawKidName();
+    if (!n || game.retry) return say(pick(PEASANTS), kidGreeting());
+    say(pick(PEASANTS), `Here comes ${kidName()}!`);
+    speak(`Here comes ${n}!`);
+  }
+  const rawKidName = () => { try { return (localStorage.getItem("hangman-kidname") || "").trim(); } catch (e) { return ""; } };
+  const kidName = () => escapeHtml(rawKidName());
   const KID_ENTRANCE = ["Flowers for our speller!", "Hooray! Here they come!", "*happy toot toot*"];
 
   const PEASANTS = ["klaus", "gerard", "margot", "pip"]; // the main crowd (everyone who can talk except the bird)
@@ -1995,7 +2076,14 @@
   function heckle(kind) {
     // Usually a peasant speaks; sometimes the bird chimes in.
     // During the game the bubble fades out; at the end it stays up.
-    if (game && game.mode.kid) return say(pick(PEASANTS), pick(KIND_LINES[kind]), kind === "win" || kind === "lose");
+    if (game && game.mode.kid) {
+      // Now and then the crowd cheers the kid by name
+      const n = kidName();
+      let line = pick(KIND_LINES[kind]);
+      if (n && kind === "win") line = pick([`Hooray, ${n}! You did it!`, `${n} is the best speller ever!`]);
+      else if (n && kind === "right" && Math.random() < 0.35) line = pick([`Yay, ${n}!`, `Good job, ${n}!`, `${n}, you're a star!`]);
+      return say(pick(PEASANTS), line, kind === "win" || kind === "lose");
+    }
     const who = Math.random() < 0.15 && birdIsHome() ? "bird" : pick(PEASANTS);
     say(who, pick(CAST[who][kind]), kind === "win" || kind === "lose");
   }
@@ -3691,7 +3779,8 @@
 
   // Tail up, pbbbt, plop... then the cow turns and stares right at the camera
   function cowPoop(cow) {
-    if (!cow.isConnected || cow.dataset.leaving) return;
+    if (!cow.isConnected || cow.dataset.leaving || cow.dataset.pooped) return;
+    cow.dataset.pooped = "yes"; // one each (a tapped cow may already have gone)
     const x = Number(cow.dataset.x), y = Number(cow.dataset.y), size = Number(cow.dataset.size);
     const facing = x < 128 ? -1 : 1; // the cow is drawn facing left, and flipped when it stands left of the gallows
     cow.classList.add("pooping");
@@ -3833,7 +3922,7 @@
     // The crowd has opinions
     if (t > IN && !entrance.said[0]) {
       entrance.said[0] = true;
-      say(pick(PEASANTS), game.mode.kid ? kidGreeting() : pick(entrance.character.tease));
+      if (game.mode.kid) welcomeKid(); else say(pick(PEASANTS), pick(entrance.character.tease));
     }
     if (t > IN + 1600 && !entrance.said[1]) {
       entrance.said[1] = true;
@@ -3984,6 +4073,7 @@
     whistle:  () => { tone(1500, 0, 0.18, { vol: 0.1, to: 2400 }); tone(1500, 0.24, 0.3, { vol: 0.1, to: 2600 }); },
     twinkle:  () => [1319, 1568, 1976, 2637].forEach((f, i) => tone(f, i * 0.07, 0.3, { type: "triangle", vol: 0.06 })),
     bark:     () => { tone(520, 0, 0.09, { type: "sawtooth", vol: 0.08, to: 300 }); tone(560, 0.16, 0.09, { type: "sawtooth", vol: 0.08, to: 320 }); },
+    giggle:   () => [880, 1100, 960, 1250].forEach((f, i) => tone(f, i * 0.09, 0.08, { type: "triangle", vol: 0.08 })),
     clank:    () => { tone(1300, 0, 0.18, { type: "square", vol: 0.07, to: 900 }); tone(1900, 0.02, 0.25, { vol: 0.08, to: 1500 }); },
     ufo:      () => { tone(300, 0, 2.6, { type: "sine", vol: 0.08, to: 900, vibrato: 60 }); tone(450, 0.2, 2.4, { type: "triangle", vol: 0.04, to: 1300, vibrato: 90 }); }
   };
@@ -4569,9 +4659,15 @@
   const odds = (id, base) => base * (stickersSeen.has(id) ? 0.7 : 1.3);
 
   // ---- Wins, and the extras they unlock ----
-  const UNLOCKS = [{ extra: "viking", wins: 3 }, { extra: "wizard", wins: 6 }, { extra: "heromask", wins: 10 }];
+  // Most extras are free. These are earned: some by winning games, some by collecting words in the Word Zoo.
+  const UNLOCKS = [
+    { extra: "viking", wins: 3 }, { extra: "wizard", wins: 6 }, { extra: "heromask", wins: 10 },
+    { extra: "bunny", words: 5 }, { extra: "unicorn", words: 12 }, { extra: "bow", words: 20 }
+  ];
   const stats = loadJSON("hangman-stats", { games: 0, wins: 0 });
-  const isLocked = (extra) => { const u = UNLOCKS.find((x) => x.extra === extra); return !!u && stats.wins < u.wins; };
+  const zooWords = () => Object.keys(loadJSON("hangman-zoo", {})).length;
+  const stillLocked = (u) => (u.wins ? stats.wins < u.wins : zooWords() < u.words);
+  const isLocked = (extra) => { const u = UNLOCKS.find((x) => x.extra === extra); return !!u && stillLocked(u); };
 
   function recordStats(won) {
     const before = stats.wins;
@@ -4589,10 +4685,12 @@
       chip.classList.toggle("locked", locked);
       chip.textContent = locked ? `🔒 ${chip.dataset.label}` : chip.dataset.label;
     });
-    const next = UNLOCKS.find((u) => stats.wins < u.wins);
-    $("unlockNote").textContent = next
-      ? `Win ${next.wins - stats.wins} more game${next.wins - stats.wins === 1 ? "" : "s"} to unlock the ${EXTRAS[next.extra]}.`
-      : "You've unlocked every extra. Show-off.";
+    const nextWin = UNLOCKS.find((u) => u.wins && stillLocked(u));
+    const nextWord = UNLOCKS.find((u) => u.words && stillLocked(u));
+    const notes = [];
+    if (nextWin) notes.push(`Win ${nextWin.wins - stats.wins} more game${nextWin.wins - stats.wins === 1 ? "" : "s"} to unlock the ${EXTRAS[nextWin.extra]}.`);
+    if (nextWord) { const n = nextWord.words - zooWords(); notes.push(`Learn ${n} more word${n === 1 ? "" : "s"} in the kids' levels to unlock the ${EXTRAS[nextWord.extra]}.`); }
+    $("unlockNote").textContent = notes.length ? notes.join(" ") : "You've unlocked every extra. Show-off.";
   }
 
   // ---- The daily puzzle: three words a day (one per mode), the same for everyone ----
@@ -4845,6 +4943,8 @@
     saveJSON("hangman-zoo", zoo);
     const count = Object.keys(zoo).length;
     showToast(`New in your Word Zoo! ${game.info.pic || "💌"} ${w} (${count} ${count === 1 ? "word" : "words"})`);
+    const prize = UNLOCKS.find((u) => u.words === count);
+    if (prize) { showToast(`New outfit unlocked: ${EXTRAS[prize.extra]}! 🎉`); refreshExtraChips(); }
     // A whole theme collected
     if (pack && KID_WORDS.filter((e) => e.pack === pack).every((e) => zoo[e.w])) showToast(`You collected every word in ${PACKS[pack]}! 🎉`);
   }
@@ -4856,8 +4956,17 @@
     return w ? SOLO_WORDS[mode].find((e) => e.w === w) : null;
   }
 
+  $("kidNameInput").value = rawKidName();
+  $("kidNameInput").addEventListener("input", () => {
+    try { localStorage.setItem("hangman-kidname", $("kidNameInput").value.trim()); } catch (e) {}
+    const n = rawKidName();
+    $("zooTitle").textContent = n ? `🦁 ${n}'s Word Zoo` : "🦁 Word Zoo";
+  });
+
   function renderZoo() {
     const count = Object.keys(zoo).length;
+    const n = rawKidName();
+    $("zooTitle").textContent = n ? `🦁 ${n}'s Word Zoo` : "🦁 Word Zoo";
     $("zooCount").textContent = count
       ? `${count} ${count === 1 ? "word" : "words"} collected. Tap one to hear it!`
       : "Solve words in Big Kids or Even Bigger Kids, and they'll live here!";
@@ -5029,10 +5138,12 @@
     clownnose: "🔴 Clown nose", cowboy: "🤠 Cowboy hat", partyhat: "🥳 Party hat", crown: "👑 Crown",
     flower: "🌼 Flower", chain: "📿 Gold chain", scarf: "🧣 Scarf", pants: "👖 Pants",
     // these three are earned by winning games (see UNLOCKS)
-    viking: "🪓 Viking helmet", wizard: "🧙 Wizard hat", heromask: "🦸 Hero mask"
+    viking: "🪓 Viking helmet", wizard: "🧙 Wizard hat", heromask: "🦸 Hero mask",
+    // and these three by learning words in the kids' levels (see UNLOCKS)
+    bunny: "🐰 Bunny ears", unicorn: "🦄 Unicorn horn", bow: "🎀 Big bow"
   };
   // Extras that can't be worn together (only one thing on the eyes, one thing on top of the head)
-  const CLASHES = [["glasses", "shades", "eyepatch", "heromask"], ["cowboy", "partyhat", "crown", "viking", "wizard"]];
+  const CLASHES = [["glasses", "shades", "eyepatch", "heromask"], ["cowboy", "partyhat", "crown", "viking", "wizard", "bunny", "unicorn", "bow"]];
   const SHIRTS = ["#e63946", "#ff9f1c", "#ffd166", "#2a9d8f", "#4d7cff", "#c77dff", "#3d3d3d"];
   const SKINS = ["#ffe0bd", "#f1c27d", "#e0ac69", "#c68642", "#a0663e", "#8d5524"];
   const HAIRS = ["#2b1d14", "#4a3728", "#8b5a2b", "#b5523b", "#e07a3f", "#f6d365", "#b8b8b8", "#f1f1f1", "#ff8fab", "#4d7cff"];
@@ -5352,7 +5463,7 @@
     setTimeout(() => {
       if (game !== g || game.history.length) return;
       if (game.callback) sayCallback(game.callback);
-      else say(pick(PEASANTS), mode.kid ? kidGreeting() : pick(character.tease));
+      else if (mode.kid) welcomeKid(); else say(pick(PEASANTS), pick(character.tease));
     }, 600);
   }
 
@@ -5379,6 +5490,116 @@
     }
   }
 
+  // ---------- Big Kids: a gentle nudge when they're stuck ----------
+  const NUDGE_AFTER = 7000; // milliseconds without a guess
+  let nudgeTimer = null;
+  function scheduleNudge() {
+    clearTimeout(nudgeTimer);
+    document.querySelectorAll(".key.nudge").forEach((k) => k.classList.remove("nudge"));
+    if (!game || game.over || !game.mode.fewKeys) return;
+    const g = game;
+    nudgeTimer = setTimeout(() => {
+      if (game !== g || game.over) return;
+      if (entrance) return scheduleNudge(); // wait until the cart has rolled in
+      const next = [...game.word].find((ch) => /[a-z]/.test(ch) && !game.guessed.has(ch));
+      const key = next && document.querySelector(`.key[data-letter="${next}"]`);
+      if (!key) return;
+      key.classList.add("nudge");
+      speak(`Find the ${letterName(next)}!`);
+    }, NUDGE_AFTER);
+  }
+
+  // ---------- Kids' levels: every right letter gets a little celebration ----------
+  function celebrateLetter(letter) {
+    document.querySelectorAll("#wordBox .slot").forEach((slot, i) => { if (game.word[i] === letter) slot.classList.add("found"); });
+    const head = document.querySelector('#hangee [data-piece="head"].on');
+    if (head) replay(head, "giggle");
+    replay($("klaus"), "hop");
+    setTimeout(() => play("toot"), 150);
+  }
+
+  // ---------- Kids' levels: tap things in the scene and they react ----------
+  const TAP_LINES = {
+    klaus:  ["*TOOT TOOT!*", "Achtung! Tickles!", "Ze bugle says hello!"],
+    gerard: ["Bonjour, mon ami!", "Ooh la la!", "Want some baguette?"],
+    margot: ["Hello, dear!", "Careful with my pitchfork!", "Aren't you clever!"],
+    pip:    ["Hi! Hi! Hi!", "Wanna hold my balloon?", "You're my best friend!"]
+  };
+  const GIGGLES = ["Hee hee!", "That tickles!", "Teehee!", "Again! Again!"];
+  const canTap = (el) => {
+    if (!game || !game.mode.kid || entrance || $("game").classList.contains("hidden")) return false;
+    if (el._tapped && performance.now() - el._tapped < 800) return false; // no machine-gun tapping
+    el._tapped = performance.now();
+    return true;
+  };
+  // Your character giggles
+  $("hangee").addEventListener("click", () => {
+    const head = document.querySelector('#hangee [data-piece="head"].on');
+    if (!head || !canTap(head)) return;
+    replay(head, "giggle");
+    play("giggle");
+    sayOver(head, pick(GIGGLES));
+  });
+  // The crowd says hello
+  for (const who of PEASANTS) $(who).addEventListener("click", () => {
+    if (!canTap($(who))) return;
+    replay($(who), "hop");
+    if (who === "klaus") play("toot");
+    const n = kidName();
+    say(who, n && Math.random() < 0.4 ? `Hi, ${n}!` : pick(TAP_LINES[who]));
+  });
+  // Tap Pip's balloon and it changes color (and the voice says which one, so kids learn their colors)
+  $("balloon").addEventListener("click", (e) => {
+    e.stopPropagation(); // Pip doesn't also say hello
+    if (!canTap($("balloon"))) return;
+    const name = BALLOON_COLOR_NAMES[changeBalloon()];
+    play("boing");
+    say("pip", `Ooh, ${name}!`);
+    speak(`${name[0].toUpperCase()}${name.slice(1)}!`);
+  });
+
+  // Tap the cloud and it rains on Klaus, and only Klaus. Sometimes he remembers his umbrella.
+  const RAIN_CLOUD = `<path d="M-22 6 q-11 0 -9 -9 q2 -9 13 -7 q5 -10 16 -5 q11 -5 14 6 q10 2 6 10 q-2 5 -8 5 Z" fill="#adb5bd"/>
+    <g class="rain" stroke="#7aa5d6" stroke-width="2"><path d="M-16 12 l-3 9 M-6 14 l-3 9 M4 12 l-3 9 M14 14 l-3 9 M-11 26 l-3 9 M-1 28 l-3 9 M9 26 l-3 9"/></g>`;
+  let lastShower = -Infinity;
+  $("cloud").addEventListener("click", () => {
+    if (performance.now() - lastShower < 3500 || crowdAway || !canTap($("cloud"))) return; // one shower at a time
+    lastShower = performance.now();
+    const g = game, klaus = $("klaus");
+    const shower = document.createElementNS(SVG_NS, "g");
+    shower.setAttribute("transform", "translate(178 96)"); // just above Klaus's helmet, below the swing's balloons
+    shower.innerHTML = RAIN_CLOUD;
+    $("lettuceLayer").appendChild(shower);
+    play("rain");
+    const dry = Math.random() < 0.4;
+    setTimeout(() => {
+      if (game !== g) return;
+      if (dry) {
+        klaus.classList.add("brolly");
+        play("pop");
+        setTimeout(() => { if (game === g) say("klaus", pick(["Ha! Not today, cloud!", "I came prepared!"])); }, 1700); // after the rain, so his bubble doesn't hide it
+      } else {
+        replay(klaus, "hop");
+        play("splat");
+        setTimeout(() => { if (game === g) say("klaus", pick(["Achtung! I'm soaked!", "Why always ME?!", "Brrr! Who did zat?!"])); }, 1700);
+        for (let i = 0; i < 3; i++) setTimeout(() => leaveMark('<path class="drip" d="M0 0 q-3 5 0 7 q3 -2 0 -7 Z" fill="#7aa5d6" stroke="none"/>', [168 + i * 8, 150]), i * 200);
+      }
+    }, 700);
+    setTimeout(() => { shower.remove(); klaus.classList.remove("brolly"); }, 2800);
+  });
+
+  // Visitors react too, and a cow you tap... well. (Once per cow.)
+  $("spectators").addEventListener("click", (e) => {
+    const s = e.target.closest(".spectator");
+    if (!s || s.dataset.leaving || !canTap(s)) return;
+    replay(s.querySelector(".bob"), "hop");
+    if (s.dataset.type === "cow" && !s.dataset.pooped && !s.classList.contains("walking")) return cowPoop(s);
+    const kind = SPECTATORS[s.dataset.type];
+    hush(s);
+    sayFromSpectator(s, kind.sound());
+    play(kind.sfx || (s.dataset.type === "cow" ? "moo" : "pop"));
+  });
+
   function guess(letter) {
     if (!game || game.over || game.guessed.has(letter) || !game.keys.includes(letter)) return;
     stopEntrance(); // guessing right away skips the entrance
@@ -5389,8 +5610,9 @@
     game.history.push(correct);
     game.streak = correct ? Math.max(0, game.streak) + 1 : Math.min(0, game.streak) - 1;
     play(correct ? "right" : "wrong");
-    if (correct && Math.random() < 0.4) play("boo"); // the crowd hates it when you're right
+    if (correct && Math.random() < 0.4 && !game.mode.kid) play("boo"); // the crowd hates it when you''re right (but not in the kids'' levels)
     finishTurn(letter, correct, false);
+    if (correct && game.mode.kid) celebrateLetter(letter);
   }
 
   // Pip's balloon starts red each game, then changes color once or twice along the way
@@ -5403,11 +5625,14 @@
     return Math.random() < 0.5 ? [first] : [first, second];
   }
 
+  const BALLOON_COLOR_NAMES = { "#ffd166": "yellow", "#4d7cff": "blue", "#52b788": "green", "#c77dff": "purple", "#ff8fab": "pink", "#ff9f1c": "orange", "#4cc9f0": "light blue" };
   function changeBalloon() {
     const now = document.querySelector(".balloonskin").style.fill;
     const swatch = document.createElement("i");
-    setBalloonColor(pick(BALLOON_SHADES.filter((c) => { swatch.style.color = c; return swatch.style.color !== now; })));
+    const color = pick(BALLOON_SHADES.filter((c) => { swatch.style.color = c; return swatch.style.color !== now; }));
+    setBalloonColor(color);
     replay($("pip"), "hop");
+    return color;
   }
 
   // Everything that happens after a guess (or a bribe)
@@ -5446,8 +5671,7 @@
     if (game.mode.kid) {
       // A cow wanders up now and then (always early in the game, and it usually poops). Kids love it, so it doesn't count toward the limit.
       if (game.history.length === 2 || ((game.cows || 0) < KID_COWS && Math.random() < 0.25)) { game.cows = (game.cows || 0) + 1; game.lastGag = game.history.length; cowVisit(); }
-      // ...or a princess charms the swing (once it's up), or Pip throws a frisbee for Biscuit (once a game each)
-      else if (!game.charmed && game.history.length > 2 && $("scene").querySelector('[data-piece="rope"].on') && Math.random() < odds("charm", 0.2) && gag("charm")) { game.charmed = true; soon(princessVisit, 900); }
+      // ...or Pip throws a frisbee for Biscuit (once a game). (The princess, princessVisit, is resting: kids didn't notice her.)
       else if (!game.fetched && game.history.length > 1 && Math.random() < odds("frisbee", 0.2) && gag("frisbee")) { game.fetched = true; soon(frisbeeFetch, 900); }
       // ...or the sheep, Pip's bubbles, or the duck parade (once a game each)
       else if (!game.sheeped && game.history.length > 2 && Math.random() < odds("sheep", 0.15) && gag("sheep")) { game.sheeped = true; soon(sheepStampede, 900); }
@@ -5465,12 +5689,12 @@
       if (pierreFree && Math.random() < PIERRE_CHANCE) drunkVisit();
       if (Math.random() < 0.08) soon(birdMischief, 600);
     }
-    // Any mode: the ice cream truck comes by (once a game at most)
+    // Any mode: the ice cream truck comes by (once a game at most). The rain shower is grown-ups only: kids tap the cloud instead.
     if (!game.iceCream && game.history.length > 3 && Math.random() < 0.08 && gag("icecream")) { game.iceCream = true; soon(iceCreamTruck, 900); }
-    else if (!game.rained && game.history.length > 2 && Math.random() < 0.07 && gag("rain")) { game.rained = true; soon(rainShower, 900); }
-    // Any mode: Henri comes to paint, and the squirrel comes for Klaus (once a game each at most)
-    if (!game.painted && game.history.length > 2 && Math.random() < 0.08 && gag("painter")) { game.painted = true; soon(painterVisit, 900); }
-    if (!game.squirreled && game.history.length > 1 && Math.random() < 0.09 && gag("squirrel")) { game.squirreled = true; soon(squirrelVisit, 1100); }
+    else if (!game.mode.kid && !game.rained && game.history.length > 2 && Math.random() < 0.07 && gag("rain")) { game.rained = true; soon(rainShower, 900); }
+    // Grown-up modes: Henri comes to paint, and the squirrel comes for Klaus (once a game each at most). Too small for kids to notice.
+    if (!game.mode.kid && !game.painted && game.history.length > 2 && Math.random() < 0.08 && gag("painter")) { game.painted = true; soon(painterVisit, 900); }
+    if (!game.mode.kid && !game.squirreled && game.history.length > 1 && Math.random() < 0.09 && gag("squirrel")) { game.squirreled = true; soon(squirrelVisit, 1100); }
     // Any mode: Margot starts a garden, one flower at a time, until the cow finds it
     if (!game.garden && game.history.length > 1 && Math.random() < odds("garden", 0.1) && gag("garden")) { game.garden = []; soon(plantFlower, 900); }
     else if (game.garden && !game.gardenEaten) {
@@ -5546,6 +5770,7 @@
       if (ch === " ") slot.classList.add("gap");
       else if (!/[a-z]/.test(ch)) { slot.classList.add("extra"); slot.textContent = ch; }
       else if (game.guessed.has(ch)) slot.textContent = ch;
+      else if (game.mode.fewKeys && !game.over) { slot.textContent = ch; slot.classList.add("ghost"); }
       else if (game.over) { slot.textContent = ch; slot.classList.add("missed"); }
       box.appendChild(slot);
     }
@@ -5579,6 +5804,7 @@
     const swing = $("swing");
     if (swing.getAttribute("dur") !== SWING_SPEED[mood]) swing.setAttribute("dur", SWING_SPEED[mood]);
     if (game.mode.kid) updateBalloons();
+    scheduleNudge(); // Big Kids: restart the "stuck?" timer after every guess
 
     // Keyboard colors
     document.querySelectorAll(".key").forEach((btn) => {
