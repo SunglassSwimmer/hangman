@@ -308,8 +308,7 @@
   .slot.gap { border-bottom-color: transparent; width: 14px; }
   .slot.extra { border-bottom-color: transparent; }
   .slot.missed { color: #e05561; }
-  /* Big Kids: the word is shown faintly, so they can match letter shapes before they can spell */
-  .slot.ghost { color: var(--muted); opacity: .35; }
+
   .slot.found { animation: found .55s cubic-bezier(.3, 1.6, .5, 1); }
   @keyframes found { from { transform: scale(1.8); color: #2f9e63; } }
   /* ...and if they get stuck, the next letter's button glows */
@@ -2000,8 +1999,9 @@
   function welcomeKid() {
     const n = rawKidName();
     if (!n || game.retry) return say(pick(PEASANTS), kidGreeting());
-    say(pick(PEASANTS), `Here comes ${kidName()}!`);
-    speak(`Here comes ${n}!`);
+    const who = pick(PEASANTS);
+    say(who, `Here comes ${kidName()}!`);
+    speak(`Here comes ${n}!`, who);
   }
   const rawKidName = () => { try { return (localStorage.getItem("hangman-kidname") || "").trim(); } catch (e) { return ""; } };
   const kidName = () => escapeHtml(rawKidName());
@@ -4096,15 +4096,28 @@
     speechSynthesis.addEventListener("voiceschanged", pickVoice); // some browsers load their voices late
   }
 
-  function speak(text) {
+  // How fast the voice talks: a touch slower for the youngest
+  const SPEECH_RATE = { little: 0.72, easy: 0.8 };
+  // Each character sounds a bit different (where the device's voice allows it): Klaus low, Pip squeaky
+  const VOICE_PITCH = { klaus: 0.7, gerard: 0.9, margot: 1.15, pip: 1.6, hero: 1.35 };
+
+  // who: optional, to use that character's pitch
+  function speak(text, who) {
     if (muted || !("speechSynthesis" in window) || !text) return;
     try {
       speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
+      const u = new SpeechSynthesisUtterance(text.replace(/\*/g, "")); // "*TOOT TOOT*" is read as "toot toot"
       if (bestVoice) u.voice = bestVoice;
-      u.rate = game && game.mode.kid ? 0.8 : 0.9; // a little slower for kids
+      u.rate = (game && SPEECH_RATE[game.modeKey]) || 0.9;
+      if (who && VOICE_PITCH[who]) u.pitch = VOICE_PITCH[who];
       speechSynthesis.speak(u);
     } catch (e) {}
+  }
+
+  // A speech bubble that's also read out loud (for kids who can't read the bubbles yet)
+  function sayAloud(who, text) {
+    say(who, escapeHtml(text));
+    speak(text, who);
   }
   function play(name) { try { SFX[name](); } catch (e) {} }
 
@@ -5491,7 +5504,7 @@
   }
 
   // ---------- Big Kids: a gentle nudge when they're stuck ----------
-  const NUDGE_AFTER = 7000; // milliseconds without a guess
+  const NUDGE_AFTER = 10000; // milliseconds without a guess (time to sound it out together first)
   let nudgeTimer = null;
   function scheduleNudge() {
     clearTimeout(nudgeTimer);
@@ -5538,15 +5551,17 @@
     if (!head || !canTap(head)) return;
     replay(head, "giggle");
     play("giggle");
-    sayOver(head, pick(GIGGLES));
+    const giggle = pick(GIGGLES);
+    sayOver(head, giggle);
+    speak(giggle, "hero");
   });
   // The crowd says hello
   for (const who of PEASANTS) $(who).addEventListener("click", () => {
     if (!canTap($(who))) return;
     replay($(who), "hop");
     if (who === "klaus") play("toot");
-    const n = kidName();
-    say(who, n && Math.random() < 0.4 ? `Hi, ${n}!` : pick(TAP_LINES[who]));
+    const n = rawKidName();
+    sayAloud(who, n && Math.random() < 0.4 ? `Hi, ${n}!` : pick(TAP_LINES[who]));
   });
   // Tap Pip's balloon and it changes color (and the voice says which one, so kids learn their colors)
   $("balloon").addEventListener("click", (e) => {
@@ -5554,8 +5569,7 @@
     if (!canTap($("balloon"))) return;
     const name = BALLOON_COLOR_NAMES[changeBalloon()];
     play("boing");
-    say("pip", `Ooh, ${name}!`);
-    speak(`${name[0].toUpperCase()}${name.slice(1)}!`);
+    sayAloud("pip", `Ooh, ${name}!`);
   });
 
   // Tap the cloud and it rains on Klaus, and only Klaus. Sometimes he remembers his umbrella.
@@ -5577,11 +5591,11 @@
       if (dry) {
         klaus.classList.add("brolly");
         play("pop");
-        setTimeout(() => { if (game === g) say("klaus", pick(["Ha! Not today, cloud!", "I came prepared!"])); }, 1700); // after the rain, so his bubble doesn't hide it
+        setTimeout(() => { if (game === g) sayAloud("klaus", pick(["Ha! Not today, cloud!", "I came prepared!"])); }, 1700); // after the rain, so his bubble doesn't hide it
       } else {
         replay(klaus, "hop");
         play("splat");
-        setTimeout(() => { if (game === g) say("klaus", pick(["Achtung! I'm soaked!", "Why always ME?!", "Brrr! Who did zat?!"])); }, 1700);
+        setTimeout(() => { if (game === g) sayAloud("klaus", pick(["Achtung! I'm soaked!", "Why always ME?!", "Brrr! Who did zat?!"])); }, 1700);
         for (let i = 0; i < 3; i++) setTimeout(() => leaveMark('<path class="drip" d="M0 0 q-3 5 0 7 q3 -2 0 -7 Z" fill="#7aa5d6" stroke="none"/>', [168 + i * 8, 150]), i * 200);
       }
     }, 700);
@@ -5596,8 +5610,10 @@
     if (s.dataset.type === "cow" && !s.dataset.pooped && !s.classList.contains("walking")) return cowPoop(s);
     const kind = SPECTATORS[s.dataset.type];
     hush(s);
-    sayFromSpectator(s, kind.sound());
+    const sound = kind.sound();
+    sayFromSpectator(s, sound);
     play(kind.sfx || (s.dataset.type === "cow" ? "moo" : "pop"));
+    speak(sound);
   });
 
   function guess(letter) {
@@ -5770,7 +5786,6 @@
       if (ch === " ") slot.classList.add("gap");
       else if (!/[a-z]/.test(ch)) { slot.classList.add("extra"); slot.textContent = ch; }
       else if (game.guessed.has(ch)) slot.textContent = ch;
-      else if (game.mode.fewKeys && !game.over) { slot.textContent = ch; slot.classList.add("ghost"); }
       else if (game.over) { slot.textContent = ch; slot.classList.add("missed"); }
       box.appendChild(slot);
     }
