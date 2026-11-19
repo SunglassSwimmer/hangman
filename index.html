@@ -1523,7 +1523,7 @@
     <div class="flash" id="flash"></div>
     </div>
     <!-- right under the scene, so kids can tap it while they're still looking at Gerald -->
-    <div class="spyrow"><button class="chip spybtn hidden" id="spyBtn">🔍 I spy Gerald!</button></div>
+    <div class="spyrow"><button class="chip spybtn hidden" id="spyBtn">🔍 I spy Gerald!</button> <button class="chip spybtn hidden" id="askBtn">🙋 Ask Pip!</button></div>
 
     <div class="pichint" id="picHint"></div>
     <p class="hint" id="hintText"></p>
@@ -5523,25 +5523,51 @@
     }
   }
 
-  // ---------- Big Kids: a gentle nudge when they're stuck ----------
-  const NUDGE_AFTER = 10000; // milliseconds without a guess (time to sound it out together first)
-  let nudgeTimer = null;
-  function scheduleNudge() {
-    clearTimeout(nudgeTimer);
-    document.querySelectorAll(".key.nudge").forEach((k) => k.classList.remove("nudge"));
-    if (!game || game.over || !game.mode.fewKeys) return;
-    const g = game;
-    nudgeTimer = setTimeout(() => {
-      if (game !== g || game.over) return;
-      if (entrance) return scheduleNudge(); // wait until the cart has rolled in
-      const next = [...game.word].find((ch) => /[a-z]/.test(ch) && !game.guessed.has(ch));
-      const key = next && document.querySelector(`.key[data-letter="${next}"]`);
-      if (!key) return;
-      key.classList.add("nudge");
-      speak(`Find the ${letterName(next)}!`);
-    }, NUDGE_AFTER);
-  }
+  // ---------- Big Kids: "Ask Pip!" when they're stuck ----------
+  // Help only comes when the kid asks for it, so the default is to think first. The first ask is a puzzle, not the
+  // answer: Pip names a word that STARTS with the next letter ("It's the letter at the start of rabbit!"), so the kid
+  // has to connect the sound to a letter. The second ask makes that letter's button glow. After that, it's up to them.
+  const ASKS_PER_WORD = 2;
+  const LETTER_EXAMPLES = {
+    a: [["apple", "🍎"], ["alligator", "🐊"]], b: [["bear", "🐻"], ["ball", "⚽"]], c: [["cat", "🐱"], ["cake", "🎂"]],
+    d: [["dog", "🐶"], ["duck", "🦆"]], e: [["egg", "🥚"], ["elephant", "🐘"]], f: [["fish", "🐟"], ["frog", "🐸"]],
+    g: [["goat", "🐐"], ["grapes", "🍇"]], h: [["horse", "🐴"], ["hat", "🎩"]], i: [["insect", "🐛"], ["iguana", "🦎"]],
+    j: [["juice", "🧃"], ["jacket", "🧥"]], k: [["kite", "🪁"], ["king", "🤴"]], l: [["lion", "🦁"], ["leaf", "🍃"]],
+    m: [["monkey", "🐵"], ["moon", "🌙"]], n: [["nose", "👃"], ["nut", "🥜"]], o: [["octopus", "🐙"], ["orange", "🍊"]],
+    p: [["pig", "🐷"], ["pizza", "🍕"]], q: [["queen", "👸"], ["question", "❓"]], r: [["rabbit", "🐰"], ["rainbow", "🌈"]],
+    s: [["sun", "☀️"], ["snake", "🐍"]], t: [["tiger", "🐯"], ["train", "🚂"]], u: [["umbrella", "☂️"], ["unicorn", "🦄"]],
+    v: [["violin", "🎻"], ["volcano", "🌋"]], w: [["whale", "🐳"], ["watermelon", "🍉"]], x: [["fox", "🦊"], ["box", "📦"]],
+    y: [["yo-yo", "🪀"], ["yarn", "🧶"]], z: [["zebra", "🦓"], ["zipper", "🤐"]]
+  };
+  const nextLetter = () => [...game.word].find((ch) => /[a-z]/.test(ch) && !game.guessed.has(ch));
 
+  function askPip() {
+    if (!game || game.over || !game.mode.fewKeys || entrance) return;
+    replay($("pip"), "hop");
+    const next = nextLetter();
+    if (!next) return;
+    game.asks = (game.asks || 0) + 1;
+    if (game.asks > ASKS_PER_WORD) return sayAloud("pip", pick(["You can do it! Try one!", "Have a go! Any letter!", "I think you know this one!"]));
+    if (game.asks === 1) {
+      // A word that uses the letter (and isn't the word they're solving)
+      const [word, pic] = LETTER_EXAMPLES[next].find(([w]) => w !== game.word) || LETTER_EXAMPLES[next][0];
+      const where = next === "x" ? "end" : "start"; // no common words start with X
+      play("pop");
+      say("pip", `It's the letter at the ${where} of ${pic} ${escapeHtml(word)}!`);
+      speak(`It's the letter at the ${where} of... ${word}! ${word}!`, "pip");
+      return;
+    }
+    // Second ask: the button glows
+    const key = document.querySelector(`.key[data-letter="${next}"]`);
+    if (key) key.classList.add("nudge");
+    sayAloud("pip", `Find the ${letterName(next)}!`);
+  }
+  $("askBtn").addEventListener("click", askPip);
+
+  // A guess clears the glow
+  function clearNudge() {
+    document.querySelectorAll(".key.nudge").forEach((k) => k.classList.remove("nudge"));
+  }
   // ---------- Kids' levels: every right letter gets a little celebration ----------
   function celebrateLetter(letter) {
     document.querySelectorAll("#wordBox .slot").forEach((slot, i) => { if (game.word[i] === letter) slot.classList.add("found"); });
@@ -5832,6 +5858,7 @@
     $("scene").dataset.sky = sky;
     $("bribeBtn").classList.toggle("hidden", !canBribe());
     $("spyBtn").classList.toggle("hidden", !game.mode.kid || game.over);
+    $("askBtn").classList.toggle("hidden", !game.mode.fewKeys || game.over);
 
     // Picture clue (little kids' words): a helping hand once they're halfway through their guesses
     const showPic = game.info.pic && (game.over || game.mode.pictureFirst || game.wrong >= PICTURE_AFTER);
@@ -5839,7 +5866,7 @@
     const swing = $("swing");
     if (swing.getAttribute("dur") !== SWING_SPEED[mood]) swing.setAttribute("dur", SWING_SPEED[mood]);
     if (game.mode.kid) updateBalloons();
-    scheduleNudge(); // Big Kids: restart the "stuck?" timer after every guess
+    clearNudge(); // Big Kids: a guess clears Pip's glowing hint
 
     // Keyboard colors
     document.querySelectorAll(".key").forEach((btn) => {
